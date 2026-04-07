@@ -20,4 +20,9 @@ class PayrollGroup extends Model
     {
         return $this->hasMany(Payroll::class);
     }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }

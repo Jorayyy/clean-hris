@@ -13,6 +13,8 @@ class Employee extends Model
         'employee_id', 'web_bundy_code', 'first_name', 'last_name', 'email', 'position', 'daily_rate', 'status', 'payroll_group_id'
     ];
 
+    protected $appends = ['full_name'];
+
     public function payrollGroup()
     {
         return $this->belongsTo(PayrollGroup::class);
@@ -28,8 +30,18 @@ class Employee extends Model
         return $this->hasMany(PayrollItem::class);
     }
 
-    public function getFullNameAttribute()
+    public function schedules()
     {
-        return "{$this->first_name} {$this->last_name}";
+        return $this->hasMany(Schedule::class);
+    }
+
+    public function getActiveScheduleAttribute()
+    {
+        // Check for specific individual schedule first
+        $individual = $this->schedules()->first();
+        if ($individual) return $individual;
+
+        // Otherwise, use group schedule
+        return $this->payrollGroup?->schedules()->first();
     }
 }

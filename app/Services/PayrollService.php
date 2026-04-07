@@ -79,21 +79,42 @@ class PayrollService
         });
     }
 
-    public function calculateAttendanceStats($timeIn, $timeOut)
+    public function calculateAttendanceStats($timeIn, $timeOut, $employeeId = null, $date = null)
     {
         $in = Carbon::parse($timeIn);
         $out = Carbon::parse($timeOut);
-        
+
+        // Ensure total hours is positive (handles out > in correctly)
+        // If out is 17:00 and in is 08:00, diff is 9 hours
         $totalHours = $out->diffInMinutes($in) / 60;
         
-        $scheduleIn = Carbon::parse($in->toDateString() . ' 08:00:00');
-        $scheduleOut = Carbon::parse($in->toDateString() . ' 17:00:00');
+        // Default fallbacks
+        $scheduleInTime = '08:00:00';
+        $scheduleOutTime = '17:00:00';
+
+        // Try to get actual schedule if employee provided
+        if ($employeeId) {
+            $employee = \App\Models\Employee::find($employeeId);
+            $schedule = $employee?->active_schedule;
+            if ($schedule) {
+                // If specific date provided, check if scheduled for that day
+                $dayName = $date ? Carbon::parse($date)->format('l') : null;
+                if (!$dayName || (is_array($schedule->days) && in_array($dayName, $schedule->days))) {
+                    $scheduleInTime = $schedule->time_in;
+                    $scheduleOutTime = $schedule->time_out;
+                }
+            }
+        }
+
+        $datePrefix = $date ?? $in->toDateString();
+        $scheduleIn = Carbon::parse($datePrefix . ' ' . $scheduleInTime);
+        $scheduleOut = Carbon::parse($datePrefix . ' ' . $scheduleOutTime);
 
         $lateMinutes = $in->greaterThan($scheduleIn) ? $in->diffInMinutes($scheduleIn) : 0;
         $undertimeMinutes = $out->lessThan($scheduleOut) ? $scheduleOut->diffInMinutes($out) : 0;
 
         return [
-            'total_hours' => round($totalHours, 2),
+            'total_hours' => abs(round($totalHours, 2)),
             'late_minutes' => $lateMinutes,
             'undertime_minutes' => $undertimeMinutes,
         ];

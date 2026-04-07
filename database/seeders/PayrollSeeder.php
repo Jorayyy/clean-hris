@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\Payroll;
+use App\Models\PayrollGroup;
 use App\Services\PayrollService;
 use Carbon\Carbon;
 
@@ -13,26 +14,35 @@ class PayrollSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Create Sample Employees
-        $emp1 = Employee::create([
-            'employee_id' => 'EMP-001',
-            'first_name' => 'John',
-            'last_name' => 'Doe',
-            'email' => 'john@admin.com',
-            'position' => 'Senior Developer',
-            'daily_rate' => 1200.00,
-            'status' => 'active',
-        ]);
+        // 0. Create Payroll Group
+        $group = PayrollGroup::firstOrCreate(['name' => 'Monthly Staff'], ['description' => 'Regular monthly employees']);
 
-        $emp2 = Employee::create([
-            'employee_id' => 'EMP-002',
-            'first_name' => 'Jane',
-            'last_name' => 'Smith',
-            'email' => 'jane@hr.com',
-            'position' => 'HR Manager',
-            'daily_rate' => 1000.00,
-            'status' => 'active',
-        ]);
+        // 1. Create Sample Employees
+        $emp1 = Employee::updateOrCreate(
+            ['employee_id' => 'EMP-001'],
+            [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john@admin.com',
+                'position' => 'Senior Developer',
+                'daily_rate' => 1200.00,
+                'status' => 'active',
+                'payroll_group_id' => $group->id,
+            ]
+        );
+
+        $emp2 = Employee::updateOrCreate(
+            ['employee_id' => 'EMP-002'],
+            [
+                'first_name' => 'Jane',
+                'last_name' => 'Smith',
+                'email' => 'jane@hr.com',
+                'position' => 'HR Manager',
+                'daily_rate' => 1000.00,
+                'status' => 'active',
+                'payroll_group_id' => $group->id,
+            ]
+        );
 
         // 2. Create Attendance for last week (Mon-Fri)
         $monday = Carbon::now()->startOfWeek();
@@ -67,6 +77,7 @@ class PayrollSeeder extends Seeder
             'end_date' => $monday->copy()->addDays(4)->format('Y-m-d'),
             'pay_date' => $monday->copy()->addDays(4)->format('Y-m-d'),
             'status' => 'draft',
+            'payroll_group_id' => $group->id,
         ]);
     }
 }

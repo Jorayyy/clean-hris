@@ -21,6 +21,7 @@
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('admin.dashboard') }}">Dashboard</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('employees.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employees.index') }}">Employees</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('payroll-groups.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('payroll-groups.index') }}">Groups</a></li>
+                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('schedules.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('schedules.index') }}">Schedules</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('attendance.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('attendance.index') }}">Attendance</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('payroll.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('payroll.index') }}">Payroll</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('salaries.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('salaries.index') }}">Salaries History</a></li>

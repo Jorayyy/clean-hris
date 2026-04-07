@@ -41,7 +41,12 @@ class AttendanceController extends Controller
             'time_out' => 'required',
         ]);
 
-        $stats = $this->payrollService->calculateAttendanceStats($request->time_in, $request->time_out);
+        $stats = $this->payrollService->calculateAttendanceStats(
+            $request->time_in, 
+            $request->time_out, 
+            $request->employee_id, 
+            $request->date
+        );
         
         Attendance::create(array_merge($request->all(), $stats));
         return redirect()->route('attendance.index');
@@ -62,7 +67,12 @@ class AttendanceController extends Controller
             'time_out' => 'required',
         ]);
 
-        $stats = $this->payrollService->calculateAttendanceStats($request->time_in, $request->time_out);
+        $stats = $this->payrollService->calculateAttendanceStats(
+            $request->time_in, 
+            $request->time_out, 
+            $request->employee_id, 
+            $request->date
+        );
         $attendance->update(array_merge($request->all(), $stats));
         return redirect()->route('attendance.index');
     }

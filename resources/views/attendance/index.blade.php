@@ -21,31 +21,45 @@
                 <thead>
                     <tr>
                         <th>Employee</th>
+                        <th>Schedule</th>
                         <th>Date</th>
                         <th>Time In</th>
                         <th>Time Out</th>
                         <th>Hours</th>
-                        <th>Late/Undertime</th>
+                        <th>Late/UT</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($attendances as $row)
+                    @php
+                        $sched = $row->employee->active_schedule;
+                    @endphp
                     <tr>
-                        <td>{{ $row->employee->full_name }}</td>
+                        <td>
+                            <strong>{{ $row->employee->full_name }}</strong><br>
+                            <small class="text-muted">{{ $row->employee->employee_id }}</small>
+                        </td>
+                        <td>
+                            @if($sched)
+                                <small>{{ $sched->time_in }} - {{ $sched->time_out }}</small>
+                            @else
+                                <small class="text-muted">Standard 8-5</small>
+                            @endif
+                        </td>
                         <td>{{ $row->date }}</td>
-                        <td>{{ $row->time_in }}</td>
-                        <td>{{ $row->time_out }}</td>
+                        <td>{{ date('h:i A', strtotime($row->time_in)) }}</td>
+                        <td>{{ date('h:i A', strtotime($row->time_out)) }}</td>
                         <td>{{ number_format($row->total_hours, 2) }}</td>
                         <td>
                             @if($row->late_minutes > 0)
-                                <span class="text-danger small">L:{{ $row->late_minutes }}m </span>
+                                <span class="badge bg-danger">L:{{ $row->late_minutes }}m</span>
                             @endif
                             @if($row->undertime_minutes > 0)
-                                <span class="text-danger small">U:{{ $row->undertime_minutes }}m</span>
+                                <span class="badge bg-warning text-dark">U:{{ $row->undertime_minutes }}m</span>
                             @endif
                             @if(!$row->late_minutes && !$row->undertime_minutes)
-                                Perfect
+                                <span class="badge bg-success">Perfect</span>
                             @endif
                         </td>
                         <td>

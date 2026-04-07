@@ -15,12 +15,15 @@ use App\Http\Middleware\EmployeeMiddleware;
 use App\Http\Controllers\Employee\AttendanceController as EmployeeAttendanceController;
 use App\Http\Controllers\Employee\SupportTicketController as EmployeeTicketController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminTicketController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\Employee\AttendanceCalendarController;
 use App\Http\Controllers\WebBundyController;
 
 // Public login/bundy routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/web-bundy', [WebBundyController::class, 'showBundy'])->name('bundy.show');
 Route::post('/web-bundy/punch', [WebBundyController::class, 'punch'])->name('bundy.punch');
 
 Route::get('/', function () {
@@ -34,6 +37,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::resource('attendance', AttendanceController::class);
     Route::resource('payroll', PayrollController::class);
     Route::resource('payroll-groups', PayrollGroupController::class);
+    Route::resource('schedules', ScheduleController::class);
     
     Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
     Route::get('salaries/{salary}/edit', [SalaryController::class, 'edit'])->name('salaries.edit');
@@ -52,7 +56,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 // Employee Protected Routes
 Route::middleware(['auth', EmployeeMiddleware::class])->prefix('employee')->group(function () {
     Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])->name('employee.dashboard');
-    Route::get('/attendance', [EmployeeAttendanceController::class, 'index'])->name('employee.attendance');
+    Route::get('/attendance', [AttendanceCalendarController::class, 'index'])->name('employee.attendance');
     Route::get('/payslip/{id}', [EmployeeDashboardController::class, 'showPayslip'])->name('employee.payslip');
     
     // Employee Tickets

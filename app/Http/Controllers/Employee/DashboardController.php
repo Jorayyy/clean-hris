@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $employee = \App\Models\Employee::where('employee_id', $user->employee_id)->first();
+        $employee = \App\Models\Employee::where('id', $user->employee_id)->first();
         
         if (!$employee) {
             return back()->with('error', 'User not linked to an employee profile.');
@@ -46,11 +46,11 @@ class DashboardController extends Controller
     public function showPayslip($id)
     {
         $employeeId = Auth::user()->employee_id;
-        $salary = PayrollItem::with(['payroll', 'employee'])
+        $item = PayrollItem::with(['payroll', 'employee'])
             ->where('id', $id)
             ->where('employee_id', $employeeId)
             ->firstOrFail();
 
-        return view('payroll.payslip', compact('salary'));
+        return view('payslip.show', compact('item'));
     }
 }
