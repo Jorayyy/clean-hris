@@ -24,6 +24,7 @@ class EmployeeController extends Controller
     {
         $request->validate([
             'employee_id' => 'required|unique:employees',
+            'web_bundy_code' => 'nullable|string',
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'required|email|unique:employees',

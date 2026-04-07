@@ -13,11 +13,15 @@
                     @if(isset($employee)) @method('PUT') @endif
                     
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Employee ID</label>
                             <input type="text" name="employee_id" class="form-control" value="{{ $employee->employee_id ?? '' }}">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label text-danger fw-bold">Web Bundy Code</label>
+                            <input type="text" name="web_bundy_code" class="form-control border-danger" value="{{ $employee->web_bundy_code ?? '' }}" placeholder="Security Code for Bundy">
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control" value="{{ $employee->email ?? '' }}">
                         </div>

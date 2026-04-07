@@ -10,7 +10,7 @@ class Employee extends Model
     use HasFactory;
 
     protected $fillable = [
-        'employee_id', 'first_name', 'last_name', 'email', 'position', 'daily_rate', 'status', 'payroll_group_id'
+        'employee_id', 'web_bundy_code', 'first_name', 'last_name', 'email', 'position', 'daily_rate', 'status', 'payroll_group_id'
     ];
 
     public function payrollGroup()

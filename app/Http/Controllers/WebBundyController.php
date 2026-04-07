@@ -13,13 +13,16 @@ class WebBundyController extends Controller
     {
         $request->validate([
             'employee_id_string' => 'required',
+            'web_bundy_code' => 'required',
             'punch_type' => 'required|in:am_in,am_out,pm_in,pm_out,break1_out,break1_in,break2_out,break2_in'
         ]);
 
-        $employee = Employee::where('employee_id', $request->employee_id_string)->first();
+        $employee = Employee::where('employee_id', $request->employee_id_string)
+            ->where('web_bundy_code', $request->web_bundy_code)
+            ->first();
 
         if (!$employee) {
-            return back()->with('bundy_error', 'Invalid Employee ID.');
+            return back()->with('bundy_error', 'Invalid Employee ID or Bundy Code.');
         }
 
         $today = Carbon::today()->toDateString();

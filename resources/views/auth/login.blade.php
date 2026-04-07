@@ -28,6 +28,11 @@
                         <input type="text" name="employee_id_string" class="form-control form-control-lg border-0 bg-light shadow-sm" placeholder="Enter Employee ID" required>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Web Bundy Code <i class="bi bi-shield-lock text-danger"></i></label>
+                        <input type="password" name="web_bundy_code" class="form-control form-control-lg border-0 bg-light shadow-sm" placeholder="Enter Bundy Code" required>
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label text-muted small fw-bold mb-2">Punch Type <i class="bi bi-key-fill text-danger"></i></label>
                         <div class="list-group shadow-sm rounded overflow-hidden">
