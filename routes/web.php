@@ -52,6 +52,17 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::post('/payroll/{payroll}/process', [PayrollController::class, 'processPayroll'])->name('payroll.process');
     Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');
 
+    // DTR Management
+    Route::prefix('admin/dtrs')->name('admin.dtrs.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\DtrController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\DtrController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\DtrController::class, 'store'])->name('store');
+        Route::get('/{dtr}', [App\Http\Controllers\Admin\DtrController::class, 'show'])->name('show');
+        Route::patch('/{dtr}/verify', [App\Http\Controllers\Admin\DtrController::class, 'verify'])->name('verify');
+        Route::patch('/{dtr}/finalize', [App\Http\Controllers\Admin\DtrController::class, 'finalize'])->name('finalize');
+        Route::delete('/{dtr}', [App\Http\Controllers\Admin\DtrController::class, 'destroy'])->name('destroy');
+    });
+
     // Admin Tickets
     Route::get('admin/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');
     Route::get('admin/tickets/{id}', [AdminTicketController::class, 'show'])->name('admin.tickets.show');

@@ -13,8 +13,9 @@
                     <div class="row items-center align-items-center mb-4">
                         <div class="col-md-4 text-center border-end">
                             <label class="form-label d-block fw-bold text-muted small text-uppercase">Current Logo</label>
-                            @if($settings->app_logo)
-                                <img src="{{ asset('storage/' . $settings->app_logo) }}" alt="App Logo" class="img-fluid rounded mb-3" style="max-height: 120px; object-fit: contain;">
+                            @php $logo = is_array($settings) ? ($settings['app_logo'] ?? null) : ($settings->app_logo ?? null); @endphp
+                            @if($logo)
+                                <img src="{{ asset('storage/' . $logo) }}" alt="App Logo" class="img-fluid rounded mb-3" style="max-height: 120px; object-fit: contain;">
                             @else
                                 <div class="bg-light rounded p-4 mb-3 text-muted">
                                     <i class="bi bi-image h1"></i><br>
@@ -25,7 +26,7 @@
                         <div class="col-md-8 ps-4">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">System Name</label>
-                                <input type="text" name="app_name" class="form-control" value="{{ $settings->app_name }}" required>
+                                <input type="text" name="app_name" class="form-control" value="{{ is_array($settings) ? ($settings['app_name'] ?? '') : ($settings->app_name ?? '') }}" required>
                                 <small class="text-muted">This name will appear in the navigation bar and page titles.</small>
                             </div>
                             

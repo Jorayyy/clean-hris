@@ -22,29 +22,30 @@
                 <tbody>
                     @foreach($payrolls as $row)
                     <tr>
-                        <td><strong>{{ $row->payroll_code }}</strong></td>
-                        <td><span class="badge bg-info text-dark">{{ $row->payrollGroup->name ?? 'All Groups' }}</span></td>
-                        <td>{{ $row->start_date }} to {{ $row->end_date }}</td>
-                        <td>{{ $row->pay_date }} (Friday)</td>
+                        <td><span class="fw-bold text-dark"><i class="bi bi-hash small text-muted"></i>{{ $row->payroll_code }}</span></td>
+                        <td><span class="badge bg-secondary text-white fw-medium">{{ $row->payrollGroup->name ?? 'All Groups' }}</span></td>
+                        <td><small class="text-muted"><i class="bi bi-calendar-range me-1"></i></small> {{ $row->start_date }} to {{ $row->end_date }}</td>
+                        <td><small class="text-success fw-bold"><i class="bi bi-wallet2 me-1"></i></small> {{ $row->pay_date }}</td>
                         <td>
                             @if($row->status == 'draft')
-                                <span class="badge bg-warning text-dark">Draft</span>
+                                <span class="badge rounded-pill bg-warning text-dark px-3 shadow-sm border"><i class="bi bi-pencil me-1"></i>Draft</span>
                             @else
-                                <span class="badge bg-success">Processed</span>
+                                <span class="badge rounded-pill bg-success text-white px-3 shadow-sm border"><i class="bi bi-check-circle me-1"></i>Processed</span>
                             @endif
                         </td>
                         <td>
-                            <div class="btn-group">
-                                <a href="{{ route('payroll.show', $row->id) }}" class="btn btn-sm btn-outline-primary">View</a>
-                                @if($row->status == 'draft')
-                                    <form action="{{ route('payroll.process', $row->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button class="btn btn-sm btn-success" onclick="return confirm('Process this payroll batch now?')">Run Payroll</button>
-                                    </form>
-                                @endif
+                            <div class="btn-group shadow-sm">
+                                <a href="{{ route('payroll.show', $row->id) }}" class="btn btn-sm btn-outline-primary" title="Details">
+                                    <i class="bi bi-eye-fill"></i> View
+                                </a>
+                                <a href="{{ route('payroll.edit', $row->id) }}" class="btn btn-sm btn-outline-info" title="Edit Period">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
                                 <form action="{{ route('payroll.destroy', $row->id) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Archive?')">X</button>
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Permanently delete this period? This action cannot be undone.')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
                                 </form>
                             </div>
                         </td>

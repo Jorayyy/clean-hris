@@ -51,7 +51,9 @@
                                     </td>
                                     <td class="small">{{ $ticket->created_at->format('M d, Y h:i A') }}</td>
                                     <td>
-                                        <a href="{{ route('admin.tickets.show', $ticket->id) }}" class="btn btn-sm btn-outline-dark">Respond to Ticket</a>
+                                        <a href="{{ route('admin.tickets.show', $ticket->id) }}" class="btn btn-sm btn-outline-dark shadow-sm">
+                                            <i class="bi bi-chat-dots-fill me-1"></i> Open Case
+                                        </a>
                                     </td>
                                 </tr>
                             @empty

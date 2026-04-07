@@ -1,82 +1,49 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5>{{ isset($employee) ? 'Edit' : 'Add' }} Employee</h5>
-            </div>
-            <div class="card-body">
-                <form action="{{ isset($employee) ? route('employees.update', $employee->id) : route('employees.store') }}" method="POST">
-                    @csrf
-                    @if(isset($employee)) @method('PUT') @endif
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Employee ID</label>
-                            <input type="text" name="employee_id" class="form-control" value="{{ $employee->employee_id ?? '' }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label text-danger fw-bold">Web Bundy Code</label>
-                            <input type="password" name="web_bundy_code" class="form-control border-danger" value="{{ $employee->web_bundy_code ?? '' }}" placeholder="Security Code for Bundy">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label text-info fw-bold">Registered IP</label>
-                            <input type="text" name="registered_ip" class="form-control border-info" value="{{ $employee->registered_ip ?? '' }}" placeholder="Restrict to IP (Optional)">
-                            <small class="text-muted" style="font-size: 0.7rem;">Leave blank to allow any IP</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" value="{{ $employee->email ?? '' }}">
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">First Name</label>
-                            <input type="text" name="first_name" class="form-control" value="{{ $employee->first_name ?? '' }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" name="last_name" class="form-control" value="{{ $employee->last_name ?? '' }}">
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Position</label>
-                            <input type="text" name="position" class="form-control" value="{{ $employee->position ?? '' }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Daily Rate</label>
-                            <input type="number" name="daily_rate" class="form-control" value="{{ $employee->daily_rate ?? '' }}">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label text-primary">Payroll Group</label>
-                        <select name="payroll_group_id" class="form-select border-primary" required>
-                            <option value="">-- Assign to Group --</option>
-                            @foreach($groups as $g)
-                                <option value="{{ $g->id }}" {{ (isset($employee) && $employee->payroll_group_id == $g->id) ? 'selected' : '' }}>{{ $g->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="active" {{ (isset($employee) && $employee->status == 'active') ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ (isset($employee) && $employee->status == 'inactive') ? 'selected' : '' }}>Inactive</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Save Employee</button>
-                    <a href="{{ route('employees.index') }}" class="btn btn-secondary">Cancel</a>
-                </form>
-            </div>
-        </div>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">{{ isset($employee) ? 'Edit' : 'Create' }} Employee</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('employees.index') }}">Employees</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ isset($employee) ? 'Edit' : 'Create' }}</li>
+            </ol>
+        </nav>
     </div>
+
+    <form action="{{ isset($employee) ? route('employees.update', $employee->id) : route('employees.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @if(isset($employee)) @method('PUT') @endif
+
+        @include('employees._form')
+    </form>
 </div>
+
+<script>
+    function copyAddress() {
+        if (document.getElementById('same_address_check').checked) {
+            document.getElementById('present_address_brgy').value = document.getElementsByName('permanent_address_brgy')[0].value;
+            document.getElementById('present_address_province').value = document.getElementsByName('permanent_address_province')[0].value;
+        }
+    }
+</script>
+
+<style>
+    .border-bottom-primary {
+        border-bottom: 2px solid #0d6efd !important;
+    }
+    .form-label {
+        font-size: 0.9rem;
+    }
+    .card-header h5 {
+        font-weight: 600;
+    }
+    .text-primary {
+        color: #31708f !important;
+    }
+    .breadcrumb-item a {
+        text-decoration: none;
+    }
+</style>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\PayrollGroup;
+use App\Http\Requests\EmployeeRequest;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
@@ -20,20 +21,16 @@ class EmployeeController extends Controller
         return view('employees.create', compact('groups'));
     }
 
-    public function store(Request $request)
+    public function store(EmployeeRequest $request)
     {
-        $request->validate([
-            'employee_id' => 'required|unique:employees',
-            'web_bundy_code' => 'nullable|string',
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|email|unique:employees',
-            'position' => 'required',
-            'daily_rate' => 'required|numeric',
-        ]);
+        $data = $request->validated();
 
-        Employee::create($request->all());
-        return redirect()->route('employees.index');
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('employees', 'public');
+        }
+
+        Employee::create($data);
+        return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
 
     public function edit(Employee $employee)
@@ -42,18 +39,16 @@ class EmployeeController extends Controller
         return view('employees.edit', compact('employee', 'groups'));
     }
 
-    public function update(Request $request, Employee $employee)
+    public function update(EmployeeRequest $request, Employee $employee)
     {
-        $request->validate([
-            'employee_id' => 'required|unique:employees,employee_id,' . $employee->id,
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'position' => 'required',
-            'daily_rate' => 'required|numeric',
-        ]);
+        $data = $request->validated();
 
-        $employee->update($request->all());
-        return redirect()->route('employees.index');
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('employees', 'public');
+        }
+
+        $employee->update($data);
+        return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
     }
 
     public function destroy(Employee $employee)

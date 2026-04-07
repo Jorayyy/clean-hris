@@ -12,9 +12,7 @@ class AppSettingController extends Controller
 {
     public function index()
     {
-        $settings = Cache::remember('system_settings', 86400, function () {
-            return AppSetting::first() ?: (object)['app_name' => 'HRIS Payroll', 'app_logo' => null];
-        });
+        $settings = AppSetting::first() ?: (object)['app_name' => 'HRIS Payroll', 'app_logo' => null];
         return view('admin.settings.index', compact('settings'));
     }
 

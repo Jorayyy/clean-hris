@@ -7,79 +7,154 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        .navbar-brand img { height: 35px; margin-right: 12px; }
-        .logo-placeholder { width: 35px; height: 35px; background: #555; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; margin-right: 12px; color: #fff; font-size: 1.2rem; }
+        :root {
+            --sidebar-width: 260px;
+            --primary-dark: #1e293b;
+            --secondary-dark: #334155;
+            --accent-color: #3b82f6;
+        }
+        body { background-color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; }
+        .sidebar { width: var(--sidebar-width); background: var(--primary-dark); color: #cbd5e1; height: 100vh; position: fixed; left: 0; top: 0; transition: all 0.3s; z-index: 1000; overflow-y: auto; }
+        .sidebar-header { padding: 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1.5rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; border-left: 4px solid transparent; font-size: 0.9rem; font-weight: 500; }
+        .sidebar-link:hover { background: var(--secondary-dark); color: #fff; }
+        .sidebar-link.active { background: var(--secondary-dark); color: #fff; border-left-color: var(--accent-color); }
+        .sidebar-link i { font-size: 1.1rem; width: 25px; margin-right: 10px; }
+        .main-content { margin-left: var(--sidebar-width); flex: 1; transition: all 0.3s; }
+        .top-navbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0.75rem 1.5rem; }
+        @media (max-width: 991.98px) {
+            .sidebar { left: -var(--sidebar-width); }
+            .sidebar.show { left: 0; }
+            .main-content { margin-left: 0; }
+        }
+        .logo-img { height: 35px; border-radius: 4px; }
+        .nav-category { padding: 1.2rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; }
     </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center fw-bold" href="{{ Auth::check() ? (Auth::user()->role == 'admin' ? route('admin.dashboard') : route('employee.dashboard')) : '/login' }}">
-                @if($systemSettings->app_logo)
-                    <img src="{{ asset('storage/' . $systemSettings->app_logo) }}" alt="Logo">
-                @else
-                    <div class="logo-placeholder">H</div>
-                @endif
-                {{ $systemSettings->app_name }}
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                @auth
-                    <ul class="navbar-nav me-auto text-uppercase small">
-                        @if(Auth::user()->role === 'admin')
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employees.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employees.index') }}">Employees</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('payroll-groups.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('payroll-groups.index') }}">Groups</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('schedules.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('schedules.index') }}">Schedules</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('attendance.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('attendance.index') }}">Attendance</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('payroll.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('payroll.index') }}">Payroll</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('salaries.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('salaries.index') }}">Salaries History</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('authorized-networks.*') ? 'active fw-bold border-bottom text-info' : 'text-info' }}" href="{{ route('authorized-networks.index') }}"><i class="bi bi-shield-check me-1"></i> Authorized IP</a></li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.settings.*') ? 'active fw-bold' : '' }}" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-gear me-1"></i> More
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-dark">
-                                    <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">System Settings</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.tickets.index') }}">Support Tickets</a></li>
-                                </ul>
-                            </li>
-                        @else
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.dashboard') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.dashboard') }}">Dashboard</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.attendance') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.attendance') }}">DTR</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.tickets.*') ? 'active fw-bold border-bottom text-info' : 'text-info' }}" href="{{ route('employee.tickets.index') }}">Transactions</a></li>
-                        @endif
-                    </ul>
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                {{ Auth::user()->name }} ({{ ucfirst(Auth::user()->role) }})
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                @endauth
-            </div>
+<body>
+    @auth
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header d-flex align-items-center">
+            @if($systemSettings->app_logo)
+                <img src="{{ asset('storage/' . $systemSettings->app_logo) }}" alt="Logo" class="logo-img me-2">
+            @endif
+            <span class="fw-bold text-white text-truncate">{{ $systemSettings->app_name }}</span>
         </div>
-    </nav>
-
-    <div class="container">
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-
-        @yield('content')
+        
+        <div class="py-3">
+            @if(Auth::user()->role === 'admin')
+                <div class="nav-category">Main Menu</div>
+                <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                
+                <div class="nav-category">Management</div>
+                <a href="{{ route('employees.index') }}" class="sidebar-link {{ request()->routeIs('employees.*') ? 'active' : '' }}">
+                    <i class="bi bi-people"></i> Employees
+                </a>
+                <a href="{{ route('payroll-groups.index') }}" class="sidebar-link {{ request()->routeIs('payroll-groups.*') ? 'active' : '' }}">
+                    <i class="bi bi-collection"></i> Groups
+                </a>
+                <a href="{{ route('schedules.index') }}" class="sidebar-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
+                    <i class="bi bi-calendar-event"></i> Schedules
+                </a>
+                <a href="{{ route('attendance.index') }}" class="sidebar-link {{ request()->routeIs('attendance.*') ? 'active' : '' }}">
+                    <i class="bi bi-clock-history"></i> Attendance
+                </a>
+                
+                <div class="nav-category">Payroll & Finance</div>
+                <a href="{{ route('payroll.index') }}" class="sidebar-link {{ request()->routeIs('payroll.*') ? 'active' : '' }}">
+                    <i class="bi bi-cash-stack"></i> Payroll
+                </a>
+                <a href="{{ route('salaries.index') }}" class="sidebar-link {{ request()->routeIs('salaries.*') ? 'active' : '' }}">
+                    <i class="bi bi-graph-up-arrow"></i> Salaries History
+                </a>
+                <a href="{{ route('admin.dtrs.index') }}" class="sidebar-link {{ request()->routeIs('admin.dtrs.*') ? 'active' : '' }}">
+                    <i class="bi bi-journal-text"></i> DTR Logs
+                </a>
+                
+                <div class="nav-category">Configuration</div>
+                <a href="{{ route('authorized-networks.index') }}" class="sidebar-link {{ request()->routeIs('authorized-networks.*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-lock"></i> Authorized IP
+                </a>
+                <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                    <i class="bi bi-gear"></i> System Settings
+                </a>
+                <a href="{{ route('admin.tickets.index') }}" class="sidebar-link {{ request()->routeIs('admin.tickets.index') ? 'active' : '' }}">
+                    <i class="bi bi-chat-dots"></i> Transactions
+                </a>
+            @else
+                <div class="nav-category">Employee Portal</div>
+                <a href="{{ route('employee.dashboard') }}" class="sidebar-link {{ request()->routeIs('employee.dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-house-door"></i> Dashboard
+                </a>
+                <a href="{{ route('employee.attendance') }}" class="sidebar-link {{ request()->routeIs('employee.attendance') ? 'active' : '' }}">
+                    <i class="bi bi-calendar-check"></i> Daily Time Record
+                </a>
+                <a href="{{ route('employee.tickets.index') }}" class="sidebar-link {{ request()->routeIs('employee.tickets.*') ? 'active' : '' }}">
+                    <i class="bi bi-chat-dots"></i> Transactions
+                </a>
+            @endif
+        </div>
     </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar d-flex align-items-center justify-content-between shadow-sm sticky-top">
+            <button class="btn btn-sm btn-light d-lg-none" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+            <div class="d-none d-lg-block">
+                <span class="text-muted small fw-medium text-uppercase">
+                    Welcome back, <span class="text-dark fw-bold">{{ Auth::user()->name }}</span>
+                </span>
+            </div>
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle fw-bold text-dark d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                    <div class="bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        {{ substr(Auth::user()->name, 0, 1) }}
+                    </div>
+                    <span class="d-none d-sm-inline">{{ Auth::user()->name }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li class="px-3 py-2 border-bottom">
+                        <div class="fw-bold">{{ Auth::user()->name }}</div>
+                        <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">{{ Auth::user()->role }} Account</div>
+                    </li>
+                    <li>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="dropdown-item py-2 text-danger">
+                                <i class="bi bi-box-arrow-right me-2"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="p-4 pt-4">
+            @if(session('success'))
+                <div class="alert alert-success border-0 shadow-sm mb-4">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger border-0 shadow-sm mb-4">{{ session('error') }}</div>
+            @endif
+
+            @yield('content')
+        </div>
+    </div>
+    @else
+        <div class="container mt-5">
+            @yield('content')
+        </div>
+    @endauth
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

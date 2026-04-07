@@ -34,11 +34,17 @@
                             </span>
                         </td>
                         <td>
-                            <a href="{{ route('employees.edit', $employee->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" class="d-inline">
-                                @csrf @method('DELETE')
-                                <button class="btn btn-danger btn-sm" onclick="return confirm('Archive?')" type="submit">Delete</button>
-                            </form>
+                            <div class="btn-group shadow-sm">
+                                <a href="{{ route('employees.edit', $employee->id) }}" class="btn btn-sm btn-outline-primary" title="Edit Employee">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Archive employee?')" type="submit" title="Delete">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach

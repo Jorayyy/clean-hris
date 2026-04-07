@@ -49,6 +49,35 @@ class PayrollController extends Controller
         $items = $payroll->items()->with('employee')->get();
         return view('payroll.show', compact('payroll', 'items'));
     }
+    public function edit(Payroll $payroll)
+    {
+        // Allow editing regardless of status for flexibility, or you can keep this restricted.
+        // If you want to allow changing coverage period even after process:
+        // if ($payroll->status == 'processed') { ... } 
+        
+        $groups = PayrollGroup::withCount('employees')->get();
+        return view('payroll.edit', compact('payroll', 'groups'));
+    }
+
+    public function update(Request $request, Payroll $payroll)
+    {
+        $request->validate([
+            'payroll_code' => 'required|unique:payrolls,payroll_code,' . $payroll->id,
+            'payroll_group_id' => 'required|exists:payroll_groups,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'pay_date' => 'required|date',
+        ]);
+
+        $payroll->update($request->all());
+
+        // If it was already processed, the user might want to re-process it to catch the new dates
+        if ($payroll->status == 'processed') {
+            return redirect()->route('payroll.index')->with('success', 'Payroll period updated. Note: This period was already processed; you may need to re-run it to reflect date changes.');
+        }
+
+        return redirect()->route('payroll.index')->with('success', 'Payroll period updated successfully.');
+    }
 
     public function processPayroll(Payroll $payroll)
     {
