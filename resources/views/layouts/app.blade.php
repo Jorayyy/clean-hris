@@ -16,6 +16,7 @@
                     <li class="nav-item"><a class="nav-link" href="{{ route('payroll-groups.index') }}">Groups</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('attendance.index') }}">Attendance</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('payroll.index') }}">Payroll</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('salaries.index') }}">Salaries</a></li>
                 </ul>
             </div>
         </div>
