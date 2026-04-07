@@ -22,8 +22,11 @@
                             <li class="nav-item"><a class="nav-link" href="{{ route('attendance.index') }}">Attendance</a></li>
                             <li class="nav-item"><a class="nav-link" href="{{ route('payroll.index') }}">Payroll</a></li>
                             <li class="nav-item"><a class="nav-link" href="{{ route('salaries.index') }}">Salaries History</a></li>
+                            <li class="nav-item"><a class="nav-link fw-bold text-warning" href="{{ route('admin.tickets.index') }}">Support Tickets</a></li>
                         @else
                             <li class="nav-item"><a class="nav-link" href="{{ route('employee.dashboard') }}">My Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ route('employee.attendance') }}">My Attendance</a></li>
+                            <li class="nav-item"><a class="nav-link fw-bold text-info" href="{{ route('employee.tickets.index') }}">Support Tickets</a></li>
                         @endif
                     </ul>
                     <ul class="navbar-nav ms-auto">
