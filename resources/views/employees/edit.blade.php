@@ -45,6 +45,24 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label text-primary">Payroll Group</label>
+                        <select name="payroll_group_id" class="form-select border-primary" required>
+                            <option value="">-- Assign to Group --</option>
+                            @foreach($groups as $g)
+                                <option value="{{ $g->id }}" {{ (isset($employee) && $employee->payroll_group_id == $g->id) ? 'selected' : '' }}>{{ $g->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="active" {{ (isset($employee) && $employee->status == 'active') ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ (isset($employee) && $employee->status == 'inactive') ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Save Employee</button>
                     <a href="{{ route('employees.index') }}" class="btn btn-secondary">Cancel</a>
                 </form>
