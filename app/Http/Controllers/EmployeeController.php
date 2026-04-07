@@ -37,7 +37,8 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
-        return view('employees.edit', compact('employee'));
+        $groups = PayrollGroup::all();
+        return view('employees.edit', compact('employee', 'groups'));
     }
 
     public function update(Request $request, Employee $employee)
