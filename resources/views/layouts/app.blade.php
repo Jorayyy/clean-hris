@@ -26,7 +26,7 @@
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('salaries.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('salaries.index') }}">Salaries History</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.tickets.*') ? 'active fw-bold border-bottom text-warning' : 'text-warning' }}" href="{{ route('admin.tickets.index') }}">Support Tickets</a></li>
                         @else
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.dashboard') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.dashboard') }}">Home</a></li>
+                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.dashboard') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.dashboard') }}">Dashboard</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.attendance') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.attendance') }}">DTR</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.tickets.*') ? 'active fw-bold border-bottom text-info' : 'text-info' }}" href="{{ route('employee.tickets.index') }}">Tickets</a></li>
                         @endif
