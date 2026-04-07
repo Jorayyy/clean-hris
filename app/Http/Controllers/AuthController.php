@@ -11,7 +11,7 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             if (Auth::user()->role === 'admin') {
-                return redirect()->intended('/employees');
+                return redirect()->intended('/admin/dashboard');
             }
             return redirect()->intended('/employee/dashboard');
         }
@@ -29,7 +29,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             
             if (Auth::user()->role === 'admin') {
-                return redirect()->intended('/employees');
+                return redirect()->intended('/admin/dashboard');
             }
             return redirect()->intended('/employee/dashboard');
         }

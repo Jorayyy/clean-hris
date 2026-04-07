@@ -10,7 +10,7 @@
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">HRIS Payroll</a>
+            <a class="navbar-brand fw-bold" href="{{ Auth::check() ? (Auth::user()->role == 'admin' ? route('admin.dashboard') : route('employee.dashboard')) : '/login' }}">HRIS Payroll</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
