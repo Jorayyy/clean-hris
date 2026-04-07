@@ -3,15 +3,15 @@
 @section('content')
 <div class="card shadow-sm border-0">
     <div class="card-header bg-dark text-white d-flex justify-content-between">
-        <h5 class="mb-0">Payroll Batches</h5>
-        <a href="{{ route('payroll.create') }}" class="btn btn-primary btn-sm">Create New Batch</a>
+        <h5 class="mb-0">Payroll Periods</h5>
+        <a href="{{ route('payroll.create') }}" class="btn btn-primary btn-sm">Create Payroll Period</a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="bg-light text-dark">
                     <tr>
-                        <th>Batch Code</th>
+                        <th>Period Code</th>
                         <th>Payroll Group</th>
                         <th>Coverage Period</th>
                         <th>Pay Date</th>

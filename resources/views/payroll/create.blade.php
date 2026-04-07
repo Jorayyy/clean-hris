@@ -4,12 +4,12 @@
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card shadow">
-            <div class="card-header bg-dark text-white text-center">Create Payroll Batch</div>
+            <div class="card-header bg-dark text-white text-center">Create Payroll Period</div>
             <div class="card-body">
                 <form action="{{ route('payroll.store') }}" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label font-weight-bold">Batch Code (Unique ID)</label>
+                        <label class="form-label font-weight-bold">Period Code (Unique ID)</label>
                         <input type="text" name="payroll_code" class="form-control" value="PAY-{{ now()->format('Ymd-His') }}" required>
                     </div>
                     <div class="mb-3">
@@ -37,7 +37,7 @@
                         <input type="date" name="pay_date" class="form-control border-primary" required>
                         <small class="text-muted">Tip: Usually the Friday following the period end date.</small>
                     </div>
-                    <button type="submit" class="btn btn-dark w-100 p-2">Create Draft Batch</button>
+                    <button type="submit" class="btn btn-dark w-100 p-2">Create Payroll Period</button>
                     <a href="{{ route('payroll.index') }}" class="btn btn-link w-100 text-secondary">Back</a>
                 </form>
             </div>
