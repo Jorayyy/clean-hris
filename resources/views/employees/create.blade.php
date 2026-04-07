@@ -13,15 +13,20 @@
                     @if(isset($employee)) @method('PUT') @endif
                     
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Employee ID</label>
                             <input type="text" name="employee_id" class="form-control" value="{{ $employee->employee_id ?? '' }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label text-danger fw-bold">Web Bundy Code</label>
-                            <input type="text" name="web_bundy_code" class="form-control border-danger" value="{{ $employee->web_bundy_code ?? '' }}" placeholder="Security Code for Bundy">
+                            <input type="password" name="web_bundy_code" class="form-control border-danger" value="{{ $employee->web_bundy_code ?? '' }}" placeholder="Security Code for Bundy">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label text-info fw-bold">Registered IP</label>
+                            <input type="text" name="registered_ip" class="form-control border-info" value="{{ $employee->registered_ip ?? '' }}" placeholder="Restrict to IP (Optional)">
+                            <small class="text-muted" style="font-size: 0.7rem;">Leave blank to allow any IP</small>
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control" value="{{ $employee->email ?? '' }}">
                         </div>

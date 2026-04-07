@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="row justify-content-center align-items-stretch" style="min-height: 80vh;">
+<div class="row justify-content-center align-items-stretch g-4" style="min-height: 80vh;">
     <!-- Web Bundy Section -->
-    <div class="col-md-5 mb-4">
+    <div class="col-md-5">
         <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden">
             <div class="card-header border-0 bg-danger text-white text-center py-4">
                 <i class="bi bi-clock-fill h2 mb-2 d-block"></i>
@@ -88,7 +88,7 @@
     </div>
 
     <!-- Login Section -->
-    <div class="col-md-4 offset-md-1">
+    <div class="col-md-5">
         <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden">
             <div class="card-header border-0 bg-primary text-white text-center py-4">
                 <i class="bi bi-person-workspace h2 mb-2 d-block"></i>

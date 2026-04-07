@@ -5,17 +5,36 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Employee;
 use App\Models\Attendance;
+use App\Models\AuthorizedNetwork;
 use Carbon\Carbon;
 
 class WebBundyController extends Controller
 {
-    public function showBundy()
+    public function showBundy(Request $request)
     {
+        // Global IP Lockdown: Only allow access to the Bundy page from authorized networks
+        $isAuthorized = AuthorizedNetwork::where('ip_address', $request->ip())
+            ->where('is_active', true)
+            ->exists();
+
+        if (!$isAuthorized) {
+            return view('auth.bundy')->with('unauthorized_ip', $request->ip());
+        }
+
         return view('auth.bundy');
     }
 
     public function punch(Request $request)
     {
+        // Global IP Lockdown: Stop punches if not on an authorized network
+        $isAuthorized = AuthorizedNetwork::where('ip_address', $request->ip())
+            ->where('is_active', true)
+            ->exists();
+
+        if (!$isAuthorized) {
+            return back()->with('bundy_error', 'Access Denied: Your current network (IP: ' . $request->ip() . ') is not authorized for Web Bundy punches.');
+        }
+
         $request->validate([
             'employee_id_string' => 'required',
             'web_bundy_code' => 'required',
@@ -29,7 +48,10 @@ class WebBundyController extends Controller
         if (!$employee) {
             return back()->with('bundy_error', 'Invalid Employee ID or Bundy Code.');
         }
-
+        // IP Restriction Check
+        if ($employee->registered_ip && $request->ip() !== $employee->registered_ip) {
+            return back()->with('bundy_error', 'Access Denied: Please use your registered internet connection to punch. (Your IP: ' . $request->ip() . ')');
+        }
         $today = Carbon::today()->toDateString();
         $now = Carbon::now()->toTimeString();
 

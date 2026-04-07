@@ -43,6 +43,34 @@ class ScheduleController extends Controller
         return redirect()->route('schedules.index')->with('success', 'Schedule created successfully.');
     }
 
+    public function edit(Schedule $schedule)
+    {
+        $employees = Employee::all();
+        $groups = PayrollGroup::all();
+        return view('admin.schedules.edit', compact('schedule', 'employees', 'groups'));
+    }
+
+    public function update(Request $request, Schedule $schedule)
+    {
+        $request->validate([
+            'time_in' => 'required',
+            'time_out' => 'required',
+            'days' => 'required|array',
+            'target_type' => 'required|in:individual,group',
+        ]);
+
+        $schedule->update([
+            'name' => $request->name,
+            'time_in' => $request->time_in,
+            'time_out' => $request->time_out,
+            'days' => $request->days,
+            'employee_id' => $request->target_type === 'individual' ? $request->employee_id : null,
+            'payroll_group_id' => $request->target_type === 'group' ? $request->payroll_group_id : null,
+        ]);
+
+        return redirect()->route('schedules.index')->with('success', 'Schedule updated successfully.');
+    }
+
     public function destroy(Schedule $schedule)
     {
         $schedule->delete();

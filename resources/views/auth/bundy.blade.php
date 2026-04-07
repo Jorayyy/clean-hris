@@ -20,6 +20,16 @@
         <div class="card-body p-4 text-center">
             <h4 class="fw-bold mb-4">WEB BUNDY SYSTEM</h4>
             
+            @isset($unauthorized_ip)
+                <div class="alert alert-danger shadow-sm border-0 py-4">
+                    <h5 class="fw-bold text-uppercase mb-3"><i class="bi bi-shield-lock-fill me-2"></i> Access Denied</h5>
+                    <p class="mb-2">This network is <strong>NOT AUTHORIZED</strong> for Web Bundy punches.</p>
+                    <p class="small text-muted mb-0">Your IP: <code>{{ $unauthorized_ip }}</code></p>
+                </div>
+                <div class="mt-4">
+                    <a href="{{ route('login') }}" class="btn btn-outline-secondary btn-sm px-4">Back to Login</a>
+                </div>
+            @else
             <div id="clock" class="digital-clock">00:00:00</div>
             <div id="date" class="date-display">Loading date...</div>
 
@@ -63,6 +73,7 @@
                     <a href="{{ route('login') }}" class="text-decoration-none small text-muted">Back to Admin Login</a>
                 </div>
             </form>
+            @endisset
         </div>
     </div>
 </div>

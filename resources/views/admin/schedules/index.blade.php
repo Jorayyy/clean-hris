@@ -38,6 +38,7 @@
                                 <small>{{ is_array($s->days) ? implode(', ', $s->days) : $s->days }}</small>
                             </td>
                             <td class="text-end">
+                                <a href="{{ route('schedules.edit', $s->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                                 <form action="{{ route('schedules.destroy', $s->id) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this schedule?')">Delete</button>

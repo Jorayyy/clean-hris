@@ -15,6 +15,7 @@ use App\Http\Middleware\EmployeeMiddleware;
 use App\Http\Controllers\Employee\AttendanceController as EmployeeAttendanceController;
 use App\Http\Controllers\Employee\SupportTicketController as EmployeeTicketController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminTicketController;
+use App\Http\Controllers\Admin\AuthorizedNetworkController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Employee\AttendanceCalendarController;
 use App\Http\Controllers\WebBundyController;
@@ -38,6 +39,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::resource('payroll', PayrollController::class);
     Route::resource('payroll-groups', PayrollGroupController::class);
     Route::resource('schedules', ScheduleController::class);
+    Route::resource('authorized-networks', AuthorizedNetworkController::class);
     
     Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
     Route::get('salaries/{salary}/edit', [SalaryController::class, 'edit'])->name('salaries.edit');

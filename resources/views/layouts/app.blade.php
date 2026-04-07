@@ -25,6 +25,7 @@
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('attendance.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('attendance.index') }}">Attendance</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('payroll.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('payroll.index') }}">Payroll</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('salaries.*') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('salaries.index') }}">Salaries History</a></li>
+                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('authorized-networks.*') ? 'active fw-bold border-bottom text-info' : 'text-info' }}" href="{{ route('authorized-networks.index') }}"><i class="bi bi-shield-check me-1"></i> Authorized IP</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.tickets.*') ? 'active fw-bold border-bottom text-warning' : 'text-warning' }}" href="{{ route('admin.tickets.index') }}">Support Tickets</a></li>
                         @else
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.dashboard') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.dashboard') }}">Dashboard</a></li>
