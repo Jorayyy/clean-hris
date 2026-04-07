@@ -11,9 +11,9 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             if (Auth::user()->role === 'admin') {
-                return redirect()->intended('/admin/dashboard');
+                return redirect('/admin/dashboard');
             }
-            return redirect()->intended('/employee/dashboard');
+            return redirect('/employee/dashboard');
         }
         return view('auth.login');
     }
@@ -29,9 +29,9 @@ class AuthController extends Controller
             $request->session()->regenerate();
             
             if (Auth::user()->role === 'admin') {
-                return redirect()->intended('/admin/dashboard');
+                return redirect('/admin/dashboard');
             }
-            return redirect()->intended('/employee/dashboard');
+            return redirect('/employee/dashboard');
         }
 
         return back()->withErrors([
