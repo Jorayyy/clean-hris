@@ -14,11 +14,13 @@ use App\Http\Middleware\EmployeeMiddleware;
 use App\Http\Controllers\Employee\AttendanceController as EmployeeAttendanceController;
 use App\Http\Controllers\Employee\SupportTicketController as EmployeeTicketController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminTicketController;
+use App\Http\Controllers\WebBundyController;
 
-// Public login routes
+// Public login/bundy routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/web-bundy/punch', [WebBundyController::class, 'punch'])->name('bundy.punch');
 
 Route::get('/', function () {
     return redirect('/login');

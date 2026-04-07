@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Employee;
+use App\Models\Attendance;
+use Carbon\Carbon;
+
+class WebBundyController extends Controller
+{
+    public function punch(Request $request)
+    {
+        $request->validate([
+            'employee_id_string' => 'required',
+            'punch_type' => 'required|in:am_in,am_out,pm_in,pm_out'
+        ]);
+
+        $employee = Employee::where('employee_id', $request->employee_id_string)->first();
+
+        if (!$employee) {
+            return back()->with('bundy_error', 'Invalid Employee ID.');
+        }
+
+        $today = Carbon::today()->toDateString();
+        $now = Carbon::now()->toTimeString();
+
+        $attendance = Attendance::firstOrCreate(
+            ['employee_id' => $employee->id, 'date' => $today]
+        );
+
+        // Check if already punched
+        if ($attendance->{$request->punch_type}) {
+             return back()->with('bundy_error', 'You have already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' today.');
+        }
+
+        $attendance->update([
+            $request->punch_type => $now
+        ]);
+
+        return back()->with('bundy_success', 'Successfully punched ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . date('h:i A') . ' for ' . $employee->full_name);
+    }
+}
