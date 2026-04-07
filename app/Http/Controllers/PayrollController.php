@@ -26,7 +26,7 @@ class PayrollController extends Controller
 
     public function create()
     {
-        $groups = PayrollGroup::all();
+        $groups = PayrollGroup::withCount('employees')->get();
         return view('payroll.create', compact('groups'));
     }
 
@@ -34,6 +34,7 @@ class PayrollController extends Controller
     {
         $request->validate([
             'payroll_code' => 'required|unique:payrolls',
+            'payroll_group_id' => 'required|exists:payroll_groups,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'pay_date' => 'required|date',
