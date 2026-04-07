@@ -4,11 +4,11 @@
 <div class="row">
     <div class="col-md-12 mb-4 d-flex justify-content-between align-items-center">
         <div>
-            <h3 class="fw-bold">My Support Tickets</h3>
-            <p class="text-muted small">Submit and track your payroll or DTR concerns.</p>
+            <h3 class="fw-bold">My Transactions & Requests</h3>
+            <p class="text-muted small">Submit and track your Timekeeping (TK), Payroll, and other company-related concerns.</p>
         </div>
         <a href="{{ route('employee.tickets.create') }}" class="btn btn-primary d-flex align-items-center">
-            <i class="bi bi-plus-circle me-2"></i> Submit New Ticket
+            <i class="bi bi-plus-circle me-2"></i> Create New Request
         </a>
     </div>
 

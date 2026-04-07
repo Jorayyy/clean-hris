@@ -50,7 +50,7 @@
                         @else
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.dashboard') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.dashboard') }}">Dashboard</a></li>
                             <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.attendance') ? 'active fw-bold border-bottom' : '' }}" href="{{ route('employee.attendance') }}">DTR</a></li>
-                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.tickets.*') ? 'active fw-bold border-bottom text-info' : 'text-info' }}" href="{{ route('employee.tickets.index') }}">Tickets</a></li>
+                            <li class="nav-item"><a class="nav-link {{ request()->routeIs('employee.tickets.*') ? 'active fw-bold border-bottom text-info' : 'text-info' }}" href="{{ route('employee.tickets.index') }}">Transactions</a></li>
                         @endif
                     </ul>
                     <ul class="navbar-nav ms-auto">
