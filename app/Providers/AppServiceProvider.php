@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AppSetting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,9 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Share AppSettings across all views
+        // Cache settings for 24 hours to reduce DB load on every page load
         View::composer('*', function ($view) {
-            $view->with('systemSettings', AppSetting::first() ?: (object)['app_name' => 'HRIS Payroll', 'app_logo' => null]);
+            $settings = Cache::remember('system_settings', 86400, function () {
+                return AppSetting::first() ?: (object)['app_name' => 'HRIS Payroll', 'app_logo' => null];
+            });
+            $view->with('systemSettings', $settings);
         });
     }
 }

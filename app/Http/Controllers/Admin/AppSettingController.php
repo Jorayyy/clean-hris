@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class AppSettingController extends Controller
 {
     public function index()
     {
-        $settings = AppSetting::first();
+        $settings = Cache::remember('system_settings', 86400, function () {
+            return AppSetting::first() ?: (object)['app_name' => 'HRIS Payroll', 'app_logo' => null];
+        });
         return view('admin.settings.index', compact('settings'));
     }
 
@@ -38,6 +41,9 @@ class AppSettingController extends Controller
         }
 
         $settings->update($data);
+        
+        // Clear cache so changes reflect immediately
+        Cache::forget('system_settings');
 
         return back()->with('success', 'System settings updated successfully.');
     }
