@@ -16,6 +16,9 @@ Route::resource('attendance', AttendanceController::class);
 Route::resource('payroll', PayrollController::class);
 Route::resource('payroll-groups', PayrollGroupController::class);
 Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
+Route::get('salaries/{salary}/edit', [SalaryController::class, 'edit'])->name('salaries.edit');
+Route::put('salaries/{salary}', [SalaryController::class, 'update'])->name('salaries.update');
+Route::delete('salaries/{salary}', [SalaryController::class, 'destroy'])->name('salaries.destroy');
 
 Route::post('/payroll/{payroll}/process', [PayrollController::class, 'processPayroll'])->name('payroll.process');
 Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');

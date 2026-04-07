@@ -53,7 +53,14 @@
                         <td class="text-danger">{{ number_format($item->other_deductions, 2) }}</td>
                         <td class="bg-light text-primary fw-bold">P{{ number_format($item->net_pay, 2) }}</td>
                         <td>
-                            <a href="{{ route('payroll.payslip', $item->id) }}" class="btn btn-sm btn-outline-info">Payslip</a>
+                            <div class="btn-group">
+                                <a href="{{ route('salaries.edit', $item->id) }}" class="btn btn-sm btn-outline-warning">Edit</a>
+                                <a href="{{ route('payroll.payslip', $item->id) }}" class="btn btn-sm btn-outline-info">Payslip</a>
+                                <form action="{{ route('salaries.destroy', $item->id) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove record?')">X</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @empty
