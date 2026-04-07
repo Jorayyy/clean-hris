@@ -4,7 +4,15 @@
 <div class="card shadow-sm border-0">
     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Payroll History & Salaries</h5>
-        <form action="{{ route('salaries.index') }}" method="GET" class="d-flex">
+        <form action="{{ route('salaries.index') }}" method="GET" class="d-flex align-items-center">
+            <select name="payroll_id" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                <option value="">All Periods</option>
+                @foreach($payrolls as $p)
+                <option value="{{ $p->id }}" {{ request('payroll_id') == $p->id ? 'selected' : '' }}>
+                    {{ $p->payroll_code }} ({{ $p->start_date }} - {{ $p->end_date }})
+                </option>
+                @endforeach
+            </select>
             <input type="text" name="employee_id" class="form-control form-control-sm me-2" placeholder="Emp ID..." value="{{ request('employee_id') }}">
             <button class="btn btn-sm btn-primary">Search</button>
         </form>

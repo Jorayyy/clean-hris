@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PayrollItem;
 use App\Models\Employee;
+use App\Models\Payroll;
 use Illuminate\Http\Request;
 
 class SalaryController extends Controller
@@ -18,9 +19,14 @@ class SalaryController extends Controller
             });
         }
 
+        if ($request->payroll_id) {
+            $query->where('payroll_id', $request->payroll_id);
+        }
+
         $salaries = $query->latest()->paginate(15);
+        $payrolls = Payroll::latest()->get();
         
-        return view('salaries.index', compact('salaries'));
+        return view('salaries.index', compact('salaries', 'payrolls'));
     }
 
     public function edit(PayrollItem $salary)
