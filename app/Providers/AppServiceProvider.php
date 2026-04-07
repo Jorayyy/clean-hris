@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\AppSetting;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Share AppSettings across all views
+        View::composer('*', function ($view) {
+            $view->with('systemSettings', AppSetting::first() ?: (object)['app_name' => 'HRIS Payroll', 'app_logo' => null]);
+        });
     }
 }

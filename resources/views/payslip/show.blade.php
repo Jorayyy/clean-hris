@@ -3,26 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payslip - {{ $item->employee->full_name }}</title>
+    <title>{{ $systemSettings->app_name }} - Payslip - {{ $item->employee->full_name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .payslip-border { border: 2px solid #333; padding: 20px; max-width: 800px; margin: 30px auto; background: #fff; }
         .section-header { border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
         .data-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
         .category-title { font-weight: bold; background: #f8f9fa; padding: 5px 10px; margin-top: 15px; display: block; }
+        .logo-box { max-height: 80px; object-fit: contain; }
         @media print { .btn-print { display: none; } body { background: white; } .payslip-border { border: none; } }
     </style>
 </head>
 <body class="bg-light">
-    <div class="container text-center mt-3">
+    <div class="container text-center mt-3 no-print">
         <button onclick="window.print()" class="btn btn-primary btn-print">Print Payslip</button>
-        <a href="{{ route('payroll.show', $item->payroll->id) }}" class="btn btn-secondary btn-print">Back</a>
+        <a href="{{ url()->previous() }}" class="btn btn-secondary btn-print">Back</a>
     </div>
 
-    <div class="payslip-border shadow-sm">
+    <div class="payslip-border shadow-sm mt-4">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-3">
+                @if($systemSettings->app_logo)
+                    <img src="{{ asset('storage/' . $systemSettings->app_logo) }}" alt="Logo" class="logo-box">
+                @endif
+            </div>
+            <div class="col-md-9 text-end">
+                <h4 class="mb-0 fw-bold">{{ $systemSettings->app_name }}</h4>
+                <p class="text-muted small mb-0">Official Employee Payslip Record</p>
+            </div>
+        </div>
+
         <div class="row section-header text-center">
             <div class="col-12">
-                <h4 class="mb-0">EMPLOYEE PAYSLIP</h4>
+                <h4 class="mb-0 text-uppercase">EMPLOYEE PAYSLIP</h4>
                 <p class="text-muted small">Period: {{ $item->payroll->start_date }} to {{ $item->payroll->end_date }}</p>
                 <div class="small">Batch Code: {{ $item->payroll->payroll_code }} | Pay Date: {{ $item->payroll->pay_date }}</div>
             </div>
