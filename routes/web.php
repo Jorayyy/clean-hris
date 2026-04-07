@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PayrollController;
@@ -28,6 +29,7 @@ Route::get('/', function () {
 
 // Admin Protected Routes
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('employees', EmployeeController::class);
     Route::resource('attendance', AttendanceController::class);
     Route::resource('payroll', PayrollController::class);
