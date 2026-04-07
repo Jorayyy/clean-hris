@@ -16,11 +16,29 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(PayrollSeeder::class);
-        // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Admin User
+        User::updateOrCreate(
+            ['email' => 'admin@test.com'],
+            [
+                'name' => 'HR Admin',
+                'password' => bcrypt('password'),
+                'role' => 'admin',
+            ]
+        );
+
+        // Employee User (Linking to first employee from PayrollSeeder)
+        $employee = \App\Models\Employee::first();
+        if ($employee) {
+            User::updateOrCreate(
+                ['email' => 'employee@test.com'],
+                [
+                    'name' => $employee->full_name,
+                    'password' => bcrypt('password'),
+                    'role' => 'employee',
+                    'employee_id' => $employee->id,
+                ]
+            );
+        }
     }
 }
