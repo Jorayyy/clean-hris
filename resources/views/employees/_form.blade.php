@@ -193,21 +193,11 @@
                     <h5 class="mb-4 text-primary">Employment Information</h5>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Company</label>
-                            <select name="company" class="form-select @error('company') is-invalid @enderror">
-                                <option value="">Select</option>
-                                <option value="Your Company Name" {{ old('company', $employee->company ?? '') == 'Your Company Name' ? 'selected' : '' }}>Your Company Name</option>
-                            </select>
-                            @error('company')
-                                <div class="text-danger small mt-1">Company is required</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Location</label>
+                            <label class="form-label fw-bold">Site</label>
                             <input type="text" name="location" class="form-control bg-light @error('location') is-invalid @enderror" 
-                                   placeholder="Location" value="{{ old('location', $employee->location ?? '') }}">
+                                   placeholder="Site Location" value="{{ old('location', $employee->location ?? '') }}">
                             @error('location')
-                                <div class="text-danger small mt-1">Location is required</div>
+                                <div class="text-danger small mt-1">Site is required</div>
                             @enderror
                         </div>
                     </div>
@@ -227,8 +217,11 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Classification</label>
-                            <input type="text" name="classification" class="form-control bg-light @error('classification') is-invalid @enderror" 
-                                   placeholder="Classification" value="{{ old('classification', $employee->classification ?? '') }}">
+                            <select name="classification" class="form-select @error('classification') is-invalid @enderror">
+                                <option value="STAFF" {{ old('classification', $employee->classification ?? '') == 'STAFF' ? 'selected' : '' }}>STAFF</option>
+                                <option value="OFFICER" {{ old('classification', $employee->classification ?? '') == 'OFFICER' ? 'selected' : '' }}>OFFICER</option>
+                                <option value="MANAGER" {{ old('classification', $employee->classification ?? '') == 'MANAGER' ? 'selected' : '' }}>MANAGER</option>
+                            </select>
                             @error('classification')
                                 <div class="text-danger small mt-1">Classification is required</div>
                             @enderror
@@ -263,23 +256,6 @@
                         </div>
                     </div>
                     
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-primary">Payroll Group</label>
-                            <select name="payroll_group_id" class="form-select @error('payroll_group_id') is-invalid @enderror">
-                                <option value="">No Group Assigned</option>
-                                @foreach($groups as $group)
-                                    <option value="{{ $group->id }}" {{ old('payroll_group_id', $employee->payroll_group_id ?? '') == $group->id ? 'selected' : '' }}>
-                                        {{ $group->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('payroll_group_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text small">Sets the specific salary group and rules for this employee.</div>
-                        </div>
-                    </div>
-                    
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Date Employed</label>
@@ -311,6 +287,7 @@
                             <select name="pay_type" class="form-select @error('pay_type') is-invalid @enderror">
                                 <option value="">Select</option>
                                 <option value="Monthly" {{ old('pay_type', $employee->pay_type ?? '') == 'Monthly' ? 'selected' : '' }}>Monthly</option>
+                                <option value="Weekly" {{ old('pay_type', $employee->pay_type ?? '') == 'Weekly' ? 'selected' : '' }}>Weekly</option>
                                 <option value="Daily" {{ old('pay_type', $employee->pay_type ?? '') == 'Daily' ? 'selected' : '' }}>Daily</option>
                             </select>
                             @error('pay_type')
@@ -321,15 +298,15 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-primary">Payroll Period Group</label>
+                            <label class="form-label fw-bold text-primary">Payroll Group</label>
                             <select name="payroll_group_id" class="form-select border-primary @error('payroll_group_id') is-invalid @enderror" required>
-                                <option value="">-- Assign --</option>
+                                <option value="">-- Assign Group --</option>
                                 @foreach($groups as $g)
                                     <option value="{{ $g->id }}" {{ old('payroll_group_id', $employee->payroll_group_id ?? '') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
                                 @endforeach
                             </select>
                             @error('payroll_group_id')
-                                <div class="text-danger small mt-1">Payroll Period Group is required</div>
+                                <div class="text-danger small mt-1">Payroll Group is required</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
