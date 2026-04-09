@@ -18,12 +18,34 @@ class AttendanceController extends Controller
 
     public function index(Request $request)
     {
-        $query = Attendance::with('employee');
-        if($request->date) {
-            $query->where('date', $request->date);
-        }
-        $attendances = $query->latest()->get();
-        return view('attendance.index', compact('attendances'));
+        $search = $request->get('search');
+        
+        $employees = Employee::query()
+            ->when($search, function($query, $search) {
+                $query->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('employee_id', 'like', "%{$search}%");
+            })
+            ->withCount(['attendances' => function($query) {
+                $query->whereDate('date', today());
+            }])
+            ->get();
+
+        return view('attendance.index', compact('employees'));
+    }
+
+    public function show(Request $request, Employee $employee)
+    {
+        $date = $request->get('date', today()->format('Y-m-d'));
+        
+        $attendances = Attendance::where('employee_id', $employee->id)
+            ->when($date, function($query, $date) {
+                $query->where('date', $date);
+            })
+            ->latest()
+            ->get();
+
+        return view('attendance.show', compact('employee', 'attendances', 'date'));
     }
 
     public function create()
