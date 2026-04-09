@@ -35,7 +35,7 @@ class EmployeeRequest extends FormRequest
             'birthday' => 'required|date',
             'gender' => 'required',
             'civil_status' => 'required',
-            'site' => 'required',
+            'location' => 'required',
             'employment_type' => 'required',
             'classification' => 'required',
             'date_employed' => 'required|date',
