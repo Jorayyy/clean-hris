@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\AppSettingController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Employee\AttendanceCalendarController;
 use App\Http\Controllers\WebBundyController;
+use App\Http\Controllers\ProfileController;
 
 // Public login/bundy routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -67,6 +68,10 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('admin/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');
     Route::get('admin/tickets/{id}', [AdminTicketController::class, 'show'])->name('admin.tickets.show');
     Route::put('admin/tickets/{id}', [AdminTicketController::class, 'update'])->name('admin.tickets.update');
+
+    // Profile
+    Route::get('/admin/profile', [ProfileController::class, 'showAdmin'])->name('admin.profile');
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 // Employee Protected Routes
@@ -80,5 +85,12 @@ Route::middleware(['auth', EmployeeMiddleware::class])->prefix('employee')->grou
     Route::get('/tickets/create', [EmployeeTicketController::class, 'create'])->name('employee.tickets.create');
     Route::post('/tickets', [EmployeeTicketController::class, 'store'])->name('employee.tickets.store');
     Route::get('/tickets/{id}', [EmployeeTicketController::class, 'show'])->name('employee.tickets.show');
+
+    // Employee DTR View
+    Route::get('/dtr', [\App\Http\Controllers\Employee\DtrController::class, 'index'])->name('employee.dtr.index');
+    Route::get('/dtr/{id}', [\App\Http\Controllers\Employee\DtrController::class, 'show'])->name('employee.dtr.show');
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'showEmployee'])->name('employee.profile');
 });
 

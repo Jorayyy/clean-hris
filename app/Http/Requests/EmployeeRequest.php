@@ -42,6 +42,7 @@ class EmployeeRequest extends FormRequest
             'date_employed' => 'required|date',
             'tax_code' => 'required',
             'pay_type' => 'required',
+            'payroll_group_id' => 'nullable|exists:payroll_groups,id',
             'bank_name' => 'nullable|string',
             'account_no' => 'nullable|string',
             'tin_no' => 'nullable|string',

@@ -49,4 +49,9 @@ class Employee extends Model
         // Otherwise, use group schedule
         return $this->payrollGroup?->schedules()->first();
     }
+
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name} {$this->name_extension}");
+    }
 }

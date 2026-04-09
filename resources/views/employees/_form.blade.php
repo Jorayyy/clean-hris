@@ -25,14 +25,13 @@
         </div>
     </div>
 
-    <!-- Main Content: Personal Information -->
+    <!-- Main Content: Information Sections -->
     <div class="col-md-9">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom-primary py-3">
-                <h5 class="mb-0 text-primary">Personal Information</h5>
-            </div>
-            <div class="card-body">
-                <!-- Row 0: ID and Status -->
+            <div class="card-body p-4">
+                <div class="mb-5">
+                    <h5 class="mb-4 text-primary pb-2 border-bottom">Personal Information</h5>
+                    <!-- Row 0: ID and Status -->
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Employee ID</label>
@@ -264,6 +263,23 @@
                         </div>
                     </div>
                     
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-primary">Payroll Group</label>
+                            <select name="payroll_group_id" class="form-select @error('payroll_group_id') is-invalid @enderror">
+                                <option value="">No Group Assigned</option>
+                                @foreach($groups as $group)
+                                    <option value="{{ $group->id }}" {{ old('payroll_group_id', $employee->payroll_group_id ?? '') == $group->id ? 'selected' : '' }}>
+                                        {{ $group->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('payroll_group_id')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text small">Sets the specific salary group and rules for this employee.</div>
+                        </div>
+                    </div>
+                    
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Date Employed</label>
@@ -325,8 +341,8 @@
                 </div>
 
                 <!-- Section: Account Information -->
-                <div class="border-top pt-4 mt-4">
-                    <h5 class="mb-4 text-primary" style="border-bottom: 2px solid #198754; padding-bottom: 5px;">Account Information</h5>
+                <div class="border-top pt-5 mt-5">
+                    <h5 class="mb-4 text-primary pb-2 border-bottom" style="border-color: #198754 !important;">Account Information</h5>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Bank</label>
@@ -372,8 +388,8 @@
                 </div>
 
                 <!-- Section: Contact Details -->
-                <div class="border-top pt-4 mt-4">
-                    <h5 class="mb-4 text-primary" style="border-bottom: 2px solid #fd7e14; padding-bottom: 5px;">Contact Details</h5>
+                <div class="border-top pt-5 mt-5">
+                    <h5 class="mb-4 text-primary pb-2 border-bottom" style="border-color: #fd7e14 !important;">Contact Details</h5>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Mobile No. 1</label>
@@ -456,8 +472,8 @@
                 </div>
 
                 <!-- Section: Address -->
-                <div class="border-top pt-4 mt-4">
-                    <h5 class="mb-4 text-primary">Address</h5>
+                <div class="border-top pt-5 mt-5">
+                    <h5 class="mb-4 text-primary pb-2 border-bottom">Address</h5>
                     
                     <!-- Permanent Address -->
                     <div class="mb-4">

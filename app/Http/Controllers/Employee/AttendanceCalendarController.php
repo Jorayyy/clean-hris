@@ -12,8 +12,12 @@ class AttendanceCalendarController extends Controller
 {
     public function index(Request $request)
     {
-        $employee = \App\Models\Employee::where('id', Auth::user()->employee_id)->first();
-        if (!$employee) return back()->with('error', 'No employee profile.');
+        $employee = \App\Models\Employee::find(Auth::user()->employee_id);
+        if (!$employee) {
+            // Instead of redirecting back (which might cause a loop if the referral is the same page),
+            // show a dashboard with an error or a message.
+            return redirect()->route('employee.dashboard')->with('error', 'Employee record not found. Please contact HR.');
+        }
 
         $month = $request->get('month', Carbon::now()->month);
         $year = $request->get('year', Carbon::now()->year);
