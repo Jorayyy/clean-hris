@@ -35,9 +35,9 @@ Route::get('/', function () {
 
 // Admin Protected Routes
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
-    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('attendance/{employee}', [AttendanceController::class, 'show'])->name('attendance.show');
     Route::resource('employees', EmployeeController::class);
-    Route::resource('attendance', AttendanceController::class);
+    Route::resource('attendance', AttendanceController::class)->except(['show']);
     Route::resource('payroll', PayrollController::class);
     Route::resource('payroll-groups', PayrollGroupController::class);
     Route::resource('schedules', ScheduleController::class);
