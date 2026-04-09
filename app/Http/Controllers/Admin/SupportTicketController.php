@@ -5,12 +5,19 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SupportTicket;
+use App\Models\AuditLog;
 
 class SupportTicketController extends Controller
 {
     public function index(Request $request)
     {
         $status = $request->get('status', 'pending');
+        
+        if ($status === 'audit') {
+            $logs = AuditLog::with('user')->latest()->paginate(15);
+            return view('admin.tickets.index', compact('logs', 'status'));
+        }
+
         $tickets = SupportTicket::with('employee')
             ->where('status', $status)
             ->latest()

@@ -15,6 +15,51 @@
                         <h5 class="fw-bold mb-3">{{ $ticket->employee->full_name }} ({{ $ticket->employee->employee_id }})</h5>
                         <small class="text-muted fw-bold d-block mb-1">Concern Type</small>
                         <span class="badge bg-light text-dark shadow-sm px-3 mb-3">{{ $ticket->type }}</span>
+                        
+                        @php
+                            $resolutionLink = null;
+                            $linkText = "";
+                            $icon = "bi-box-arrow-up-right";
+
+                            switch($ticket->type) {
+                                case 'DTR Correction':
+                                case 'Forgot Punch':
+                                    $resolutionLink = route('attendance.index', ['employee' => $ticket->employee_id]);
+                                    $linkText = "Go to Attendance Logs";
+                                    $icon = "bi-calendar-check";
+                                    break;
+                                case 'Salary Discrepancy':
+                                case 'Payslip Issue':
+                                case '13th Month/Bonus':
+                                    $resolutionLink = route('payroll.index');
+                                    $linkText = "Go to Payroll Management";
+                                    $icon = "bi-cash-stack";
+                                    break;
+                                case 'Leave Application':
+                                    // Assuming leave is handled under employees or a specific route if exists
+                                    $resolutionLink = route('employees.show', $ticket->employee_id);
+                                    $linkText = "View Employee Profile";
+                                    $icon = "bi-person-badge";
+                                    break;
+                                case 'Technical Support':
+                                    $resolutionLink = route('admin.settings.index');
+                                    $linkText = "System Settings";
+                                    $icon = "bi-gear";
+                                    break;
+                                default:
+                                    $resolutionLink = route('employees.show', $ticket->employee_id);
+                                    $linkText = "View Employee Profile";
+                                    $icon = "bi-person";
+                            }
+                        @endphp
+
+                        @if($resolutionLink)
+                        <div class="mt-2">
+                            <a href="{{ $resolutionLink }}" class="btn btn-sm btn-outline-primary shadow-sm">
+                                <i class="bi {{ $icon }} me-1"></i> Resolve: {{ $linkText }}
+                            </a>
+                        </div>
+                        @endif
                     </div>
                     <div class="col-md-6 ps-4">
                          <small class="text-muted fw-bold d-block mb-1">Priority</small>

@@ -51,6 +51,18 @@
                         </div>
                     </div>
 
+                    <hr class="my-4">
+                    <div class="bg-light p-3 rounded border">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2 text-danger"></i>Daily Time Record (DTR) Security</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">DTR Authorization Password</label>
+                            <input type="password" name="dtr_password" class="form-control" value="{{ $user->dtr_password }}" placeholder="Leave blank to use your primary login password">
+                            <small class="text-muted d-block mt-2">
+                                <i class="bi bi-info-circle me-1"></i> This secondary password will be required for sensitive operations like <strong>Verifying/Finalizing DTRs</strong> and <strong>Processing Payroll</strong>.
+                            </small>
+                        </div>
+                    </div>
+
                     <div class="mt-4 pt-2 border-top">
                         <button type="submit" class="btn btn-primary px-4 fw-bold">
                             <i class="bi bi-save me-1"></i> Update Profile

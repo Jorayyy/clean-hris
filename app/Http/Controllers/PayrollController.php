@@ -7,7 +7,10 @@ use App\Models\PayrollItem;
 use App\Models\Employee;
 use App\Models\PayrollGroup;
 use App\Services\PayrollService;
-use Illuminate\Http\Request;
+use App\Models\AppSetting;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use App\Models\AuditLog;
 
 class PayrollController extends Controller
 {
@@ -79,10 +82,40 @@ class PayrollController extends Controller
         return redirect()->route('payroll.index')->with('success', 'Payroll period updated successfully.');
     }
 
-    public function processPayroll(Payroll $payroll)
+    public function processPayroll(Request $request, Payroll $payroll)
     {
+        $user = Auth::user();
+        $targetPassword = $user->dtr_password;
+
+        $request->validate([
+            'admin_password' => 'required'
+        ]);
+
+        $inputPassword = $request->admin_password;
+        $isAuthPassword = Hash::check($inputPassword, $user->password);
+        $isDtrPassword = $targetPassword && ($inputPassword === $targetPassword);
+
+        if (!$isAuthPassword && !$isDtrPassword) {
+            return back()->with('error', 'Invalid security password. Payroll processing aborted.');
+        }
+
         $this->payrollService->computePayroll($payroll);
-        return redirect()->route('payroll.show', $payroll->id)->with('success', 'Payroll processed successfully.');
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'PAYROLL_PROCESSED',
+            'model_type' => Payroll::class,
+            'model_id' => $payroll->id,
+            'details' => [
+                'batch' => $payroll->payroll_code,
+                'period' => $payroll->start_date . ' to ' . $payroll->end_date,
+                'ip' => $request->ip()
+            ],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent()
+        ]);
+
+        return redirect()->route('payroll.show', $payroll->id)->with('success', 'Payroll processed successfully and security log recorded.');
     }
 
     public function destroy(Payroll $payroll)

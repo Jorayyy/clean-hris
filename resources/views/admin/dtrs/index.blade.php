@@ -79,31 +79,166 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group">
-                                <a href="{{ route('admin.dtrs.show', $dtr->id) }}" class="btn btn-sm btn-outline-primary" title="Details">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                                @if($dtr->status == 'draft')
-                                <form action="{{ route('admin.dtrs.verify', $dtr->id) }}" method="POST" class="d-inline ms-1">
-                                    @csrf @method('PATCH')
-                                    <button class="btn btn-sm btn-outline-info fw-bold border-2" title="Verify DTR">
+                                <div class="btn-group">
+                                    <a href="{{ route('admin.dtrs.show', $dtr->id) }}" class="btn btn-sm btn-outline-primary" title="Details">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    @if($dtr->status !== 'finalized')
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-bs-toggle="modal" data-bs-target="#editDtrModal{{ $dtr->id }}" title="Edit Record">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </button>
+                                    @endif
+                                    @if($dtr->status == 'draft')
+                                    <button type="button" class="btn btn-sm btn-outline-info fw-bold border-2 ms-1" data-bs-toggle="modal" data-bs-target="#verifyDtrModal{{ $dtr->id }}" title="Verify DTR">
                                         <i class="bi bi-check2-square"></i> Verify
                                     </button>
-                                </form>
-                                @elseif($dtr->status == 'verified')
-                                <form action="{{ route('admin.dtrs.finalize', $dtr->id) }}" method="POST" class="d-inline ms-1">
-                                    @csrf @method('PATCH')
-                                    <button class="btn btn-sm btn-outline-success fw-bold border-2" title="Finalize DTR" onclick="return confirm('Finalizing this record will lock it for payroll use. Proceed?')">
+                                    @elseif($dtr->status == 'verified')
+                                    <button type="button" class="btn btn-sm btn-outline-success fw-bold border-2 ms-1" data-bs-toggle="modal" data-bs-target="#finalizeDtrModal{{ $dtr->id }}" title="Finalize DTR">
                                         <i class="bi bi-lock-fill"></i> Finalize
                                     </button>
-                                </form>
-                                @endif
-                                
-                                <form action="{{ route('admin.dtrs.destroy', $dtr->id) }}" method="POST" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to delete this DTR record?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete record" {{ $dtr->status === 'finalized' ? 'disabled' : '' }}>
+                                    @endif
+                                    
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteDtrModal{{ $dtr->id }}" title="Delete record" {{ $dtr->status === 'finalized' && Auth::user()->role !== 'admin' ? 'disabled' : '' }}>
                                         <i class="bi bi-trash"></i>
                                     </button>
-                                </form>
+                                </div>
+
+                                <!-- Verify Modal -->
+                                <div class="modal fade" id="verifyDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-info text-white">
+                                                <h5 class="modal-title">Verify DTR Record</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{{ route('admin.dtrs.verify', $dtr->id) }}" method="POST">
+                                                @csrf @method('PATCH')
+                                                <div class="modal-body text-start">
+                                                    <p>You are about to verify the DTR for <strong>{{ $dtr->employee->full_name }}</strong>.</p>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small">Enter Security Password</label>
+                                                        <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-info px-4">Confirm Verification</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Finalize Modal -->
+                                <div class="modal fade" id="finalizeDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-success text-white">
+                                                <h5 class="modal-title">Finalize & Lock DTR</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{{ route('admin.dtrs.finalize', $dtr->id) }}" method="POST">
+                                                @csrf @method('PATCH')
+                                                <div class="modal-body text-start">
+                                                    <div class="alert alert-warning small">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i> Finalizing will lock this record for payroll processing. 
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small">Enter Security Password</label>
+                                                        <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-success px-4">Finalize Record</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Modal -->
+                                <div class="modal fade" id="editDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-dark text-white">
+                                                <h5 class="modal-title">Edit DTR Metrics</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{{ route('admin.dtrs.update', $dtr->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <div class="modal-body text-start">
+                                                    <div class="row g-3">
+                                                        <div class="col-6">
+                                                            <label class="form-label small fw-bold">Regular Hours</label>
+                                                            <input type="number" name="total_regular_hours" class="form-control" value="{{ $dtr->total_regular_hours }}" step="0.5" required>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small fw-bold">Overtime Hours</label>
+                                                            <input type="number" name="total_overtime_hours" class="form-control" value="{{ $dtr->total_overtime_hours }}" step="0.5" required>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small fw-bold">Late (Mins)</label>
+                                                            <input type="number" name="total_late_minutes" class="form-control" value="{{ $dtr->total_late_minutes }}" required>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small fw-bold">Undertime (Mins)</label>
+                                                            <input type="number" name="total_undertime_minutes" class="form-control" value="{{ $dtr->total_undertime_minutes }}" required>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label small fw-bold">Admin Notes</label>
+                                                            <textarea name="admin_notes" class="form-control" rows="2">{{ $dtr->admin_notes }}</textarea>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <hr>
+                                                            <label class="form-label fw-bold text-danger">Identity Verification</label>
+                                                            <input type="password" name="admin_password" class="form-control" placeholder="Enter System Security Password" required>
+                                                            <small class="text-muted">Requires the specialized security password or your admin login password.</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary px-4">Save Updates</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title">Confirm DTR Deletion</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{{ route('admin.dtrs.destroy', $dtr->id) }}" method="POST">
+                                                @csrf @method('DELETE')
+                                                <div class="modal-body text-start">
+                                                    <p class="mb-3">Deleting DTR for <strong>{{ $dtr->employee->full_name }}</strong> ({{ $dtr->start_date->format('M d') }} - {{ $dtr->end_date->format('M d, Y') }}).</p>
+                                                    
+                                                    @if($dtr->status === 'finalized')
+                                                        <div class="alert alert-warning small">
+                                                            <i class="bi bi-exclamation-triangle-fill"></i> This DTR is <strong>Finalized</strong>. Deleting it may affect payroll records.
+                                                        </div>
+                                                    @endif
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">Enter Admin Password to Proceed:</label>
+                                                        <input type="password" name="admin_password" class="form-control" placeholder="Required for audit trailing" required>
+                                                    </div>
+                                                    <p class="text-muted small"><em>All deletions are logged in the Transactions/Audit log for security monitoring.</em></p>
+                                                </div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-danger px-4">Delete Record</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>

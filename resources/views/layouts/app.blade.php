@@ -29,6 +29,13 @@
         }
         .logo-img { height: 35px; border-radius: 4px; }
         .nav-category { padding: 1.2rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; }
+
+        @media print {
+            .sidebar, .top-navbar, .btn, .no-print { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 0 !important; }
+            body { background: white !important; }
+            .card { border: none !important; box-shadow: none !important; }
+        }
     </style>
 </head>
 <body>

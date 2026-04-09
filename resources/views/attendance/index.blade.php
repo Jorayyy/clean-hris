@@ -108,7 +108,7 @@
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark">{{ $employee->full_name }}</div>
-                                        <div class="text-muted small font-monospace">{{ $employee->employee_id }} — {{ $employee->position }}</div>
+                                        <div class="text-muted small font-monospace">{{ $employee->employee_id }} <i class="bi bi-dot"></i> {{ $employee->position }}</div>
                                     </div>
                                 </div>
                             </td>

@@ -8,9 +8,21 @@
     .bg-dtr-label { background: #f8f9fa; font-weight: bold; width: 15%; }
     .bg-dtr-value { background: #ffffff; width: 18%; }
     .footer-summary { background: #e9ecef; border-top: 2px solid #003366; }
+
+    @media print {
+        @page { size: landscape; margin: 0.5cm; }
+        .dtr-header { background: #003366 !important; color: white !important; -webkit-print-color-adjust: exact; }
+        .dtr-table th { background: #005a9c !important; color: white !important; -webkit-print-color-adjust: exact; }
+        .bg-dtr-label { background: #f8f9fa !important; -webkit-print-color-adjust: exact; }
+        .footer-summary { background: #e9ecef !important; -webkit-print-color-adjust: exact; }
+        .btn, .no-print, .mb-3.d-flex { display: none !important; }
+        .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+        body { font-size: 10pt; }
+        .container-fluid { padding: 0 !important; }
+    }
 </style>
 
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="mb-3 d-flex justify-content-between align-items-center no-print">
     <a href="{{ route('admin.dtrs.index') }}" class="btn btn-sm btn-outline-secondary shadow-sm px-3 fw-bold">
         <i class="bi bi-arrow-left me-1"></i> Back to List
     </a>
@@ -144,25 +156,83 @@
                         </tr>
                     </table>
                 </div>
-                <div class="col-md-6 text-end">
-                    <div class="mt-2">
+                <div class="col-md-3 text-center d-none d-print-block">
+                    <div class="mt-4 border-top pt-2 small fw-bold">Employee Signature</div>
+                </div>
+                <div class="col-md-3 text-center d-none d-print-block">
+                    <div class="mt-4 border-top pt-2 small fw-bold">Admin/Supervisor Approval</div>
+                </div>
+                <div class="col-md-6 text-end no-print">
+                    <div class="mt-2 text-end">
                         @if($dtr->status == 'draft')
-                            <form action="{{ route('admin.dtrs.verify', $dtr->id) }}" method="POST" class="d-inline">
-                                @csrf @method('PATCH')
-                                <button class="btn btn-info btn-sm fw-bold"><i class="bi bi-shield-check me-1"></i> Verify DTR</button>
-                            </form>
+                            <button type="button" class="btn btn-info btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#verifyDtrModal">
+                                <i class="bi bi-shield-check me-1"></i> Verify DTR
+                            </button>
                         @elseif($dtr->status == 'verified')
-                            <form action="{{ route('admin.dtrs.finalize', $dtr->id) }}" method="POST" class="d-inline">
-                                @csrf @method('PATCH')
-                                <button class="btn btn-success btn-sm fw-bold"><i class="bi bi-lock-fill me-1"></i> Finalize DTR</button>
-                            </form>
+                            <button type="button" class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#finalizeDtrModal">
+                                <i class="bi bi-lock-fill me-1"></i> Finalize DTR
+                            </button>
                         @else
                             <span class="badge bg-success p-2"><i class="bi bi-check-circle-fill me-1"></i> RECORD FINALIZED</span>
                         @endif
-                        <button class="btn btn-dark btn-sm fw-bold ms-1" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print DTR</button>
+                        <button type="button" class="btn btn-dark btn-sm fw-bold ms-1" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print DTR</button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Verify Modal -->
+<div class="modal fade" id="verifyDtrModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Verify DTR Record</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.dtrs.verify', $dtr->id) }}" method="POST">
+                @csrf @method('PATCH')
+                <div class="modal-body">
+                    <p>You are about to verify the DTR for <strong>{{ $dtr->employee->full_name }}</strong>.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Enter Security Password</label>
+                        <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info px-4">Confirm Verification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Finalize Modal -->
+<div class="modal fade" id="finalizeDtrModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Finalize & Lock DTR</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.dtrs.finalize', $dtr->id) }}" method="POST">
+                @csrf @method('PATCH')
+                <div class="modal-body">
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Finalizing will lock this record for payroll processing. 
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Enter Security Password</label>
+                        <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success px-4">Finalize Record</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

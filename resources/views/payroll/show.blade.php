@@ -21,11 +21,39 @@
 
         @if($payroll->status == 'draft')
         <div class="alert alert-warning text-center">
-            This payroll is in draft mode. Click the button below to process all active employees.
-            <form action="{{ route('payroll.process', $payroll->id) }}" method="POST" class="mt-2">
-                @csrf
-                <button class="btn btn-success px-4">One-Click: Process Payroll Now</button>
-            </form>
+            <p class="mb-3">This payroll is in draft mode. Click the button below to process all active employees.</p>
+            <button type="button" class="btn btn-success px-5 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#processPayrollModal">
+                <i class="bi bi-play-circle me-1"></i> One-Click: Process Payroll Now
+            </button>
+        </div>
+
+        <!-- Process Payroll Modal -->
+        <div class="modal fade" id="processPayrollModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Authorize Payroll Processing</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ route('payroll.process', $payroll->id) }}" method="POST">
+                        @csrf
+                        <div class="modal-body text-start">
+                            <p>You are about to compute and finalize the payroll for <strong>{{ $payroll->payroll_code }}</strong> ({{ $payroll->start_date }} to {{ $payroll->end_date }}).</p>
+                            <div class="alert alert-info small">
+                                <i class="bi bi-info-circle-fill"></i> This will generate payslips for all active employees and cannot be undone easily.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Enter Security Password</label>
+                                <input type="password" name="admin_password" class="form-control" placeholder="Required for final approval" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success px-4">Begin Processing</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
         @else
         <div class="table-responsive">
