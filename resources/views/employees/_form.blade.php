@@ -194,9 +194,9 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Site</label>
-                            <input type="text" name="location" class="form-control bg-light @error('location') is-invalid @enderror" 
-                                   placeholder="Site Location" value="{{ old('location', $employee->location ?? '') }}">
-                            @error('location')
+                            <input type="text" name="site" class="form-control bg-light @error('site') is-invalid @enderror" 
+                                   placeholder="Site Location" value="{{ old('site', $employee->site ?? '') }}">
+                            @error('site')
                                 <div class="text-danger small mt-1">Site is required</div>
                             @enderror
                         </div>
