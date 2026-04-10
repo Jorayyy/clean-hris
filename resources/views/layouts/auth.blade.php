@@ -80,14 +80,14 @@
         }
 
         .animation-side {
-            background: rgba(15, 23, 42, 0.3);
+            background: rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 60px;
             color: white;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .form-side {
@@ -95,7 +95,8 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(40px);
         }
 
         .card { border: none; background: transparent; }
