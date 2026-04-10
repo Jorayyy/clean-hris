@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\PayrollGroup;
 use App\Http\Requests\EmployeeRequest;
+use App\Http\Requests\StoreEmployeeRequest;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
@@ -21,7 +22,7 @@ class EmployeeController extends Controller
         return view('employees.create', compact('groups'));
     }
 
-    public function store(EmployeeRequest $request)
+    public function store(StoreEmployeeRequest $request)
     {
         $data = $request->validated();
 

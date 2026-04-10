@@ -59,6 +59,9 @@ class PayrollService
                 $items[] = PayrollItem::updateOrCreate(
                     ['payroll_id' => $payroll->id, 'employee_id' => $employee->id],
                     [
+                        'snapshot_daily_rate' => $dailyRate,
+                        'snapshot_position' => $employee->position,
+                        'snapshot_group' => $employee->payrollGroup?->name ?? 'N/A',
                         'total_days' => $totalDays,
                         'total_hours' => $totalHours,
                         'basic_pay' => $basicPay,

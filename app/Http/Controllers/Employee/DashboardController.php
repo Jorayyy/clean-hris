@@ -9,6 +9,8 @@ use App\Models\SupportTicket;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PayrollItem;
+use App\Models\Announcement;
+use App\Models\LeaveBalance;
 
 class DashboardController extends Controller
 {
@@ -47,16 +49,54 @@ class DashboardController extends Controller
         $latestSalary = (clone $query)->latest()->first();
         $salaries = $query->latest()->get();
 
-        return view('employee.dashboard', compact('salaries', 'totalHoursThisMonth', 'pendingTickets', 'latestSalary', 'payrollPeriods'));
+        // New real data
+        $todayAttendance = Attendance::where('employee_id', $employee->id)
+            ->whereDate('date', Carbon::today())
+            ->first();
+
+        $recentAttendance = Attendance::where('employee_id', $employee->id)
+            ->whereDate('date', '<=', Carbon::today())
+            ->orderBy('date', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Real Announcements
+        $announcements = Announcement::where('is_active', true)
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        // Real Leave Balances
+        $leaveBalance = LeaveBalance::firstOrCreate(
+            ['employee_id' => $employee->id],
+            [
+                'sick_leave_total' => 10, 'sick_leave_used' => 0,
+                'vacation_leave_total' => 12, 'vacation_leave_used' => 0,
+                'sil_total' => 5, 'sil_used' => 0
+            ]
+        );
+
+        return view('employee.dashboard', compact(
+            'salaries', 
+            'totalHoursThisMonth', 
+            'pendingTickets', 
+            'latestSalary', 
+            'payrollPeriods',
+            'todayAttendance',
+            'recentAttendance',
+            'announcements',
+            'leaveBalance'
+        ));
     }
 
     public function showPayslip($id)
     {
-        $employeeId = Auth::user()->employee_id;
-        $item = PayrollItem::with(['payroll', 'employee'])
-            ->where('id', $id)
-            ->where('employee_id', $employeeId)
-            ->firstOrFail();
+        $item = PayrollItem::with(['payroll', 'employee'])->findOrFail($id);
+        
+        // Authorization Check via Policy
+        if (Auth::user()->cannot('view', $item)) {
+            abort(403, 'Unauthorized access to this payslip.');
+        }
 
         return view('payslip.show', compact('item'));
     }

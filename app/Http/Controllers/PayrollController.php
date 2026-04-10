@@ -10,6 +10,8 @@ use App\Services\PayrollService;
 use App\Models\AppSetting;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StorePayrollRequest;
+use App\Jobs\ProcessPayrollBatch;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 
@@ -47,17 +49,9 @@ class PayrollController extends Controller
         return view('payroll.create', compact('groups'));
     }
 
-    public function store(Request $request)
+    public function store(StorePayrollRequest $request)
     {
-        $request->validate([
-            'payroll_code' => 'required|unique:payrolls',
-            'payroll_group_id' => 'required|exists:payroll_groups,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'pay_date' => 'required|date',
-        ]);
-
-        Payroll::create($request->all());
+        Payroll::create($request->validated());
         return redirect()->route('payroll.index')->with('success', 'Payroll draft created.');
     }
 
@@ -113,7 +107,8 @@ class PayrollController extends Controller
             return back()->with('error', 'Invalid security password. Payroll processing aborted.');
         }
 
-        $this->payrollService->computePayroll($payroll);
+        // Dispatch background job for heavy processing
+        ProcessPayrollBatch::dispatch($payroll);
 
         AuditLog::create([
             'user_id' => Auth::id(),
@@ -129,7 +124,7 @@ class PayrollController extends Controller
             'user_agent' => $request->userAgent()
         ]);
 
-        return redirect()->route('payroll.show', $payroll->id)->with('success', 'Payroll processed successfully and security log recorded.');
+        return redirect()->route('payroll.show', $payroll->id)->with('success', 'Payroll calculation has been queued. Please refresh in a few moments to see the results.');
     }
 
     public function destroy(Payroll $payroll)

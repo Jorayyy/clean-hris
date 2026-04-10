@@ -69,16 +69,16 @@
                             @endif
                         </td>
                         <td>
-                            <div class="btn-group shadow-sm">
-                                <a href="{{ route('payroll.show', $row->id) }}" class="btn btn-sm btn-outline-primary" title="Details">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="{{ route('payroll.show', $row->id) }}" class="btn btn-sm btn-outline-primary shadow-sm" title="Details">
                                     <i class="bi bi-eye-fill"></i> View
                                 </a>
-                                <a href="{{ route('payroll.edit', $row->id) }}" class="btn btn-sm btn-outline-info" title="Edit Period">
+                                <a href="{{ route('payroll.edit', $row->id) }}" class="btn btn-sm btn-outline-info shadow-sm" title="Edit Period">
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </a>
                                 <form action="{{ route('payroll.destroy', $row->id) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Permanently delete this period? This action cannot be undone.')">
+                                    <button class="btn btn-sm btn-outline-danger shadow-sm" title="Delete" onclick="return confirm('Permanently delete this period? This action cannot be undone.')">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </form>

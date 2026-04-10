@@ -205,34 +205,3 @@
     }
 </style>
 @endsection
-                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Personal Information</h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="text-muted small">First Name</label>
-                        <div class="fw-bold">{{ $employee->first_name }}</div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="text-muted small">Last Name</label>
-                        <div class="fw-bold">{{ $employee->last_name }}</div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="text-muted small">Birthday</label>
-                        <div class="fw-bold">{{ $employee->birthday ?? 'Not set' }}</div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="text-muted small">Mobile No.</label>
-                        <div class="fw-bold">{{ $employee->mobile_no_1 ?? 'Not set' }}</div>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="text-muted small">Current Address</label>
-                        <div class="fw-bold">{{ $employee->present_address_brgy ? $employee->present_address_brgy . ', ' . $employee->present_address_province : 'Not set' }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-    </div>
-</div>
-@endsection

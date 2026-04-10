@@ -9,6 +9,7 @@ use App\Http\Controllers\PayrollGroupController;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
+use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\EmployeeMiddleware;
 
@@ -74,6 +75,9 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('admin/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');
     Route::get('admin/tickets/{id}', [AdminTicketController::class, 'show'])->name('admin.tickets.show');
     Route::put('admin/tickets/{id}', [AdminTicketController::class, 'update'])->name('admin.tickets.update');
+
+    // Announcements
+    Route::resource('announcements', AdminAnnouncementController::class);
 
     // Profile
     Route::get('/admin/profile', [ProfileController::class, 'showAdmin'])->name('admin.profile');
