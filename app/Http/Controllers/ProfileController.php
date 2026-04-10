@@ -25,21 +25,44 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
+        $employee = Employee::find($user->employee_id);
         
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
-            'dtr_password' => 'nullable|string|max:255'
+            'web_bundy_code' => 'nullable|string|min:4',
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'birthday' => 'nullable|date',
+            'gender' => 'nullable|string',
+            'civil_status' => 'nullable|string',
+            'religion' => 'nullable|string',
+            'place_of_birth' => 'nullable|string',
+            'photo' => 'nullable|image|max:2048'
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
 
-        // Update DTR authorization password if provided
-        if ($request->has('dtr_password')) {
-            $user->dtr_password = $request->dtr_password;
+        if ($employee) {
+            $employee->first_name = $request->first_name;
+            $employee->last_name = $request->last_name;
+            $employee->middle_name = $request->middle_name;
+            $employee->birthday = $request->birthday;
+            $employee->gender = $request->gender;
+            $employee->civil_status = $request->civil_status;
+            $employee->religion = $request->religion;
+            $employee->place_of_birth = $request->place_of_birth;
+            $employee->web_bundy_code = $request->web_bundy_code;
+
+            if ($request->hasFile('photo')) {
+                $path = $request->file('photo')->store('photos', 'public');
+                $employee->photo = $path;
+            }
+            $employee->save();
         }
 
         if ($request->filled('new_password')) {

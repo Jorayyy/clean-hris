@@ -52,8 +52,18 @@
 
     <div class="col-md-12">
         <div class="card shadow border-0 rounded overflow-hidden">
-            <div class="card-header bg-white py-3">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
                 <h6 class="mb-0 fw-bold">My Payslips History</h6>
+                <form action="{{ route('employee.dashboard') }}" method="GET" class="d-flex align-items-center">
+                    <select name="payroll_id" class="form-select form-select-sm border-0 shadow-none bg-light fw-bold" onchange="this.form.submit()" style="width: auto; min-width: 250px;">
+                        <option value="">ALL PAY PERIODS</option>
+                        @foreach($payrollPeriods as $period)
+                            <option value="{{ $period->id }}" {{ request('payroll_id') == $period->id ? 'selected' : '' }}>
+                                {{ strtoupper($period->title) }} ({{ $period->start_date }} - {{ $period->end_date }})
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">

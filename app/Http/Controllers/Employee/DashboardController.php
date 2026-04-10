@@ -12,7 +12,7 @@ use App\Models\PayrollItem;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $employee = \App\Models\Employee::where('id', $user->employee_id)->first();
@@ -30,17 +30,24 @@ class DashboardController extends Controller
             ->where('status', '!=', 'resolved')
             ->count();
 
-        $latestSalary = PayrollItem::with('payroll')
-            ->where('employee_id', $employee->id)
-            ->latest()
-            ->first();
-
-        $salaries = PayrollItem::with('payroll')
-            ->where('employee_id', $employee->id)
+        // Get all unique payroll periods for the filter
+        $payrollPeriods = \App\Models\Payroll::whereHas('items', function($q) use ($employee) {
+                $q->where('employee_id', $employee->id);
+            })
             ->latest()
             ->get();
 
-        return view('employee.dashboard', compact('salaries', 'totalHoursThisMonth', 'pendingTickets', 'latestSalary'));
+        $query = PayrollItem::with('payroll')
+            ->where('employee_id', $employee->id);
+
+        if ($request->filled('payroll_id')) {
+            $query->where('payroll_id', $request->payroll_id);
+        }
+
+        $latestSalary = (clone $query)->latest()->first();
+        $salaries = $query->latest()->get();
+
+        return view('employee.dashboard', compact('salaries', 'totalHoursThisMonth', 'pendingTickets', 'latestSalary', 'payrollPeriods'));
     }
 
     public function showPayslip($id)
