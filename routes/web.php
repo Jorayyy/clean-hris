@@ -21,6 +21,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Employee\AttendanceCalendarController;
 use App\Http\Controllers\WebBundyController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 
 // Public login/bundy routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -40,6 +41,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('attendance/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
     Route::get('attendance/{employee}', [AttendanceController::class, 'show'])->name('attendance.show');
     Route::resource('employees', EmployeeController::class);
+    Route::resource('users', UserController::class);
     Route::resource('attendance', AttendanceController::class)->except(['show', 'create', 'edit']);
     Route::resource('payroll', PayrollController::class);
     Route::resource('payroll-groups', PayrollGroupController::class);

@@ -11,6 +11,7 @@ use App\Models\AppSetting;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\AuditLog;
+use Illuminate\Http\Request;
 
 class PayrollController extends Controller
 {
@@ -21,10 +22,23 @@ class PayrollController extends Controller
         $this->payrollService = $service;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $payrolls = Payroll::with('payrollGroup')->latest()->get();
-        return view('payroll.index', compact('payrolls'));
+        $query = Payroll::with('payrollGroup')->latest();
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->where('start_date', $request->start_date)
+                  ->where('end_date', $request->end_date);
+        }
+
+        $payrolls = $query->get();
+
+        $periods = Payroll::select('start_date', 'end_date')
+            ->distinct()
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        return view('payroll.index', compact('payrolls', 'periods'));
     }
 
     public function create()

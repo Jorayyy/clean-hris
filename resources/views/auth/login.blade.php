@@ -11,8 +11,8 @@
                         <i class="bi bi-fingerprint fs-4 text-white"></i>
                     </div>
                     <div>
-                        <h4 class="mb-1 fw-800 tracking-wider">WEB BUNDY</h4>
-                        <p class="small opacity-75 mb-0 font-monospace h5" id="liveClock"></p>
+                        <h4 class="mb-1 fw-800 tracking-wider font-inter">WEB BUNDY</h4>
+                        <p class="small opacity-75 mb-0 font-monospace h5" id="liveClock" style="font-family: 'JetBrains Mono', monospace !important;"></p>
                     </div>
                 </div>
             </div>
@@ -27,6 +27,22 @@
                     <div class="alert alert-danger border-0 shadow-sm py-3 mb-4 small d-flex align-items-center">
                         <i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-danger"></i>
                         <div>{{ session('bundy_error') }}</div>
+                    </div>
+                @endif
+                @if ($errors->hasAny(['employee_id_string', 'web_bundy_code', 'punch_type']))
+                    <div class="alert alert-danger border-0 shadow-sm py-3 mb-4 small d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-danger"></i>
+                        <div>
+                            @foreach ($errors->get('employee_id_string') as $error)
+                                <div class="fw-bold">{{ $error }}</div>
+                            @endforeach
+                            @foreach ($errors->get('web_bundy_code') as $error)
+                                <div class="fw-bold">{{ $error }}</div>
+                            @endforeach
+                            @foreach ($errors->get('punch_type') as $error)
+                                <div class="fw-bold">{{ $error }}</div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
 
@@ -128,8 +144,8 @@
                         <i class="bi bi-shield-lock-fill fs-4 text-white"></i>
                     </div>
                     <div>
-                        <h4 class="mb-1 fw-800 tracking-wider">PORTAL LOGIN</h4>
-                        <p class="small opacity-75 mb-0">Sign in to your account</p>
+                        <h4 class="mb-1 fw-800 tracking-wider font-inter">PORTAL LOGIN</h4>
+                        <p class="small opacity-75 mb-0" style="font-family: 'Inter', sans-serif;">Sign in to your account</p>
                     </div>
                 </div>
             </div>
@@ -138,7 +154,10 @@
                     <div class="alert alert-danger border-0 shadow-sm py-3 mb-4 small d-flex align-items-center">
                         <i class="bi bi-exclamation-octagon-fill me-2 fs-5 text-danger"></i>
                         <div>
-                            @foreach ($errors->all() as $error)
+                            @foreach ($errors->get('email') as $error)
+                                <div class="fw-bold">{{ $error }}</div>
+                            @endforeach
+                            @foreach ($errors->get('password') as $error)
                                 <div class="fw-bold">{{ $error }}</div>
                             @endforeach
                         </div>
