@@ -9,92 +9,205 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(239, 68, 68, 0.05) 0px, transparent 50%);
+            overflow: hidden;
+            margin: 0;
+            position: relative;
         }
-        .login-container { width: 100%; max-width: 1000px; padding: 20px; }
-        .card { border: none; transition: transform 0.2s, box-shadow 0.2s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important; }
-        .btn-check:checked + .btn { border-width: 2px; border-color: inherit !important; background-color: rgba(var(--bs-primary-rgb), 0.05); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .punch-type-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent !important; }
-        .punch-type-btn:hover { transform: translateY(-5px); background-color: #fff !important; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: currentColor !important; }
-        .punch-type-btn i { transition: transform 0.3s; }
-        .punch-type-btn:hover i { transform: scale(1.2); }
-        .form-floating > .form-control { padding-top: 1.625rem; padding-bottom: 0.625rem; height: calc(3.5rem + 2px) !important; line-height: 1.25; }
-        .form-floating > label { padding: 1rem 0.75rem; transition: opacity .1s ease-in-out,transform .1s ease-in-out; }
-        .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
-        .tracking-wider { letter-spacing: 0.1em; }
-        .glass-dark { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); }
-        .logo-section { margin-bottom: 2rem; }
-        .logo-img { height: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+
+        /* Video Background */
+        .video-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .video-bg iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 56.25vw; /* 16:9 ratio */
+            min-height: 100vh;
+            min-width: 177.77vh; /* 16:9 ratio */
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.9) 100%);
+            z-index: -1;
+        }
+
+        .login-container { 
+            width: 100%; 
+            max-width: 1100px; 
+            padding: 20px;
+            perspective: 1000px;
+        }
         
-        /* Minimizing logic */
-        .auth-card { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .auth-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            width: 100%;
+            min-height: 750px;
+            animation: cardEntrance 1s ease-out forwards;
+        }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(50px) rotateX(-5deg); }
+            to { opacity: 1; transform: translateY(0) rotateX(0); }
+        }
+
+        .animation-side {
+            background: rgba(15, 23, 42, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: white;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .form-side {
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .card { border: none; background: transparent; }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(37, 99, 235, 0.3); }
+
+        .btn-danger { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: none;
+            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.2);
+        }
+
         .auth-card.minimized { 
-            height: auto !important; 
-            max-height: 80px;
-            overflow: hidden; 
-            opacity: 0.9; 
-            margin-bottom: 1.5rem !important;
-            border-radius: 12px !important;
+            height: 65px !important; 
+            opacity: 0.5; 
+            filter: grayscale(1);
+            transition: all 0.4s;
         }
-        .auth-card.minimized:hover { opacity: 1; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-        .auth-card.minimized .card-body { display: none !important; }
-        .auth-card.minimized .card-header { 
-            border-radius: 12px !important; 
-            min-height: 80px; 
-            height: auto !important;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 1rem 0 !important; 
-        }
-        /* Hide subtext in minimized mode to keep it button-like */
-        .auth-card.minimized .card-header p { display: none !important; }
-        .auth-card.minimized .card-header .icon-box { 
-            margin-bottom: 0.25rem !important; 
-            margin-right: 0 !important; 
-            padding: 4px !important; 
-            width: 36px !important; 
-            height: 36px !important; 
-        }
-        .auth-card.minimized .card-header i { font-size: 1rem !important; }
-        .auth-card.minimized .card-header h4 { margin-bottom: 0 !important; font-size: 1.1rem; line-height: 1.2; display: block !important; padding-bottom: 5px; }
-        
-        .active-form { 
-            z-index: 10; 
-        }
-        .active-form .card-header {
-            border-top-left-radius: 12px !important;
-            border-top-right-radius: 12px !important;
-        }
-        @media (max-width: 768px) {
-            .login-container { max-width: 500px; }
+        .auth-card.minimized:hover { opacity: 0.8; filter: grayscale(0.5); }
+
+        @media (max-width: 992px) {
+            .auth-wrapper { grid-template-columns: 1fr; }
+            .animation-side { display: none; }
+            .login-container { max-width: 550px; }
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="text-center logo-section">
-            @if($systemSettings->app_logo)
-                <img src="{{ asset('storage/' . $systemSettings->app_logo) }}" alt="Logo" class="logo-img mb-3">
-            @endif
-            <h2 class="fw-800 text-dark mb-1">{{ $systemSettings->app_name }}</h2>
-            <p class="text-muted small">Human Resource & Payroll Management System</p>
-        </div>
+    <div class="video-bg">
+        <!-- New Background Video -->
+        <iframe src="https://www.youtube.com/embed/MtRtuR1fa_8?autoplay=1&mute=1&controls=0&loop=1&playlist=MtRtuR1fa_8&showinfo=0&rel=0" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+    </div>
+    <div class="video-overlay"></div>
 
-        @yield('content')
+    <div class="login-container">
+        <div class="auth-wrapper">
+            <!-- Left Side / Branding -->
+            <div class="animation-side d-flex flex-column align-items-center justify-content-center text-center p-5">
+                <div class="animate-bounce">
+                    @if($systemSettings->app_logo)
+                        <img src="{{ asset('storage/' . $systemSettings->app_logo) }}" alt="Logo" style="height: 120px; width: auto; max-width: 280px; object-fit: contain; filter: drop-shadow(0 0 30px rgba(255,255,255,0.5));" class="mb-4">
+                    @endif
+                    <h1 class="fw-900 tracking-tighter text-white mb-0" style="font-size: 3.5rem; letter-spacing: -3px; line-height: 1;">MEBS HIYAS</h1>
+                </div>
+            </div>
+
+            <!-- Right Side / Form -->
+            <div class="form-side">
+                @yield('content')
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleCard(type) {
+            const bundyCard = document.getElementById('bundyCard');
+            const loginCard = document.getElementById('loginCard');
+            if (!bundyCard || !loginCard) return;
+
+            if (type === 'bundy') {
+                bundyCard.classList.remove('minimized');
+                bundyCard.classList.add('active-form');
+                loginCard.classList.add('minimized');
+                loginCard.classList.remove('active-form');
+            } else if (type === 'login') {
+                loginCard.classList.remove('minimized');
+                loginCard.classList.add('active-form');
+                bundyCard.classList.add('minimized');
+                bundyCard.classList.remove('active-form');
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) clockEl.textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function updatePunchSelectionDisplay(text) {
+            const displayEl = document.getElementById('currentPunchText');
+            if (displayEl) {
+                displayEl.textContent = text;
+                // Add a small animation to grab attention
+                displayEl.style.animation = 'none';
+                displayEl.offsetHeight; // trigger reflow
+                displayEl.style.animation = 'pulse-lite 0.5s ease-out';
+            }
+        }
+    </script>
+    <style>
+        @keyframes pulse-lite {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
     @stack('scripts')
 </body>
+</html>
 </html>
