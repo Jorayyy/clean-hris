@@ -23,12 +23,18 @@ class AppSettingController extends Controller
         $request->validate([
             'app_name' => 'required|string|max:255',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'dtr_edit_password' => 'nullable|string'
+            'dtr_edit_password' => 'nullable|string',
+            'sss_rate' => 'required|numeric|between:0,1',
+            'pagibig_rate' => 'required|numeric|between:0,1',
+            'philhealth_rate' => 'required|numeric|between:0,1',
         ]);
 
         $data = [
             'app_name' => $request->app_name,
             'dtr_edit_password' => $request->dtr_edit_password,
+            'sss_rate' => $request->sss_rate,
+            'pagibig_rate' => $request->pagibig_rate,
+            'philhealth_rate' => $request->philhealth_rate,
         ];
 
         if ($request->hasFile('app_logo')) {

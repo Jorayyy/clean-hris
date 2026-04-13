@@ -61,10 +61,30 @@
                             
                             @if($record)
                                 <div class="attendance-info">
-                                    <span class="badge bg-success badge-time">In: {{ date('h:i A', strtotime($record->time_in)) }}</span>
-                                    @if($record->time_out)
-                                        <span class="badge bg-secondary badge-time">Out: {{ date('h:i A', strtotime($record->time_out)) }}</span>
+                                    @if($record->time_in && $record->time_in !== '00:00:00')
+                                        <span class="badge bg-success badge-time text-truncate" title="In: {{ date('h:i A', strtotime($record->time_in)) }}">
+                                            In: {{ date('h:i A', strtotime($record->time_in)) }}
+                                        </span>
                                     @endif
+
+                                    @if($record->break1_out && $record->break1_out !== '00:00:00')
+                                        <span class="badge bg-info badge-time text-truncate" title="Lunch Out: {{ date('h:i A', strtotime($record->break1_out)) }}">
+                                            L-Out: {{ date('h:i A', strtotime($record->break1_out)) }}
+                                        </span>
+                                    @endif
+
+                                    @if($record->break1_in && $record->break1_in !== '00:00:00')
+                                        <span class="badge bg-info badge-time text-truncate" title="Lunch In: {{ date('h:i A', strtotime($record->break1_in)) }}">
+                                            L-In: {{ date('h:i A', strtotime($record->break1_in)) }}
+                                        </span>
+                                    @endif
+
+                                    @if($record->time_out && $record->time_out !== '00:00:00')
+                                        <span class="badge bg-secondary badge-time text-truncate" title="Out: {{ date('h:i A', strtotime($record->time_out)) }}">
+                                            Out: {{ date('h:i A', strtotime($record->time_out)) }}
+                                        </span>
+                                    @endif
+
                                     @if($record->late_minutes > 0)
                                         <span class="badge bg-danger badge-time">Late: {{ $record->late_minutes }}m</span>
                                     @endif
@@ -72,7 +92,7 @@
                                         <span class="badge bg-warning text-dark badge-time">UT: {{ $record->undertime_minutes }}m</span>
                                     @endif
                                 </div>
-                            @elseif(!$isOtherMonth && $schedule && in_array($current->format('l'), $schedule->days))
+                            @elseif(!$isOtherMonth && $schedule && is_array($schedule->days) && in_array($current->format('l'), $schedule->days))
                                 <div class="text-muted small italic" style="font-size: 0.7rem;">Scheduled</div>
                             @endif
                         </div>

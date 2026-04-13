@@ -30,11 +30,32 @@
                                 <small class="text-muted">This name will appear in the navigation bar and page titles.</small>
                             </div>
                             
-                            <div class="mb-0">
+                            <div class="mb-4">
                                 <label class="form-label fw-bold">Update Logo</label>
                                 <input type="file" name="app_logo" class="form-control">
                                 <small class="text-muted">Recommended: Transparent PNG or SVG (Max 2MB)</small>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row pt-4 border-top">
+                        <div class="col-12 mb-3">
+                            <h6 class="fw-bold text-uppercase text-primary small mb-3">Payroll Contribution Rates</h6>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">SSS Rate (%)</label>
+                            <input type="number" step="0.0001" name="sss_rate" class="form-control" value="{{ $settings->sss_rate ?? 0.045 }}" required>
+                            <small class="text-muted text-xs">Example: 0.0450 for 4.5%</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Pag-IBIG Rate (%)</label>
+                            <input type="number" step="0.0001" name="pagibig_rate" class="form-control" value="{{ $settings->pagibig_rate ?? 0.02 }}" required>
+                            <small class="text-muted text-xs">Example: 0.0200 for 2%</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">PhilHealth Rate (%)</label>
+                            <input type="number" step="0.0001" name="philhealth_rate" class="form-control" value="{{ $settings->philhealth_rate ?? 0.05 }}" required>
+                            <small class="text-muted text-xs">Example: 0.0500 for 5%</small>
                         </div>
                     </div>
 

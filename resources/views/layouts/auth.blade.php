@@ -129,6 +129,38 @@
             .login-container { max-width: 550px; }
         }
     </style>
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        @if(session('bundy_success'))
+            <div id="successToast" class="toast align-items-center text-white bg-success border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill fs-5"></i>
+                        <div>
+                            <strong class="d-block">PUNCH SUCCESSFUL</strong>
+                            <span class="small opacity-90">{{ session('bundy_success') }}</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+
+        @if(session('bundy_error'))
+            <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                        <div>
+                            <strong class="d-block">PUNCH FAILED</strong>
+                            <span class="small opacity-90">{{ session('bundy_error') }}</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+    </div>
 </head>
 <body>
     <div class="video-bg">
@@ -209,6 +241,21 @@
         }
     </style>
     @stack('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const successToastEl = document.getElementById('successToast');
+            const errorToastEl = document.getElementById('errorToast');
+            
+            if (successToastEl) {
+                const toast = new bootstrap.Toast(successToastEl, { delay: 5000 });
+                toast.show();
+            }
+            if (errorToastEl) {
+                const toast = new bootstrap.Toast(errorToastEl, { delay: 5000 });
+                toast.show();
+            }
+        });
+    </script>
 </body>
 </html>
 </html>

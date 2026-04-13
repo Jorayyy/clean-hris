@@ -53,10 +53,40 @@ class WebBundyController extends Controller
             return back()->with('bundy_error', 'Access Denied: Please use your registered internet connection to punch. (Your IP: ' . $request->ip() . ')');
         }
         $today = Carbon::today()->toDateString();
-        $now = Carbon::now()->toTimeString();
+        $now = Carbon::now();
+
+        // NIGHT SHIFT LOGIC: Determine if we should look for yesterday's record
+        // If current time is early morning (e.g., 00:00 to 10:00 AM) and they are punching OUT or BREAK IN
+        // we check if they have an active session from yesterday.
+        $targetDate = $today;
+        if ($now->hour < 10 && in_array($request->punch_type, ['pm_out', 'pm_in', 'break2_in'])) {
+            $yesterday = Carbon::yesterday()->toDateString();
+            $yesterdayAttendance = Attendance::where('employee_id', $employee->id)
+                ->where('date', $yesterday)
+                ->where('time_in', '!=', '00:00:00')
+                ->where(function($q) {
+                    $q->where('time_out', '00:00:00')->orWhereNull('time_out');
+                })
+                ->first();
+            
+            if ($yesterdayAttendance) {
+                $targetDate = $yesterday;
+            }
+        }
 
         $attendance = Attendance::firstOrCreate(
-            ['employee_id' => $employee->id, 'date' => $today]
+            ['employee_id' => $employee->id, 'date' => $targetDate],
+            [
+                'time_in' => '00:00:00',
+                'time_out' => '00:00:00',
+                'break1_out' => '00:00:00',
+                'break1_in' => '00:00:00',
+                'break2_out' => '00:00:00',
+                'break2_in' => '00:00:00',
+                'total_hours' => 0,
+                'late_minutes' => 0,
+                'undertime_minutes' => 0,
+            ]
         );
 
         // Map punch types to database columns
@@ -70,19 +100,43 @@ class WebBundyController extends Controller
         $column = $typeMap[$request->punch_type] ?? $request->punch_type;
 
         // Check if already punched
-        if ($attendance->{$column}) {
+        if ($attendance->{$column} !== null && $attendance->{$column} !== '00:00:00') {
             $formattedTime = Carbon::parse($attendance->{$column})->format('h:i A');
             return back()->with('bundy_error', 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' today.');
         }
 
-        // Validate sequence (Optional but helpful)
-        if ($request->punch_type == 'pm_out' && !$attendance->time_in) {
+        // Sequence Validations
+        if ($request->punch_type == 'pm_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
             return back()->with('bundy_error', 'ERROR: Cannot punch OUT without punching IN first.');
         }
+        
+        if ($request->punch_type == 'am_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
+            return back()->with('bundy_error', 'ERROR: Cannot punch LUNCH OUT without punching IN first.');
+        }
 
+        if ($request->punch_type == 'pm_in' && ($attendance->break1_out === null || $attendance->break1_out === '00:00:00')) {
+            return back()->with('bundy_error', 'ERROR: Cannot punch LUNCH IN without punching LUNCH OUT first.');
+        }
+
+        // Update the specific punch column
         $attendance->update([
-            $column => $now
+            $column => $now->toTimeString()
         ]);
+
+        // Recalculate stats based on current punches
+        $payrollService = app(\App\Services\PayrollService::class);
+        $timeOut = ($attendance->time_out && $attendance->time_out !== '00:00:00') 
+            ? $attendance->time_out 
+            : $now->toTimeString();
+
+        $stats = $payrollService->calculateAttendanceStats(
+            $attendance->time_in, 
+            $timeOut, 
+            $employee->id, 
+            $attendance->date
+        );
+        
+        $attendance->update($stats);
 
         return back()->with('bundy_success', 'SUCCESS: ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' recorded at ' . date('h:i A') . ' for ' . $employee->full_name);
     }

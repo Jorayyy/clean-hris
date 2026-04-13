@@ -64,8 +64,12 @@
                         <td>
                             @if($row->status == 'draft')
                                 <span class="badge rounded-pill bg-warning text-dark px-3 shadow-sm border"><i class="bi bi-pencil me-1"></i>Draft</span>
+                            @elseif($row->status == 'processed')
+                                <span class="badge rounded-pill bg-info text-white px-3 shadow-sm border"><i class="bi bi-gear-wide-connected me-1"></i>Processed</span>
+                            @elseif($row->status == 'approved')
+                                <span class="badge rounded-pill bg-success text-white px-3 shadow-sm border"><i class="bi bi-check-all me-1"></i>Approved</span>
                             @else
-                                <span class="badge rounded-pill bg-success text-white px-3 shadow-sm border"><i class="bi bi-check-circle me-1"></i>Processed</span>
+                                <span class="badge rounded-pill bg-secondary text-white px-3 shadow-sm border">{{ ucfirst($row->status) }}</span>
                             @endif
                         </td>
                         <td>

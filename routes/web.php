@@ -18,6 +18,8 @@ use App\Http\Controllers\Employee\SupportTicketController as EmployeeTicketContr
 use App\Http\Controllers\Admin\SupportTicketController as AdminTicketController;
 use App\Http\Controllers\Admin\AuthorizedNetworkController;
 use App\Http\Controllers\Admin\AppSettingController;
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\QueueMonitorController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Employee\AttendanceCalendarController;
 use App\Http\Controllers\WebBundyController;
@@ -57,6 +59,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::delete('salaries/{salary}', [SalaryController::class, 'destroy'])->name('salaries.destroy');
 
     Route::post('/payroll/{payroll}/process', [PayrollController::class, 'processPayroll'])->name('payroll.process');
+    Route::post('/payroll/{payroll}/approve', [PayrollController::class, 'approve'])->name('payroll.approve');
     Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');
 
     // DTR Management
@@ -78,6 +81,16 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 
     // Announcements
     Route::resource('announcements', AdminAnnouncementController::class);
+
+    // Roles & Permissions
+    Route::get('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'index'])->name('admin.roles.index');
+    Route::put('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'update'])->name('admin.roles.update');
+
+    // Audit Logs
+    Route::get('admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
+
+    // Queue Monitor
+    Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
 
     // Profile
     Route::get('/admin/profile', [ProfileController::class, 'showAdmin'])->name('admin.profile');

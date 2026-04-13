@@ -5,7 +5,7 @@
     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Payroll Batch: {{ $payroll->payroll_code }}</h5>
         <div class="d-flex align-items-center">
-            <span class="badge {{ $payroll->status == 'processed' ? 'bg-success' : 'bg-warning' }} me-3">
+            <span class="badge {{ $payroll->status == 'approved' ? 'bg-success' : ($payroll->status == 'processed' ? 'bg-info' : 'bg-warning') }} me-3">
                 {{ strtoupper($payroll->status) }}
             </span>
             <a href="{{ route('payroll.index') }}" class="btn btn-sm btn-outline-light">Back to Home</a>
@@ -56,6 +56,35 @@
             </div>
         </div>
         @else
+        <div class="row align-items-center mb-4 g-3">
+            <div class="col-md-8">
+                <div class="alert {{ $payroll->status == 'approved' ? 'alert-success' : 'alert-info' }} mb-0 d-flex align-items-center">
+                    <i class="bi {{ $payroll->status == 'approved' ? 'bi-check-circle-fill' : 'bi-info-circle-fill' }} h4 me-3 mb-0"></i>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Status: {{ strtoupper($payroll->status) }}</h6>
+                        @if($payroll->status == 'approved')
+                            <p class="small mb-0">Approved by <strong>{{ $payroll->approver->name ?? 'System' }}</strong> on {{ $payroll->approved_at }}</p>
+                        @else
+                            <p class="small mb-0">Payroll items generated. Awaiting final administrative review and approval.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                @if($payroll->status == 'processed')
+                    <form action="{{ route('payroll.approve', $payroll->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm" onclick="return confirm('Note: Approving will finalize this batch and lock it for changes. Proceed?')">
+                            <i class="bi bi-patch-check me-2"></i>Finalize & Approve Batch
+                        </button>
+                    </form>
+                @endif
+                <button class="btn btn-outline-secondary px-3 ms-2 no-print" onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i>Print Report
+                </button>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover table-bordered table-sm align-middle">
                 <thead class="bg-light text-center small">

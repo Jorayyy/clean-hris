@@ -22,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \App\Models\Employee::observe(\App\Observers\AuditObserver::class);
+        \App\Models\Payroll::observe(\App\Observers\AuditObserver::class);
+        \App\Models\PayrollItem::observe(\App\Observers\AuditObserver::class);
+
         // Cache settings to reduce DB load on every page load
         View::composer('*', function ($view) {
             $settings = Cache::remember('system_settings', 86400, function () {

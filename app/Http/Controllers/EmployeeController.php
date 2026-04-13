@@ -12,6 +12,7 @@ class EmployeeController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Employee::class);
         $employees = Employee::with('payrollGroup')->get();
         return view('employees.index', compact('employees'));
     }

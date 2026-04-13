@@ -14,9 +14,12 @@ use App\Http\Requests\StorePayrollRequest;
 use App\Jobs\ProcessPayrollBatch;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PayrollController extends Controller
 {
+    use AuthorizesRequests;
+
     protected $payrollService;
 
     public function __construct(PayrollService $service)
@@ -137,5 +140,23 @@ class PayrollController extends Controller
     {
         $item = PayrollItem::with('employee', 'payroll')->findOrFail($payrollItemId);
         return view('payslip.show', compact('item'));
+    }
+
+    public function approve(Request $request, Payroll $payroll)
+    {
+        $this->authorize('approve-payroll');
+
+        if ($payroll->status !== 'processed') {
+            return back()->with('error', 'Only processed payrolls can be approved.');
+        }
+
+        $payroll->setEventDispatcher(new \Illuminate\Events\Dispatcher()); // Ensure observer still fires if disabled
+        $payroll->update([
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+        ]);
+
+        return redirect()->route('payroll.index')->with('success', 'Payroll batch ' . $payroll->payroll_code . ' has been finalized and approved.');
     }
 }
