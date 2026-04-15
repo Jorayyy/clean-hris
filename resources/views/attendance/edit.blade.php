@@ -51,7 +51,7 @@
                         </div>
 
                         <!-- Time In/Out Grid -->
-                        <div class="row g-4 mb-5">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small text-muted text-uppercase mb-2">Time In</label>
                                 <div class="input-group">
@@ -76,6 +76,33 @@
                                     @error('time_out')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Breaks Grid -->
+                        <div class="mb-4">
+                            <p class="fw-semibold small text-muted text-uppercase mb-3 mt-2"><i class="bi bi-cup-hot me-2"></i>Break Times</p>
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted mb-2">Break 1 (Out - Return)</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="time" name="break1_out" class="form-control" value="{{ old('break1_out', $attendance->break1_out ? \Carbon\Carbon::parse($attendance->break1_out)->format('H:i') : '') }}">
+                                                <span class="input-group-text">to</span>
+                                                <input type="time" name="break1_in" class="form-control" value="{{ old('break1_in', $attendance->break1_in ? \Carbon\Carbon::parse($attendance->break1_in)->format('H:i') : '') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted mb-2">Break 2 (Out - Return)</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="time" name="break2_out" class="form-control" value="{{ old('break2_out', $attendance->break2_out ? \Carbon\Carbon::parse($attendance->break2_out)->format('H:i') : '') }}">
+                                                <span class="input-group-text">to</span>
+                                                <input type="time" name="break2_in" class="form-control" value="{{ old('break2_in', $attendance->break2_in ? \Carbon\Carbon::parse($attendance->break2_in)->format('H:i') : '') }}">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

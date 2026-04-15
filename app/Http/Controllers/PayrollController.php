@@ -52,6 +52,32 @@ class PayrollController extends Controller
         return view('payroll.create', compact('groups'));
     }
 
+    public function getFinalizedDtrs(Request $request)
+    {
+        $groupId = $request->get('payroll_group_id');
+        if (!$groupId) return response()->json([]);
+
+        // Get all finalized DTRs for employees in this group
+        // Group by start_date and end_date so we can offer them as choices
+        $periods = \App\Models\Dtr::where('status', 'finalized')
+            ->whereHas('employee', function($q) use ($groupId) {
+                $q->where('payroll_group_id', $groupId);
+            })
+            ->select('start_date', 'end_date')
+            ->distinct()
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->map(function($dtr) {
+                return [
+                    'start_date' => $dtr->start_date->format('Y-m-d'),
+                    'end_date' => $dtr->end_date->format('Y-m-d'),
+                    'label' => $dtr->start_date->format('M d, Y') . ' to ' . $dtr->end_date->format('M d, Y')
+                ];
+            });
+
+        return response()->json($periods);
+    }
+
     public function store(StorePayrollRequest $request)
     {
         Payroll::create($request->validated());

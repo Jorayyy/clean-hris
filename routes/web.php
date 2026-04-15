@@ -47,6 +47,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('attendance', AttendanceController::class)->except(['show', 'create', 'edit']);
     Route::resource('payroll', PayrollController::class);
+    Route::get('/api/finalized-dtrs', [PayrollController::class, 'getFinalizedDtrs'])->name('payroll.api.finalized-dtrs');
     Route::resource('payroll-groups', PayrollGroupController::class);
     Route::resource('schedules', ScheduleController::class);
     Route::resource('authorized-networks', AuthorizedNetworkController::class);

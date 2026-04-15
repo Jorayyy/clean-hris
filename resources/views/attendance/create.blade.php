@@ -58,7 +58,7 @@
                         </div>
 
                         <!-- Time In/Out Grid -->
-                        <div class="row g-4 mb-5">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small text-muted text-uppercase mb-2">Time In</label>
                                 <div class="input-group">
@@ -86,6 +86,33 @@
                                     @enderror
                                 </div>
                                 <small class="text-muted mt-1 d-block italic">Typical: 05:00 PM</small>
+                            </div>
+                        </div>
+
+                        <!-- Breaks Grid -->
+                        <div class="mb-4">
+                            <p class="fw-semibold small text-muted text-uppercase mb-3 mt-2"><i class="bi bi-cup-hot me-2"></i>Break Times</p>
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted mb-2">Break 1 (Out - Return)</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="time" name="break1_out" class="form-control" value="{{ old('break1_out') }}">
+                                                <span class="input-group-text">to</span>
+                                                <input type="time" name="break1_in" class="form-control" value="{{ old('break1_in') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted mb-2">Break 2 (Out - Return)</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="time" name="break2_out" class="form-control" value="{{ old('break2_out') }}">
+                                                <span class="input-group-text">to</span>
+                                                <input type="time" name="break2_in" class="form-control" value="{{ old('break2_in') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

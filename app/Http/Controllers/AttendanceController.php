@@ -61,6 +61,10 @@ class AttendanceController extends Controller
             'date' => 'required',
             'time_in' => 'required',
             'time_out' => 'required',
+            'break1_out' => 'nullable',
+            'break1_in' => 'nullable',
+            'break2_out' => 'nullable',
+            'break2_in' => 'nullable',
         ]);
 
         $stats = $this->payrollService->calculateAttendanceStats(
@@ -87,6 +91,10 @@ class AttendanceController extends Controller
             'date' => 'required',
             'time_in' => 'required',
             'time_out' => 'required',
+            'break1_out' => 'nullable',
+            'break1_in' => 'nullable',
+            'break2_out' => 'nullable',
+            'break2_in' => 'nullable',
         ]);
 
         $stats = $this->payrollService->calculateAttendanceStats(
