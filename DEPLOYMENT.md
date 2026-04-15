@@ -29,18 +29,18 @@ Since payroll is processed in the background, you **MUST** set up these Cron Job
 - **Frequency:** Every Minute (`* * * * *`)
 - **Command:**
   ```bash
-  /usr/local/bin/php /home/u502373859/public_html/artisan schedule:run >> /dev/null 2>&1
+  /usr/local/bin/php8.3 /home/u502373859/domains/mebs.mebshiyas.com/public_html/artisan schedule:run >> /dev/null 2>&1
   ```
 
 ### CRON 2: Queue Worker (For Payroll Processing)
 - **Frequency:** Every Minute (`* * * * *`)
 - **Command:**
   ```bash
-  /usr/local/bin/php /home/u502373859/public_html/artisan queue:work --stop-when-empty --timeout=300
+  /usr/local/bin/php8.3 /home/u502373859/domains/mebs.mebshiyas.com/public_html/artisan queue:work --stop-when-empty --timeout=300
   ```
 
 > [!IMPORTANT]
-> To find your actual `/home/u502373859/...` path, run `pwd` in your SSH terminal.
+> To find your actual `/home/u502373859/domains/mebs.mebshiyas.com/public_html/...` path, run `pwd` in your SSH terminal.
 
 ## 4. Troubleshooting Checklist
 - [ ] If CSS/JS doesn't load: Ensure you ran `npm run build` locally before uploading the `public/build` folder.
