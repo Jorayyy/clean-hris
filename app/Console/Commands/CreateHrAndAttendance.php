@@ -60,9 +60,11 @@ class CreateHrAndAttendance extends Command
                 ]
             );
             
-            // Attach schedule if not attached
-            $employee->active_schedule()->associate($schedule);
-            $employee->save();
+            // Attach schedule if not attached (Manual many-to-many or direct ID set)
+            // Since Employee doesn't have an active_schedule() relationship (it's a getter), 
+            // and schedules() is hasMany, we ensure the employee_id is set.
+            $schedule->employee_id = $employee->id;
+            $schedule->save();
             
             $employees[] = $employee;
             $this->info("Staff created/updated: {$s['first']}");
