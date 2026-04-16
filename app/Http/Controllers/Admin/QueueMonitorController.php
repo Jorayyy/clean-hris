@@ -11,7 +11,7 @@ class QueueMonitorController extends Controller
     public function index()
     {
         $pendingJobs = DB::table('jobs')->count();
-        $failedJobs = DB::table('failed_jobs')->latest()->take(10)->get();
+        $failedJobs = DB::table('failed_jobs')->orderBy('failed_at', 'desc')->take(10)->get();
         
         // Detailed failed jobs with error info
         $failedList = $failedJobs->map(function ($job) {
