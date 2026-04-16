@@ -38,6 +38,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'plain_password' => $request->password,
             'employee_id' => $request->employee_id,
             'role' => 'employee', // Keep the legacy column updated for now
         ]);
@@ -70,6 +71,7 @@ class UserController extends Controller
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
+            $data['plain_password'] = $request->password;
         }
 
         $user->update($data);
