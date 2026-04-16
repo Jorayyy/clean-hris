@@ -226,10 +226,9 @@
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Level</label>
                             <select name="classification" class="form-select @error('classification') is-invalid @enderror">
-                                <option value="ENTRY" {{ old('classification', $employee->classification ?? '') == 'ENTRY' ? 'selected' : '' }}>ENTRY</option>
-                                <option value="STAFF" {{ old('classification', $employee->classification ?? '') == 'STAFF' ? 'selected' : '' }}>STAFF</option>
-                                <option value="TL/SUPERVISOR" {{ old('classification', $employee->classification ?? '') == 'TL/SUPERVISOR' ? 'selected' : '' }}>TL/SUPERVISOR</option>
-                                <option value="OM/MANAGER" {{ old('classification', $employee->classification ?? '') == 'OM/MANAGER' ? 'selected' : '' }}>OM/MANAGER</option>
+                                <option value="HR" {{ old('classification', $employee->classification ?? '') == 'HR' ? 'selected' : '' }}>HR</option>
+                                <option value="Accounting" {{ old('classification', $employee->classification ?? '') == 'Accounting' ? 'selected' : '' }}>Accounting</option>
+                                <option value="Marketing" {{ old('classification', $employee->classification ?? '') == 'Marketing' ? 'selected' : '' }}>Marketing</option>
                             </select>
                             @error('classification')
                                 <div class="text-danger small mt-1">Level is required</div>
