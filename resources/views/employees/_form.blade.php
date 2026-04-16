@@ -268,9 +268,11 @@
                         </div>
                         <div class="col-md-6">
                             @php
-                                $isAuthorized = auth()->user()->role === 'super-admin' || 
-                                               auth()->user()->hasRole('Super Admin') || 
-                                               (auth()->user()->employee && (auth()->user()->employee->classification === 'Accounting' || auth()->user()->employee->level === 'Accounting'));
+                                $user = auth()->user();
+                                $isAuthorized = $user->role === 'super-admin' || 
+                                               $user->role === 'admin' || 
+                                               $user->hasRole('Super Admin') || 
+                                               ($user->employee && ($user->employee->classification === 'Accounting' || $user->employee->level === 'Accounting'));
                             @endphp
                             
                             @if($isAuthorized)
