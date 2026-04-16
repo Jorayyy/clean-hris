@@ -52,12 +52,11 @@ class CreateHrAndAttendance extends Command
                 [
                     'first_name' => $s['first'],
                     'last_name' => $s['last'],
+                    'email' => strtolower($s['first']) . '.' . strtolower($s['last']) . '@example.com',
                     'position' => 'HR Admin',
                     'status' => 'active',
                     'web_bundy_code' => '1234',
                     'daily_rate' => 600,
-                    // You mentioned you will set the group yourself, 
-                    // so we leave payroll_group_id null for now or keep existing
                 ]
             );
             
