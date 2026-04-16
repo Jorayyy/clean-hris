@@ -21,7 +21,7 @@ class PayrollItemPolicy
      */
     public function view(User $user, PayrollItem $payrollItem): bool
     {
-        if ($user->role === 'admin') {
+        if ($user->role === 'admin' || $user->role === 'super-admin') {
             return true;
         }
         return $user->role === 'employee' && $user->employee_id === $payrollItem->employee_id;

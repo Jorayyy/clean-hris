@@ -12,7 +12,7 @@ class StorePayrollRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->role === 'admin' || $this->user()->role === 'hr';
+        return in_array($this->user()->role, ['admin', 'super-admin', 'hr']);
     }
 
     /**
