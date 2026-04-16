@@ -269,10 +269,19 @@
                         <div class="col-md-6">
                             @php
                                 $user = auth()->user();
-                                $isSuperAdmin = $user->role === 'super-admin' || $user->role === 'admin' || $user->hasRole('Super Admin');
-                                $isAccounting = $user->employee && ($user->employee->classification === 'Accounting' || $user->employee->level === 'Accounting' || $user->hasRole('Accounting Admin'));
+                                // Strictly check for Super Admin role names
+                                $isSuperAdmin = $user->hasRole('Super Admin') || $user->role === 'super-admin';
                                 
-                                $isAuthorized = $isSuperAdmin || $isAccounting;
+                                // Strictly check for Accounting in level or classification
+                                $isAccounting = $user->employee && (
+                                    $user->employee->classification === 'Accounting' || 
+                                    $user->employee->level === 'Accounting'
+                                ) || $user->hasRole('Accounting Admin');
+
+                                // If user is HR, specifically block them regardless of other roles
+                                $isHR = ($user->employee && ($user->employee->classification === 'HR' || $user->employee->level === 'HR')) || $user->hasRole('HR Admin');
+                                
+                                $isAuthorized = ($isSuperAdmin || $isAccounting) && !$isHR;
                             @endphp
                             
                             @if($isAuthorized)
