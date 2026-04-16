@@ -267,12 +267,19 @@
                             @enderror
                         </div>
                         <div class="col-md-6">
+                            @php
+                                $canEditRate = auth()->user()->role === 'super-admin' || auth()->user()->hasRole('Super Admin') || (auth()->user()->employee && auth()->user()->employee->classification === 'Accounting');
+                            @endphp
                             <label class="form-label fw-bold">Daily Rate</label>
                             <div class="input-group">
                                 <span class="input-group-text">₱</span>
                                 <input type="number" step="0.01" name="daily_rate" class="form-control @error('daily_rate') is-invalid @enderror" 
-                                       value="{{ old('daily_rate', $employee->daily_rate ?? '') }}" placeholder="0.00">
+                                       value="{{ old('daily_rate', $employee->daily_rate ?? '') }}" placeholder="0.00"
+                                       {{ $canEditRate ? '' : 'readonly' }}>
                             </div>
+                            @if(!$canEditRate)
+                                <div class="text-muted small mt-1"><i class="bi bi-shield-lock"></i> Locked: Only Super Admin & Accounting can edit</div>
+                            @endif
                             @error('daily_rate')
                                 <div class="text-danger small mt-1">Daily rate is required</div>
                             @enderror
