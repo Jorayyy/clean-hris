@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\PayrollGroup;
+use App\Models\Site;
 use App\Http\Requests\EmployeeRequest;
 use App\Http\Requests\StoreEmployeeRequest;
 use Illuminate\Http\Request;
@@ -20,7 +21,8 @@ class EmployeeController extends Controller
     public function create()
     {
         $groups = PayrollGroup::all();
-        return view('employees.create', compact('groups'));
+        $sites = Site::all();
+        return view('employees.create', compact('groups', 'sites'));
     }
 
     public function store(StoreEmployeeRequest $request)
@@ -38,7 +40,8 @@ class EmployeeController extends Controller
     public function edit(Employee $employee)
     {
         $groups = PayrollGroup::all();
-        return view('employees.edit', compact('employee', 'groups'));
+        $sites = Site::all();
+        return view('employees.edit', compact('employee', 'groups', 'sites'));
     }
 
     public function update(EmployeeRequest $request, Employee $employee)

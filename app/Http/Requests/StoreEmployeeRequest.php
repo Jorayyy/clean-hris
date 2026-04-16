@@ -24,6 +24,7 @@ class StoreEmployeeRequest extends FormRequest
     {
         return [
             'employee_id' => 'required|string|unique:employees,employee_id',
+            'site_id' => 'required|exists:sites,id',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'position' => 'required|string|max:255',

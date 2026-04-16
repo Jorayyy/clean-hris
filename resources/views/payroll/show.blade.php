@@ -19,41 +19,42 @@
             <div class="col-md-3"><strong>Items:</strong> {{ $items->count() }}</div>
         </div>
 
-        @if($payroll->status == 'draft')
-        <div class="alert alert-warning text-center">
-            <p class="mb-3">This payroll is in draft mode. Click the button below to process all active employees.</p>
-            <button type="button" class="btn btn-success px-5 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#processPayrollModal">
-                <i class="bi bi-play-circle me-1"></i> One-Click: Process Payroll Now
-            </button>
-        </div>
+        @if($payroll->status == 'draft' || $payroll->status == 'processing')
+        <div class="alert {{ $payroll->status == 'processing' ? 'alert-info' : 'alert-warning' }} text-center shadow-sm">
+            @if($payroll->status == 'processing')
+                <h6 class="fw-bold"><i class="bi bi-clock-history me-2"></i>Status: PROCESSING</h6>
+                <p class="mb-3">Manual payslip entry is in progress. Please ensure all employees in this group have their payslips created before finalizing.</p>
+            @else
+                <h6 class="fw-bold"><i class="bi bi-pencil-square me-2"></i>Status: DRAFT</h6>
+                <p class="mb-3">This payroll is in draft mode. Start manually creating payslips for active employees within this group.</p>
+            @endif
+            
+            <div class="d-flex justify-content-center gap-2">
+                @php
+                    $total_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)->where('status', 'active')->count();
+                    $is_complete = $item_count >= $total_employees;
+                @endphp
 
-        <!-- Process Payroll Modal -->
-        <div class="modal fade" id="processPayrollModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow">
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">Authorize Payroll Processing</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form action="{{ route('payroll.process', $payroll->id) }}" method="POST">
-                        @csrf
-                        <div class="modal-body text-start">
-                            <p>You are about to compute and finalize the payroll for <strong>{{ $payroll->payroll_code }}</strong> ({{ $payroll->start_date }} to {{ $payroll->end_date }}).</p>
-                            <div class="alert alert-info small">
-                                <i class="bi bi-info-circle-fill"></i> This will generate payslips for all active employees and cannot be undone easily.
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small">Enter Security Password</label>
-                                <input type="password" name="admin_password" class="form-control" placeholder="Required for final approval" required>
-                            </div>
-                        </div>
-                        <div class="modal-footer border-0">
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-success px-4">Begin Processing</button>
-                        </div>
-                    </form>
-                </div>
+                <a href="{{ route('payroll-items.create', ['payroll_id' => $payroll->id]) }}" class="btn btn-success px-5 shadow-sm fw-bold">
+                    <i class="bi bi-plus-circle me-1"></i> Add Individual Payslip
+                </a>
+
+                <form action="{{ route('payroll.approve', $payroll->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold" 
+                        {{ !$is_complete ? 'disabled' : '' }}
+                        onclick="return confirm('Note: Approving will finalize this batch and lock it for changes. Proceed?')">
+                        <i class="bi bi-patch-check-fill me-1"></i> Finalize & Approve Whole Batch
+                    </button>
+                </form>
             </div>
+            
+            @if(!$is_complete)
+                <div class="mt-2 text-danger small fw-bold">
+                    <i class="bi bi-exclamation-circle me-1"></i> 
+                    Finalize button is disabled: {{ $item_count }} of {{ $total_employees }} employees processed.
+                </div>
+            @endif
         </div>
         @else
         <div class="row align-items-center mb-4 g-3">
@@ -121,7 +122,14 @@
                         <td class="text-danger">-{{ number_format($item->deductions_philhealth, 2) }}</td>
                         <td class="bg-light text-primary"><strong>{{ number_format($item->net_pay, 2) }}</strong></td>
                         <td>
-                            <a href="{{ route('payroll.payslip', $item->id) }}" class="btn btn-sm btn-outline-info">Slip</a>
+                            <div class="btn-group">
+                                <a href="{{ route('payroll.payslip', $item->id) }}" class="btn btn-sm btn-outline-info">Slip</a>
+                                <a href="{{ route('payroll-items.edit', $item->id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                <form action="{{ route('payroll-items.destroy', $item->id) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this payslip?')"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @empty

@@ -43,10 +43,15 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold text-danger">Bundy PIN Code</label>
-                        <input type="password" name="web_bundy_code" class="form-control border-danger @error('web_bundy_code') is-invalid @enderror" 
-                               placeholder="Private PIN" value="{{ old('web_bundy_code', $employee->web_bundy_code ?? '') }}">
+                        <div class="input-group">
+                            <input type="password" name="web_bundy_code" id="web_bundy_code" class="form-control border-danger @error('web_bundy_code') is-invalid @enderror" 
+                                   placeholder="Private PIN" value="{{ old('web_bundy_code', $employee->web_bundy_code ?? '') }}">
+                            <button class="btn btn-outline-danger" type="button" id="toggleBundyPin">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         @error('web_bundy_code')
-                            <div class="invalid-feedback">PIN is required (min 4 chars)</div>
+                            <div class="invalid-feedback d-block">PIN is required (min 4 chars)</div>
                         @enderror
                     </div>
                     <div class="col-md-4">
@@ -193,10 +198,14 @@
                     <h5 class="mb-4 text-primary">Employment Information</h5>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Site</label>
-                            <input type="text" name="location" class="form-control bg-light @error('location') is-invalid @enderror" 
-                                   placeholder="Site Location" value="{{ old('location', $employee->location ?? '') }}">
-                            @error('location')
+                            <label class="form-label fw-bold text-primary">Site</label>
+                            <select name="site_id" class="form-select border-primary @error('site_id') is-invalid @enderror" required>
+                                <option value="">-- Select Site --</option>
+                                @foreach($sites as $s)
+                                    <option value="{{ $s->id }}" {{ old('site_id', $employee->site_id ?? '') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('site_id')
                                 <div class="text-danger small mt-1">Site is required</div>
                             @enderror
                         </div>
@@ -204,26 +213,26 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Employment Type</label>
+                            <label class="form-label fw-bold">Classification</label>
                             <select name="employment_type" class="form-select @error('employment_type') is-invalid @enderror">
                                 <option value="">Select</option>
-                                <option value="Regular" {{ old('employment_type', $employee->employment_type ?? '') == 'Regular' ? 'selected' : '' }}>Regular</option>
                                 <option value="Probationary" {{ old('employment_type', $employee->employment_type ?? '') == 'Probationary' ? 'selected' : '' }}>Probationary</option>
-                                <option value="Contractual" {{ old('employment_type', $employee->employment_type ?? '') == 'Contractual' ? 'selected' : '' }}>Contractual</option>
+                                <option value="Regular" {{ old('employment_type', $employee->employment_type ?? '') == 'Regular' ? 'selected' : '' }}>Regular</option>
                             </select>
                             @error('employment_type')
-                                <div class="text-danger small mt-1">Employment Type is required</div>
+                                <div class="text-danger small mt-1">Classification is required</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Classification</label>
+                            <label class="form-label fw-bold">Level</label>
                             <select name="classification" class="form-select @error('classification') is-invalid @enderror">
+                                <option value="ENTRY" {{ old('classification', $employee->classification ?? '') == 'ENTRY' ? 'selected' : '' }}>ENTRY</option>
                                 <option value="STAFF" {{ old('classification', $employee->classification ?? '') == 'STAFF' ? 'selected' : '' }}>STAFF</option>
-                                <option value="OFFICER" {{ old('classification', $employee->classification ?? '') == 'OFFICER' ? 'selected' : '' }}>OFFICER</option>
-                                <option value="MANAGER" {{ old('classification', $employee->classification ?? '') == 'MANAGER' ? 'selected' : '' }}>MANAGER</option>
+                                <option value="TL/SUPERVISOR" {{ old('classification', $employee->classification ?? '') == 'TL/SUPERVISOR' ? 'selected' : '' }}>TL/SUPERVISOR</option>
+                                <option value="OM/MANAGER" {{ old('classification', $employee->classification ?? '') == 'OM/MANAGER' ? 'selected' : '' }}>OM/MANAGER</option>
                             </select>
                             @error('classification')
-                                <div class="text-danger small mt-1">Classification is required</div>
+                                <div class="text-danger small mt-1">Level is required</div>
                             @enderror
                         </div>
                     </div>
@@ -233,9 +242,24 @@
                             <label class="form-label fw-bold">Position</label>
                             <select name="position" class="form-select @error('position') is-invalid @enderror">
                                 <option value="">Select</option>
-                                <option value="Staff" {{ old('position', $employee->position ?? '') == 'Staff' ? 'selected' : '' }}>Staff</option>
-                                <option value="Manager" {{ old('position', $employee->position ?? '') == 'Manager' ? 'selected' : '' }}>Manager</option>
-                                @if(isset($employee) && !in_array($employee->position, ['Staff', 'Manager']))
+                                <option value="Customer Service Representative (CSR)" {{ old('position', $employee->position ?? '') == 'Customer Service Representative (CSR)' ? 'selected' : '' }}>Customer Service Representative (CSR)</option>
+                                <option value="Technical Support Representative (TSR)" {{ old('position', $employee->position ?? '') == 'Technical Support Representative (TSR)' ? 'selected' : '' }}>Technical Support Representative (TSR)</option>
+                                <option value="Outbound Sales Agent" {{ old('position', $employee->position ?? '') == 'Outbound Sales Agent' ? 'selected' : '' }}>Outbound Sales Agent</option>
+                                <option value="Quality Assurance (QA) Specialist" {{ old('position', $employee->position ?? '') == 'Quality Assurance (QA) Specialist' ? 'selected' : '' }}>Quality Assurance (QA) Specialist</option>
+                                <option value="Team Leader (TL)" {{ old('position', $employee->position ?? '') == 'Team Leader (TL)' ? 'selected' : '' }}>Team Leader (TL)</option>
+                                <option value="Operations Manager (OM)" {{ old('position', $employee->position ?? '') == 'Operations Manager (OM)' ? 'selected' : '' }}>Operations Manager (OM)</option>
+                                <option value="Trainer" {{ old('position', $employee->position ?? '') == 'Trainer' ? 'selected' : '' }}>Trainer</option>
+                                <option value="Subject Matter Expert (SME)" {{ old('position', $employee->position ?? '') == 'Subject Matter Expert (SME)' ? 'selected' : '' }}>Subject Matter Expert (SME)</option>
+                                @if(isset($employee) && !in_array($employee->position, [
+                                    'Customer Service Representative (CSR)', 
+                                    'Technical Support Representative (TSR)', 
+                                    'Outbound Sales Agent', 
+                                    'Quality Assurance (QA) Specialist',
+                                    'Team Leader (TL)',
+                                    'Operations Manager (OM)',
+                                    'Trainer',
+                                    'Subject Matter Expert (SME)'
+                                ]))
                                     <option value="{{ $employee->position }}" selected>{{ $employee->position }}</option>
                                 @endif
                             </select>
@@ -530,3 +554,32 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggleBundyPin');
+        const pinInput = document.getElementById('web_bundy_code');
+        
+        if (toggleBtn && pinInput) {
+            toggleBtn.addEventListener('click', function() {
+                const type = pinInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                pinInput.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                }
+            });
+        }
+    });
+
+    function copyAddress() {
+        if (document.getElementById('same_address_check').checked) {
+            document.getElementById('present_address_brgy').value = document.getElementsByName('permanent_address_brgy')[0].value;
+            document.getElementById('present_address_province').value = document.getElementsByName('permanent_address_province')[0].value;
+        }
+    }
+</script>
+@endpush

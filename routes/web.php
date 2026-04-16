@@ -25,6 +25,8 @@ use App\Http\Controllers\Employee\AttendanceCalendarController;
 use App\Http\Controllers\WebBundyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SiteController;
+use App\Http\Controllers\PayrollItemController;
 
 // Public login/bundy routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -44,9 +46,12 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('attendance/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
     Route::get('attendance/{employee}', [AttendanceController::class, 'show'])->name('attendance.show');
     Route::resource('employees', EmployeeController::class);
+    Route::resource('sites', SiteController::class);
     Route::resource('users', UserController::class);
     Route::resource('attendance', AttendanceController::class)->except(['show', 'create', 'edit']);
     Route::resource('payroll', PayrollController::class);
+    Route::get('/payroll-items/basis', [PayrollItemController::class, 'getEmployeeBasis'])->name('payroll-items.basis');
+    Route::resource('payroll-items', PayrollItemController::class);
     Route::get('/api/finalized-dtrs', [PayrollController::class, 'getFinalizedDtrs'])->name('payroll.api.finalized-dtrs');
     Route::resource('payroll-groups', PayrollGroupController::class);
     Route::resource('schedules', ScheduleController::class);
@@ -59,7 +64,6 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::put('salaries/{salary}', [SalaryController::class, 'update'])->name('salaries.update');
     Route::delete('salaries/{salary}', [SalaryController::class, 'destroy'])->name('salaries.destroy');
 
-    Route::post('/payroll/{payroll}/process', [PayrollController::class, 'processPayroll'])->name('payroll.process');
     Route::post('/payroll/{payroll}/approve', [PayrollController::class, 'approve'])->name('payroll.approve');
     Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');
 
@@ -83,9 +87,11 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     // Announcements
     Route::resource('announcements', AdminAnnouncementController::class);
 
-    // Roles & Permissions
-    Route::get('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'index'])->name('admin.roles.index');
-    Route::put('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'update'])->name('admin.roles.update');
+    // Roles & Permissions (Now restricted to Super Admin only)
+    Route::middleware(['super_admin'])->group(function () {
+        Route::get('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'index'])->name('admin.roles.index');
+        Route::put('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'update'])->name('admin.roles.update');
+    });
 
     // Audit Logs
     Route::get('admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');

@@ -87,7 +87,8 @@ class PayrollController extends Controller
     public function show(Payroll $payroll)
     {
         $items = $payroll->items()->with('employee')->get();
-        return view('payroll.show', compact('payroll', 'items'));
+        $item_count = $items->count();
+        return view('payroll.show', compact('payroll', 'items', 'item_count'));
     }
     public function edit(Payroll $payroll)
     {
@@ -111,49 +112,26 @@ class PayrollController extends Controller
 
         $payroll->update($request->all());
 
-        // If it was already processed, the user might want to re-process it to catch the new dates
-        if ($payroll->status == 'processed') {
-            return redirect()->route('payroll.index')->with('success', 'Payroll period updated. Note: This period was already processed; you may need to re-run it to reflect date changes.');
-        }
-
         return redirect()->route('payroll.index')->with('success', 'Payroll period updated successfully.');
     }
 
-    public function processPayroll(Request $request, Payroll $payroll)
+    public function approve(Request $request, Payroll $payroll)
     {
-        $user = Auth::user();
-        $targetPassword = $user->dtr_password;
+        // Safety check: ensure all employees are accounted for
+        $total_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)->where('status', 'active')->count();
+        $current_items = $payroll->items()->count();
 
-        $request->validate([
-            'admin_password' => 'required'
-        ]);
-
-        $inputPassword = $request->admin_password;
-        $isAuthPassword = Hash::check($inputPassword, $user->password);
-        $isDtrPassword = $targetPassword && ($inputPassword === $targetPassword);
-
-        if (!$isAuthPassword && !$isDtrPassword) {
-            return back()->with('error', 'Invalid security password. Payroll processing aborted.');
+        if ($current_items < $total_employees) {
+            return back()->with('error', 'Cannot finalize. There are still ' . ($total_employees - $current_items) . ' employees missing payslips.');
         }
 
-        // Dispatch background job for heavy processing
-        ProcessPayrollBatch::dispatch($payroll);
-
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'PAYROLL_PROCESSED',
-            'model_type' => Payroll::class,
-            'model_id' => $payroll->id,
-            'details' => [
-                'batch' => $payroll->payroll_code,
-                'period' => $payroll->start_date . ' to ' . $payroll->end_date,
-                'ip' => $request->ip()
-            ],
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent()
+        $payroll->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now()
         ]);
 
-        return redirect()->route('payroll.show', $payroll->id)->with('success', 'Payroll calculation has been queued. Please refresh in a few moments to see the results.');
+        return redirect()->route('payroll.index')->with('success', 'Payroll period APPROVED. All payslips are now finalized.');
     }
 
     public function destroy(Payroll $payroll)
@@ -166,23 +144,5 @@ class PayrollController extends Controller
     {
         $item = PayrollItem::with('employee', 'payroll')->findOrFail($payrollItemId);
         return view('payslip.show', compact('item'));
-    }
-
-    public function approve(Request $request, Payroll $payroll)
-    {
-        $this->authorize('approve-payroll');
-
-        if ($payroll->status !== 'processed') {
-            return back()->with('error', 'Only processed payrolls can be approved.');
-        }
-
-        $payroll->setEventDispatcher(new \Illuminate\Events\Dispatcher()); // Ensure observer still fires if disabled
-        $payroll->update([
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-        ]);
-
-        return redirect()->route('payroll.index')->with('success', 'Payroll batch ' . $payroll->payroll_code . ' has been finalized and approved.');
     }
 }

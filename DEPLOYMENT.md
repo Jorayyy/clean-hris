@@ -22,25 +22,8 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-## 3. Background Services (The "Always Ready" Part)
-Since payroll is processed in the background, you **MUST** set up these Cron Jobs in Hostinger hPanel:
-
-### CRON 1: Task Scheduler (Vital for all automated tasks)
-- **Frequency:** Every Minute (`* * * * *`)
-- **Command:**
-  ```bash
-  /usr/local/bin/php8.3 /home/u502373859/domains/mebs.mebshiyas.com/public_html/artisan schedule:run >> /dev/null 2>&1
-  ```
-
-### CRON 2: Queue Worker (For Payroll Processing)
-- **Frequency:** Every Minute (`* * * * *`)
-- **Command:**
-  ```bash
-  /usr/local/bin/php8.3 /home/u502373859/domains/mebs.mebshiyas.com/public_html/artisan queue:work --stop-when-empty --timeout=300
-  ```
-
-> [!IMPORTANT]
-> To find your actual `/home/u502373859/domains/mebs.mebshiyas.com/public_html/...` path, run `pwd` in your SSH terminal.
+## 3. Background Services
+Since payroll calculations are now handled manually and in real-time, there is no longer a strict requirement for background cron jobs on the server. All processing is triggered directly via the Admin interface.
 
 ## 4. Troubleshooting Checklist
 - [ ] If CSS/JS doesn't load: Ensure you ran `npm run build` locally before uploading the `public/build` folder.

@@ -26,6 +26,7 @@ class EmployeeRequest extends FormRequest
 
         return [
             'employee_id' => 'required|not_regex:/^0/|unique:employees,employee_id,' . $employeeId,
+            'site_id' => 'required|exists:sites,id',
             'web_bundy_code' => 'required|string|min:4',
             'first_name' => 'required',
             'last_name' => 'required',

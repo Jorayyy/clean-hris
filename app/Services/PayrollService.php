@@ -13,17 +13,17 @@ class PayrollService
 {
     public function computePayroll(Payroll $payroll)
     {
-        return DB::transaction(function () use ($payroll) {
-            // IDEMPOTENCY: Check if payroll is already being processed or finalized
-            if ($payroll->status !== 'pending' && $payroll->status !== 'draft') {
+        try {
+            return DB::transaction(function () use ($payroll) {
+            // Allow processing if draft or processing
+            if (!in_array($payroll->status, ['draft', 'processing'])) {
                 return false; 
             }
 
-            // Set to processing to prevent race conditions
+            // Set to processing
             $payroll->update(['status' => 'processing']);
 
-            try {
-                $query = Employee::where('status', 'active');
+            $query = Employee::where('status', 'active');
                 
                 if ($payroll->payroll_group_id) {
                     $query->where('payroll_group_id', $payroll->payroll_group_id);
@@ -33,6 +33,11 @@ class PayrollService
                 $items = [];
 
                 foreach ($employees as $employee) {
+                    // Skip if item already exists to avoid duplicates
+                    if (PayrollItem::where('payroll_id', $payroll->id)->where('employee_id', $employee->id)->exists()) {
+                        continue;
+                    }
+
                     $attendances = Attendance::where('employee_id', $employee->id)
                         ->whereBetween('date', [$payroll->start_date, $payroll->end_date])
                         ->get();
@@ -95,13 +100,13 @@ class PayrollService
 
                 $payroll->update(['status' => 'processed']);
                 return $items;
+            });
 
-            } catch (\Exception $e) {
-                // Rollback status if something fails during the batch
-                $payroll->update(['status' => 'pending']);
-                throw $e;
-            }
-        });
+        } catch (\Exception $e) {
+            // Rollback status if something fails during the batch
+            $payroll->update(['status' => 'pending']);
+            throw $e;
+        }
     }
 
     public function calculateAttendanceStats($timeIn, $timeOut, $employeeId = null, $date = null)

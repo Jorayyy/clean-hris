@@ -22,9 +22,23 @@
         .sidebar-link i { font-size: 1.1rem; width: 25px; margin-right: 10px; }
         .main-content { margin-left: var(--sidebar-width); flex: 1; transition: all 0.3s; }
         .top-navbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0.75rem 1.5rem; }
+        
+        /* Mobile Sidebar Overlay */
+        .sidebar-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 999; 
+        }
+        
         @media (max-width: 991.98px) {
             .sidebar { left: -var(--sidebar-width); }
-            .sidebar.show { left: 0; }
+            .sidebar.show { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.2); }
+            .sidebar-overlay.show { display: block; }
             .main-content { margin-left: 0; }
         }
         .logo-img { height: 35px; border-radius: 4px; }
@@ -40,6 +54,9 @@
 </head>
 <body>
     @auth
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header d-flex align-items-center">
@@ -60,8 +77,11 @@
                 <a href="{{ route('employees.index') }}" class="sidebar-link {{ request()->routeIs('employees.*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i> Employees
                 </a>
+                <a href="{{ route('sites.index') }}" class="sidebar-link {{ request()->routeIs('sites.*') ? 'active' : '' }}">
+                    <i class="bi bi-geo-alt"></i> Sites
+                </a>
                 <a href="{{ route('payroll-groups.index') }}" class="sidebar-link {{ request()->routeIs('payroll-groups.*') ? 'active' : '' }}">
-                    <i class="bi bi-collection"></i> Groups
+                    <i class="bi bi-collection"></i> Payroll Groups
                 </a>
                 <a href="{{ route('schedules.index') }}" class="sidebar-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
                     <i class="bi bi-calendar-event"></i> Schedules
@@ -88,13 +108,16 @@
                 <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                     <i class="bi bi-gear"></i> System Settings
                 </a>
+                @if(Auth::user()->role === 'super-admin' || Auth::user()->hasRole('Super Admin'))
                 <a href="{{ route('admin.roles.index') }}" class="sidebar-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
                     <i class="bi bi-shield-check"></i> Roles & Permissions
-                </a>                <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-link {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
+                </a>
+                @endif
+                <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-link {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
                     <i class="bi bi-eye"></i> Audit Logs
                 </a>
                 <a href="{{ route('admin.queue-monitor.index') }}" class="sidebar-link {{ request()->routeIs('admin.queue-monitor.*') ? 'active' : '' }}">
-                    <i class="bi bi-cpu"></i> Reliability Monitor
+                    <i class="bi bi-cpu"></i> System Health
                 </a>
                 <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bi bi-person-lock"></i> User Management
@@ -124,7 +147,7 @@
     <div class="main-content">
         <!-- Top Navbar -->
         <nav class="top-navbar d-flex align-items-center justify-content-between shadow-sm sticky-top">
-            <button class="btn btn-sm btn-light d-lg-none" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
+            <button class="btn btn-sm btn-light d-lg-none" type="button" onclick="toggleSidebar()">
                 <i class="bi bi-list fs-4"></i>
             </button>
             <div class="d-none d-lg-block">
@@ -181,6 +204,48 @@
     @endauth
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+            
+            // 1. Restore the scroll position when the page loads
+            const scrollPos = localStorage.getItem('sidebar-scroll');
+            if (scrollPos) {
+                sidebar.scrollTop = scrollPos;
+            }
+
+            // 2. Save the scroll position whenever the user scrolls
+            sidebar.addEventListener('scroll', function() {
+                localStorage.setItem('sidebar-scroll', sidebar.scrollTop);
+            });
+
+            // 3. Reset scroll if clicking on the Logo
+            const sidebarHeader = sidebar.querySelector('.sidebar-header');
+            if (sidebarHeader) {
+                sidebarHeader.addEventListener('click', function() {
+                    localStorage.setItem('sidebar-scroll', 0);
+                });
+            }
+
+            // 4. Close sidebar when clicking a link (Mobile only)
+            const sidebarLinks = sidebar.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 992) {
+                        toggleSidebar();
+                    }
+                });
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

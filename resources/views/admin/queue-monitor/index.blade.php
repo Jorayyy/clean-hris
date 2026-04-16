@@ -3,28 +3,33 @@
 @section('content')
 <div class="row mb-4">
     <div class="col-md-8">
-        <h4 class="mb-0 fw-bold">Reliability Monitor</h4>
-        <p class="text-muted small">Monitor background payroll tasks and system processing health.</p>
+        <h4 class="mb-0 fw-bold text-dark">System Health</h4>
+        <p class="text-muted small">Monitor background task logs and critical service connectivity.</p>
     </div>
 </div>
 
 <div class="row g-4 mb-4">
-    <!-- Queue Status -->
+    <!-- Active Background Tasks (Simplified) -->
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold mb-0">Active Queue Status</h6>
-                    <span class="badge {{ $pendingJobs > 0 ? 'bg-primary' : 'bg-success' }} pulse-indicator">
-                        {{ $pendingJobs > 0 ? 'Processing Jobs' : 'Queue Idle' }}
-                    </span>
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-success bg-opacity-10 p-4 me-4">
+                    <i class="bi bi-activity h1 text-success mb-0 d-block"></i>
                 </div>
-                <div class="text-center py-4">
-                    <h1 class="display-1 fw-bold {{ $pendingJobs > 0 ? 'text-primary' : 'text-muted' }}">{{ $pendingJobs }}</h1>
-                    <p class="text-muted mb-0">Background Tasks Currently Pending</p>
+                <div>
+                    <h6 class="fw-bold mb-1 text-dark uppercase small tracking-wider">Background Engine</h6>
+                    <div class="d-flex align-items-baseline mb-2">
+                        <h2 class="fw-bold mb-0 me-2 text-dark">{{ $pendingJobs }}</h2>
+                        <span class="text-muted small">Active/Queued Tasks</span>
+                    </div>
+                    <span class="badge {{ $pendingJobs > 0 ? 'bg-primary animate-pulse' : 'bg-success bg-opacity-10 text-success' }} border-0 px-3 py-1 rounded-pill fw-medium" style="font-size: 11px;">
+                        <i class="bi {{ $pendingJobs > 0 ? 'bi-gear-fill spin-slow' : 'bi-check-circle-fill' }} me-1"></i>
+                        {{ $pendingJobs > 0 ? 'System Processing' : 'Engine Healthy & Idle' }}
+                    </span>
                     @if($pendingJobs > 0)
-                        <div class="spinner-border spinner-border-sm text-primary mt-3" role="status"></div>
-                        <p class="small text-primary mt-2">Check terminal for 'php artisan queue:work'</p>
+                    <div class="mt-2 small text-primary fst-italic">
+                        <i class="bi bi-info-circle me-1"></i>Running via worker
+                    </div>
                     @endif
                 </div>
             </div>
@@ -118,13 +123,21 @@
 </div>
 
 <style>
-.pulse-indicator {
-    animation: pulse 2s infinite;
+.animate-pulse {
+    animation: fadePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-@keyframes pulse {
-	0% { opacity: 1; }
-	50% { opacity: 0.6; }
-	100% { opacity: 1; }
+.spin-slow {
+    animation: spin 3s linear infinite;
+    display: inline-block;
+}
+
+@keyframes fadePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .7; }
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 </style>
 @endsection
