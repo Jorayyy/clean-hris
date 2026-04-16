@@ -11,15 +11,15 @@ Follow these simplified steps to ensure everything works perfectly on your live 
     *   `QUEUE_CONNECTION=database`
 
 ## 2. Terminal Commands (via SSH)
-Run these inside your project folder to optimize and prepare:
+Run these inside your project folder to optimize and prepare. Since the server defaults to an older PHP version, you **MUST** use the full path to PHP 8.4:
 ```bash
-composer install --no-dev --optimize-autoloader
-php artisan key:generate
-php artisan migrate --force
-php artisan storage:link
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+/opt/alt/php84/usr/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader
+/opt/alt/php84/usr/bin/php artisan key:generate
+/opt/alt/php84/usr/bin/php artisan migrate --force
+/opt/alt/php84/usr/bin/php artisan storage:link
+/opt/alt/php84/usr/bin/php artisan config:cache
+/opt/alt/php84/usr/bin/php artisan route:cache
+/opt/alt/php84/usr/bin/php artisan view:cache
 ```
 
 ## 3. Background Services
@@ -30,10 +30,10 @@ Since payroll calculations are now handled manually and in real-time, there is n
 - [ ] 500 error: Check logs in `storage/logs/laravel.log`.
 - [ ] Permission issues: Run `chmod -R 775 storage bootstrap/cache`.
 ```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-composer install --optimize-autoloader --no-dev
+/opt/alt/php84/usr/bin/php artisan config:cache
+/opt/alt/php84/usr/bin/php artisan route:cache
+/opt/alt/php84/usr/bin/php artisan view:cache
+/opt/alt/php84/usr/bin/php /usr/local/bin/composer install --optimize-autoloader --no-dev
 ```
 
 ## 5. Security & Persistence
