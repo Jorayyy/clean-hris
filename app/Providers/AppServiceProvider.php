@@ -22,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
+
         \App\Models\Employee::observe(\App\Observers\AuditObserver::class);
         \App\Models\Payroll::observe(\App\Observers\AuditObserver::class);
         \App\Models\PayrollItem::observe(\App\Observers\AuditObserver::class);
