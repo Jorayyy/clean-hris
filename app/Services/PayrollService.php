@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use App\Models\Dtr;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -27,6 +28,8 @@ class PayrollService
                 
                 if ($payroll->payroll_group_id) {
                     $query->where('payroll_group_id', $payroll->payroll_group_id);
+                } elseif ($payroll->employee_id) {
+                    $query->where('id', $payroll->employee_id);
                 }
 
                 $employees = $query->get();
@@ -35,6 +38,19 @@ class PayrollService
                 foreach ($employees as $employee) {
                     // Skip if item already exists to avoid duplicates
                     if (PayrollItem::where('payroll_id', $payroll->id)->where('employee_id', $employee->id)->exists()) {
+                        continue;
+                    }
+
+                    // Check for finalized DTR
+                    $dtr = Dtr::where('employee_id', $employee->id)
+                        ->where('start_date', $payroll->start_date)
+                        ->where('end_date', $payroll->end_date)
+                        ->where('status', 'finalized')
+                        ->first();
+
+                    // If NO finalized DTR, we skip them from the automated batch.
+                    // This prevents unverified attendance from being paid out.
+                    if (!$dtr) {
                         continue;
                     }
 
@@ -48,15 +64,12 @@ class PayrollService
                     $dailyRate = $employee->daily_rate;
                     $hourlyRate = $dailyRate / 8;
 
-                    $basicPay = $totalDays * $dailyRate;
+                    // Use DTR stats if available for better accuracy (handle lates/undertime if model has it)
+                    $basicPay = ($dtr->total_regular_hours / 8) * $dailyRate;
                     
-                    // Logic for OT (hours over 8 per day)
-                    $overtimePay = 0;
-                    foreach ($attendances as $attendance) {
-                        if ($attendance->total_hours > 8) {
-                            $overtimePay += ($attendance->total_hours - 8) * $hourlyRate * 1.25; // 1.25x for OT
-                        }
-                    }
+                    // Logic for OT from DTR
+                    $overtimePay = $dtr->total_overtime_hours * $hourlyRate * 1.25; 
+
 
                     // Bonuses & Night Diff (simplified as requested)
                     $bonuses = ($totalDays >= 5) ? 500 : 0; // Perfect attendance bonus
@@ -68,13 +81,18 @@ class PayrollService
                     $pagibigRate = $settings->pagibig_rate ?? 0.02;
                     $philhealthRate = $settings->philhealth_rate ?? 0.03;
 
-                    // Deductions
-                    $sss = floor($basicPay * $sssRate);
-                    $pagibig = floor($basicPay * $pagibigRate);
-                    $philhealth = floor($basicPay * $philhealthRate);
-                    $otherDeductions = 0;
+                    // Deductions logic
+                    $deductions = [];
+                    foreach (['sss', 'pagibig', 'philhealth'] as $type) {
+                        $rate = $settings->{$type . '_rate'} ?? 0.05;
+                        $amt = floor($basicPay * $rate);
+                        if ($amt > 0) {
+                            $deductions[] = ['type' => strtoupper($type), 'amount' => $amt];
+                        }
+                    }
 
-                    $netPay = ($basicPay + $overtimePay + $bonuses + $nightDiff) - ($sss + $pagibig + $philhealth + $otherDeductions);
+                    $totalDeductions = array_sum(array_column($deductions, 'amount'));
+                    $netPay = ($basicPay + $overtimePay + $bonuses + $nightDiff) - $totalDeductions;
 
                     // IDEMPOTENCY: Use updateOrCreate to ensure no double-records if job retries
                     $items[] = PayrollItem::updateOrCreate(
@@ -89,10 +107,7 @@ class PayrollService
                             'overtime_pay' => $overtimePay,
                             'night_diff' => $nightDiff,
                             'bonuses' => $bonuses,
-                            'deductions_sss' => $sss,
-                            'deductions_pagibig' => $pagibig,
-                            'deductions_philhealth' => $philhealth,
-                            'other_deductions' => $otherDeductions,
+                            'deductions_json' => $deductions,
                             'net_pay' => $netPay,
                         ]
                     );

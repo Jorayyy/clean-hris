@@ -59,6 +59,18 @@
                         </div>
                     </div>
 
+                    <div class="border-top pt-4 mt-2">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-0 fw-bold">Custom Deduction Types</h6>
+                                <p class="small text-muted mb-0">Manage the library of BPO-related deductions (e.g. HMO Premium, Salary Loans).</p>
+                            </div>
+                            <a href="{{ route('admin.settings.deductions.index') }}" class="btn btn-outline-primary shadow-sm">
+                                <i class="bi bi-list-ul me-1"></i> Manage Types
+                            </a>
+                        </div>
+                    </div>
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-4">
                         <button type="submit" class="btn btn-primary px-5">
                             <i class="bi bi-save me-2"></i>Save Changes

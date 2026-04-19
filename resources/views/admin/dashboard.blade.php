@@ -189,7 +189,13 @@
                             @foreach($recentPayrolls as $p)
                             <tr>
                                 <td class="ps-4 fw-bold text-primary font-monospace small">{{ $p->payroll_code }}</td>
-                                <td>{{ $p->payrollGroup->name }}</td>
+                                <td>
+                                    @if($p->employee_id)
+                                        <span class="text-info"><i class="bi bi-person me-1"></i>{{ $p->employee->full_name ?? 'Individual' }}</span>
+                                    @else
+                                        {{ $p->payrollGroup->name ?? 'All Groups' }}
+                                    @endif
+                                </td>
                                 <td><small class="text-muted">{{ $p->start_date }} to {{ $p->end_date }}</small></td>
                                 <td>
                                     <span class="badge border {{ $p->status == 'processed' ? 'bg-success-subtle text-success border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border-warning-subtle' }} rounded-pill px-3 py-1">

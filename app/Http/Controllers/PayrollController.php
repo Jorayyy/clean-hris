@@ -49,21 +49,28 @@ class PayrollController extends Controller
     public function create()
     {
         $groups = PayrollGroup::withCount('employees')->get();
-        return view('payroll.create', compact('groups'));
+        $employees = Employee::where('status', 'active')->get();
+        return view('payroll.create', compact('groups', 'employees'));
     }
 
     public function getFinalizedDtrs(Request $request)
     {
         $groupId = $request->get('payroll_group_id');
-        if (!$groupId) return response()->json([]);
+        $employeeId = $request->get('employee_id');
+        
+        if (!$groupId && !$employeeId) return response()->json([]);
 
-        // Get all finalized DTRs for employees in this group
-        // Group by start_date and end_date so we can offer them as choices
-        $periods = \App\Models\Dtr::where('status', 'finalized')
-            ->whereHas('employee', function($q) use ($groupId) {
+        $query = \App\Models\Dtr::where('status', 'finalized');
+        
+        if ($groupId) {
+            $query->whereHas('employee', function($q) use ($groupId) {
                 $q->where('payroll_group_id', $groupId);
-            })
-            ->select('start_date', 'end_date')
+            });
+        } elseif ($employeeId) {
+            $query->where('employee_id', $employeeId);
+        }
+        
+        $periods = $query->select('start_date', 'end_date')
             ->distinct()
             ->orderBy('start_date', 'desc')
             ->get()

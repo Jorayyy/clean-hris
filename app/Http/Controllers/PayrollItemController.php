@@ -7,6 +7,7 @@ use App\Models\PayrollItem;
 use App\Models\Employee;
 use App\Models\Dtr;
 use App\Models\Attendance;
+use App\Models\DeductionType;
 use Illuminate\Http\Request;
 
 class PayrollItemController extends Controller
@@ -14,8 +15,20 @@ class PayrollItemController extends Controller
     public function create(Request $request)
     {
         $payroll = Payroll::findOrFail($request->payroll_id);
-        $employees = Employee::where('payroll_group_id', $payroll->payroll_group_id)->get();
-        return view('payroll_items.create', compact('payroll', 'employees'));
+        
+        $query = Employee::where('status', 'active');
+        
+        if ($payroll->employee_id) {
+            // If it's an individual payroll, only show that employee
+            $query->where('id', $payroll->employee_id);
+        } else {
+            // If it's a group payroll, show employees in that group
+            $query->where('payroll_group_id', $payroll->payroll_group_id);
+        }
+
+        $employees = $query->get();
+        $deductionTypes = DeductionType::where('is_active', true)->get();
+        return view('payroll_items.create', compact('payroll', 'employees', 'deductionTypes'));
     }
 
     public function getEmployeeBasis(Request $request)
@@ -26,21 +39,28 @@ class PayrollItemController extends Controller
         $payroll = Payroll::findOrFail($payrollId);
         $employee = Employee::findOrFail($employeeId);
 
+        // Standardize dates to Y-m-d strings to avoid object/string mismatch in queries
+        $startDate = \Carbon\Carbon::parse($payroll->start_date)->toDateString();
+        $endDate = \Carbon\Carbon::parse($payroll->end_date)->toDateString();
+
         // Find finalized DTR summary
         $dtr = Dtr::where('employee_id', $employeeId)
-            ->where('start_date', $payroll->start_date)
-            ->where('end_date', $payroll->end_date)
+            ->whereDate('start_date', $startDate)
+            ->whereDate('end_date', $endDate)
             ->where('status', 'finalized')
             ->first();
 
         // Get detailed attendance logs for the period
         $attendances = Attendance::where('employee_id', $employeeId)
-            ->whereBetween('date', [$payroll->start_date, $payroll->end_date])
+            ->whereBetween('date', [$startDate, $endDate])
             ->orderBy('date', 'asc')
             ->get();
 
         return response()->json([
+            'payroll_id' => $payrollId,
+            'period' => $startDate . ' to ' . $endDate,
             'employee' => [
+                'id' => $employee->id,
                 'daily_rate' => $employee->daily_rate,
                 'position' => $employee->position,
             ],
@@ -58,44 +78,55 @@ class PayrollItemController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'payroll_id' => 'required|exists:payrolls,id',
-            'employee_id' => 'required|exists:employees,id',
+            'payroll_id' => 'required',
+            'employee_id' => 'required',
             'total_days' => 'required|numeric',
             'total_hours' => 'required|numeric',
             'basic_pay' => 'required|numeric',
             'overtime_pay' => 'nullable|numeric',
             'night_diff' => 'nullable|numeric',
             'bonuses' => 'nullable|numeric',
-            'deductions_sss' => 'nullable|numeric',
-            'deductions_pagibig' => 'nullable|numeric',
-            'deductions_philhealth' => 'nullable|numeric',
-            'other_deductions' => 'nullable|numeric',
+            'deductions' => 'nullable|array',
+            'deductions.*.type' => 'nullable|string',
+            'deductions.*.amount' => 'nullable|numeric|min:0',
         ]);
 
-        $net_pay = $data['basic_pay'] 
-                 + ($data['overtime_pay'] ?? 0) 
-                 + ($data['night_diff'] ?? 0) 
-                 + ($data['bonuses'] ?? 0)
-                 - ($data['deductions_sss'] ?? 0)
-                 - ($data['deductions_pagibig'] ?? 0)
-                 - ($data['deductions_philhealth'] ?? 0)
-                 - ($data['other_deductions'] ?? 0);
+        $overtime_pay = $request->input('overtime_pay', 0) ?: 0;
+        $night_diff = $request->input('night_diff', 0) ?: 0;
+        $bonuses = $request->input('bonuses', 0) ?: 0;
 
-        $data['net_pay'] = $net_pay;
-        
-        // Ensure nullable fields that are missing from request but NOT NULL in DB are set to 0
-        $data['overtime_pay'] = $data['overtime_pay'] ?? 0;
-        $data['night_diff'] = $data['night_diff'] ?? 0;
-        $data['bonuses'] = $data['bonuses'] ?? 0;
-        $tableFields = [
-            'deductions_sss', 'deductions_pagibig', 
-            'deductions_philhealth', 'other_deductions'
-        ];
-        foreach ($tableFields as $field) {
-            $data[$field] = $data[$field] ?? 0;
+        $total_deductions = 0;
+        $deductions_log = [];
+        if ($request->has('deductions') && is_array($request->deductions)) {
+            foreach ($request->deductions as $d) {
+                if (!empty($d['type']) && isset($d['amount']) && is_numeric($d['amount'])) {
+                    $total_deductions += $d['amount'];
+                    $deductions_log[] = [
+                        'type' => $d['type'],
+                        'amount' => $d['amount']
+                    ];
+                }
+            }
         }
 
-        PayrollItem::create($data);
+        $net_pay = $data['basic_pay'] 
+                 + $overtime_pay 
+                 + $night_diff 
+                 + $bonuses
+                 - $total_deductions;
+
+        $payrollItem = PayrollItem::create([
+            'payroll_id' => $data['payroll_id'],
+            'employee_id' => $data['employee_id'],
+            'total_days' => $data['total_days'],
+            'total_hours' => $data['total_hours'],
+            'basic_pay' => $data['basic_pay'],
+            'overtime_pay' => $overtime_pay,
+            'night_diff' => $night_diff,
+            'bonuses' => $bonuses,
+            'net_pay' => $net_pay,
+            'deductions_json' => $deductions_log,
+        ]);
 
         // Auto-update payroll status to 'processing' if it was 'draft'
         $payroll = Payroll::find($data['payroll_id']);

@@ -92,7 +92,12 @@
                     @endphp
                     @foreach($period as $date)
                         @php
-                            $log = $attendances->firstWhere('date', $date->format('Y-m-d'));
+                            $dateStr = $date->format('Y-m-d');
+                            $log = $attendances->first(function($a) use ($dateStr) {
+                                // Handle potential Carbon objects or string comparisons
+                                $aDate = is_string($a->date) ? $a->date : $a->date->format('Y-m-d');
+                                return $aDate == $dateStr;
+                            });
                         @endphp
                         <tr>
                             <td class="fw-bold bg-light">{{ $date->format('m-d') }}</td>

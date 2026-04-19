@@ -10,12 +10,17 @@ class Payroll extends Model
     use HasFactory;
 
     protected $fillable = [
-        'payroll_code', 'start_date', 'end_date', 'pay_date', 'status', 'payroll_group_id'
+        'payroll_code', 'start_date', 'end_date', 'pay_date', 'status', 'payroll_group_id', 'employee_id'
     ];
 
     public function payrollGroup()
     {
         return $this->belongsTo(PayrollGroup::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
     }
 
     public function items()

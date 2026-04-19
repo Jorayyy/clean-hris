@@ -18,6 +18,8 @@ use App\Http\Controllers\Employee\SupportTicketController as EmployeeTicketContr
 use App\Http\Controllers\Admin\SupportTicketController as AdminTicketController;
 use App\Http\Controllers\Admin\AuthorizedNetworkController;
 use App\Http\Controllers\Admin\AppSettingController;
+use App\Http\Controllers\Admin\DeductionTypeController;
+use App\Http\Controllers\PayrollItemController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\QueueMonitorController;
 use App\Http\Controllers\ScheduleController;
@@ -26,7 +28,6 @@ use App\Http\Controllers\WebBundyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SiteController;
-use App\Http\Controllers\PayrollItemController;
 
 // Public login/bundy routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -58,6 +59,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::resource('authorized-networks', AuthorizedNetworkController::class);
     Route::get('admin/settings', [AppSettingController::class, 'index'])->name('admin.settings.index');
     Route::post('admin/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
+    Route::resource('admin/settings/deductions', DeductionTypeController::class)->names('admin.settings.deductions');
     
     Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
     Route::get('salaries/{salary}/edit', [SalaryController::class, 'edit'])->name('salaries.edit');

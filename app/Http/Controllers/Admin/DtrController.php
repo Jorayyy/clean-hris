@@ -83,7 +83,8 @@ class DtrController extends Controller
             }
 
             $attendances = Attendance::where('employee_id', $empId)
-                ->whereBetween('date', [$request->start_date, $request->end_date])
+                ->whereDate('date', '>=', $request->start_date)
+                ->whereDate('date', '<=', $request->end_date)
                 ->get();
 
             Dtr::updateOrCreate(
@@ -114,7 +115,8 @@ class DtrController extends Controller
     public function show(Dtr $dtr)
     {
         $attendances = Attendance::where('employee_id', $dtr->employee_id)
-            ->whereBetween('date', [$dtr->start_date, $dtr->end_date])
+            ->whereDate('date', '>=', $dtr->start_date)
+            ->whereDate('date', '<=', $dtr->end_date)
             ->get();
             
         return view('admin.dtrs.show', compact('dtr', 'attendances'));

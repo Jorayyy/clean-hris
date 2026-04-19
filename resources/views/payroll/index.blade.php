@@ -58,7 +58,15 @@
                     @foreach($payrolls as $row)
                     <tr>
                         <td><span class="fw-bold text-dark"><i class="bi bi-hash small text-muted"></i>{{ $row->payroll_code }}</span></td>
-                        <td><span class="badge bg-secondary text-white fw-medium">{{ $row->payrollGroup->name ?? 'All Groups' }}</span></td>
+                        <td>
+                            @if($row->employee_id)
+                                <span class="badge bg-info text-dark fw-medium">
+                                    <i class="bi bi-person me-1"></i>{{ $row->employee->full_name ?? 'Individual' }}
+                                </span>
+                            @else
+                                <span class="badge bg-secondary text-white fw-medium">{{ $row->payrollGroup->name ?? 'All Groups' }}</span>
+                            @endif
+                        </td>
                         <td><small class="text-muted"><i class="bi bi-calendar-range me-1"></i></small> {{ $row->start_date }} to {{ $row->end_date }}</td>
                         <td><small class="text-success fw-bold"><i class="bi bi-wallet2 me-1"></i></small> {{ $row->pay_date }}</td>
                         <td>

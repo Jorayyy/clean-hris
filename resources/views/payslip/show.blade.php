@@ -112,14 +112,38 @@
                 <hr>
                 <div class="data-row text-success"><span>GROSS PAY:</span> <strong>P{{ number_format($item->basic_pay + $item->overtime_pay + $item->bonuses + $item->night_diff, 2) }}</strong></div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 text-center">
                 <span class="category-title text-danger">DEDUCTIONS (-)</span>
-                <div class="data-row"><span>SSS:</span> <strong>P{{ number_format($item->deductions_sss, 2) }}</strong></div>
-                <div class="data-row"><span>Pag-Ibig:</span> <strong>P{{ number_format($item->deductions_pagibig, 2) }}</strong></div>
-                <div class="data-row"><span>PhilHealth:</span> <strong>P{{ number_format($item->deductions_philhealth, 2) }}</strong></div>
-                <div class="data-row"><span>Other Deductions:</span> <strong>P{{ number_format($item->other_deductions, 2) }}</strong></div>
+                <div id="deductions-container">
+                    @php 
+                        $total_deductions = 0;
+                        $types = \App\Models\DeductionType::pluck('name', 'code')->toArray();
+                    @endphp
+                    
+                    @if($item->deductions_json && count($item->deductions_json) > 0)
+                        @foreach($item->deductions_json as $d)
+                            <div class="data-row">
+                                <span>{{ $types[$d['type']] ?? $d['type'] }}:</span> 
+                                <strong>P{{ number_format($d['amount'], 2) }}</strong>
+                            </div>
+                            @php $total_deductions += $d['amount']; @endphp
+                        @endforeach
+                    @else
+                        <!-- Fallback for legacy records or missing JSON -->
+                        @if($item->deductions_sss > 0) <div class="data-row"><span>SSS:</span> <strong>P{{ number_format($item->deductions_sss, 2) }}</strong></div> @endif
+                        @if($item->deductions_pagibig > 0) <div class="data-row"><span>Pag-Ibig:</span> <strong>P{{ number_format($item->deductions_pagibig, 2) }}</strong></div> @endif
+                        @if($item->deductions_philhealth > 0) <div class="data-row"><span>PhilHealth:</span> <strong>P{{ number_format($item->deductions_philhealth, 2) }}</strong></div> @endif
+                        @if($item->other_deductions > 0) 
+                            <div class="data-row">
+                                <span>{{ $otherLabel }} Deductions:</span> 
+                                <strong>P{{ number_format($item->other_deductions, 2) }}</strong>
+                            </div> 
+                        @endif
+                        @php $total_deductions = $item->deductions_sss + $item->deductions_pagibig + $item->deductions_philhealth + $item->other_deductions; @endphp
+                    @endif
+                </div>
                 <hr>
-                <div class="data-row text-danger"><span>TOTAL DEDUCTIONS:</span> <strong>P{{ number_format($item->deductions_sss + $item->deductions_pagibig + $item->deductions_philhealth + $item->other_deductions, 2) }}</strong></div>
+                <div class="data-row text-danger"><span>TOTAL DEDUCTIONS:</span> <strong>P{{ number_format($total_deductions, 2) }}</strong></div>
             </div>
         </div>
 

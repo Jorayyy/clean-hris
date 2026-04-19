@@ -16,22 +16,35 @@
             <div class="col-md-3"><strong>Start Date:</strong> {{ $payroll->start_date }}</div>
             <div class="col-md-3"><strong>End Date:</strong> {{ $payroll->end_date }}</div>
             <div class="col-md-3"><strong>Pay Date:</strong> {{ $payroll->pay_date }}</div>
-            <div class="col-md-3"><strong>Items:</strong> {{ $items->count() }}</div>
+            <div class="col-md-3">
+                <strong>Target:</strong> 
+                @if($payroll->payrollGroup)
+                    {{ $payroll->payrollGroup->name }}
+                @elseif($payroll->employee)
+                    {{ $payroll->employee->full_name }}
+                @else
+                    N/A
+                @endif
+            </div>
         </div>
 
         @if($payroll->status == 'draft' || $payroll->status == 'processing')
         <div class="alert {{ $payroll->status == 'processing' ? 'alert-info' : 'alert-warning' }} text-center shadow-sm">
             @if($payroll->status == 'processing')
                 <h6 class="fw-bold"><i class="bi bi-clock-history me-2"></i>Status: PROCESSING</h6>
-                <p class="mb-3">Manual payslip entry is in progress. Please ensure all employees in this group have their payslips created before finalizing.</p>
+                <p class="mb-3">Manual payslip entry is in progress. Please ensure all employees in this target have their payslips created before finalizing.</p>
             @else
                 <h6 class="fw-bold"><i class="bi bi-pencil-square me-2"></i>Status: DRAFT</h6>
-                <p class="mb-3">This payroll is in draft mode. Start manually creating payslips for active employees within this group.</p>
+                <p class="mb-3">This payroll is in draft mode. Start manually creating payslips for the target employee(s).</p>
             @endif
             
             <div class="d-flex justify-content-center gap-2">
                 @php
-                    $total_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)->where('status', 'active')->count();
+                    if ($payroll->payrollGroup) {
+                        $total_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)->where('is_active', true)->count();
+                    } else {
+                        $total_employees = 1;
+                    }
                     $is_complete = $item_count >= $total_employees;
                 @endphp
 
@@ -125,10 +138,6 @@
                             <div class="btn-group">
                                 <a href="{{ route('payroll.payslip', $item->id) }}" class="btn btn-sm btn-outline-info">Slip</a>
                                 <a href="{{ route('payroll-items.edit', $item->id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                                <form action="{{ route('payroll-items.destroy', $item->id) }}" method="POST" class="d-inline">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this payslip?')"><i class="bi bi-trash"></i></button>
-                                </form>
                             </div>
                         </td>
                     </tr>
