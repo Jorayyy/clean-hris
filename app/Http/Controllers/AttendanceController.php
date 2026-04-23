@@ -88,8 +88,8 @@ class AttendanceController extends Controller
                 'is_undertime' => $hasAttendance ? $logs->sum('undertime_minutes') > 0 : false,
                 'logs' => $hasAttendance ? $logs->map(function($log) {
                     return [
-                        'time_in' => date('h:i A', strtotime($log->time_in)),
-                        'time_out' => date('h:i A', strtotime($log->time_out)),
+                        'time_in' => ($log->time_in && $log->time_in != '00:00:00') ? date('h:i A', strtotime($log->time_in)) : '--:--',
+                        'time_out' => ($log->time_out && $log->time_out != '00:00:00') ? date('h:i A', strtotime($log->time_out)) : '--:--',
                     ];
                 }) : []
             ];
