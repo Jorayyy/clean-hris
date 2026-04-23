@@ -27,6 +27,8 @@ class AppSettingController extends Controller
             'sss_rate' => 'required|numeric|between:0,1',
             'pagibig_rate' => 'required|numeric|between:0,1',
             'philhealth_rate' => 'required|numeric|between:0,1',
+            'late_rate' => 'required|numeric|min:0',
+            'undertime_rate' => 'required|numeric|min:0',
         ]);
 
         $data = [
@@ -35,6 +37,8 @@ class AppSettingController extends Controller
             'sss_rate' => $request->sss_rate,
             'pagibig_rate' => $request->pagibig_rate,
             'philhealth_rate' => $request->philhealth_rate,
+            'late_rate' => $request->late_rate,
+            'undertime_rate' => $request->undertime_rate,
         ];
 
         if ($request->hasFile('app_logo')) {

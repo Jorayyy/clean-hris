@@ -59,6 +59,23 @@
                         </div>
                     </div>
 
+                    <div class="row pt-4 border-top">
+                        <div class="col-12 mb-3">
+                            <h6 class="fw-bold text-uppercase text-danger small mb-3">Attendance Deduction Multipliers</h6>
+                            <p class="small text-muted">Adjust how much is deducted per hour of late or undertime. 1.0 = 100% of hourly rate.</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Late Multiplier</label>
+                            <input type="number" step="0.01" name="late_rate" class="form-control" value="{{ $settings->late_rate ?? 1.00 }}" required>
+                            <small class="text-muted">1.0 means deducting the exact hourly equivalent.</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Undertime Multiplier</label>
+                            <input type="number" step="0.01" name="undertime_rate" class="form-control" value="{{ $settings->undertime_rate ?? 1.00 }}" required>
+                            <small class="text-muted">Increase this if you want to penalize undertime more heavily.</small>
+                        </div>
+                    </div>
+
                     <div class="border-top pt-4 mt-2">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>

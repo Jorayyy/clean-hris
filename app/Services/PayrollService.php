@@ -83,6 +83,21 @@ class PayrollService
 
                     // Deductions logic
                     $deductions = [];
+
+                    // Late/UT Deductions
+                    if ($dtr->total_late_minutes > 0) {
+                        $deductions[] = [
+                            'type' => 'LATE', 
+                            'amount' => floor(($dtr->total_late_minutes / 60) * $hourlyRate)
+                        ];
+                    }
+                    if ($dtr->total_undertime_minutes > 0) {
+                        $deductions[] = [
+                            'type' => 'UT', 
+                            'amount' => floor(($dtr->total_undertime_minutes / 60) * $hourlyRate)
+                        ];
+                    }
+
                     foreach (['sss', 'pagibig', 'philhealth'] as $type) {
                         $rate = $settings->{$type . '_rate'} ?? 0.05;
                         $amt = floor($basicPay * $rate);
@@ -148,13 +163,15 @@ class PayrollService
         $scheduleInTime = '08:00:00';
         $scheduleOutTime = '17:00:00';
 
+        $dateStr = $date ?? $in->toDateString();
+
         // Try to get actual schedule if employee provided
         if ($employeeId) {
             $employee = \App\Models\Employee::find($employeeId);
             $schedule = $employee?->active_schedule;
             if ($schedule) {
                 // If specific date provided, check if scheduled for that day
-                $dayName = $date ? Carbon::parse($date)->format('l') : null;
+                $dayName = Carbon::parse($dateStr)->format('l');
                 if (!$dayName || (is_array($schedule->days) && in_array($dayName, $schedule->days))) {
                     $scheduleInTime = $schedule->time_in;
                     $scheduleOutTime = $schedule->time_out;
@@ -162,43 +179,43 @@ class PayrollService
             }
         }
 
-        $datePrefix = $date ?? $in->toDateString();
-        $scheduleIn = Carbon::parse($datePrefix . ' ' . $scheduleInTime);
-        $scheduleOut = Carbon::parse($datePrefix . ' ' . $scheduleOutTime);
+        $scheduleIn = Carbon::parse($dateStr . ' ' . $scheduleInTime);
+        $scheduleOut = Carbon::parse($dateStr . ' ' . $scheduleOutTime);
+
+        // Re-parse in/out with the correct date to ensure comparisons work
+        $actualIn = Carbon::parse($dateStr . ' ' . $timeIn);
+        $actualOut = $isNoPunchOut ? null : Carbon::parse($dateStr . ' ' . $timeOut);
 
         // Handle Night Shift: If schedule OUT is before schedule IN (e.g., 20:00 to 06:00)
         if ($scheduleOut->lessThan($scheduleIn)) {
-            // Check if actual 'In' punch is before midnight or after
-            // If we are punching at 3:53 PM for a 9:00 PM shift, we are in the 'Before Midnight' phase
-            // If the schedule ends at 06:00 AM, that's already the next calendar day
             $scheduleOut->addDay();
         }
 
-        // Similarly for the actual Out punch if it's before the In punch
-        if (!$isNoPunchOut && $out->lessThan($in)) {
-            $out->addDay();
-            $totalHours = $out->diffInMinutes($in) / 60;
+        // Handle actual out if it crossed midnight
+        if ($actualOut && $actualOut->lessThan($actualIn)) {
+            $actualOut->addDay();
         }
 
-        // LATE CALCULATION REFINEMENT
-        // If the punch-in is many hours before the schedule (like 3 PM for a 9 PM shift), 
-        // it shouldn't be counted as 'late' from the previous day's schedule.
-        if ($in->greaterThan($scheduleIn)) {
-             $lateMinutes = $scheduleIn->diffInMinutes($in);
-             // If late minutes is more than 12 hours, we assume it's actually an early punch for a night shift
+        // LATE CALCULATION
+        if ($actualIn->greaterThan($scheduleIn)) {
+             $lateMinutes = $scheduleIn->diffInMinutes($actualIn);
              if ($lateMinutes > 720) $lateMinutes = 0;
         } else {
              $lateMinutes = 0;
         }
         
-        // Only calculate undertime if a REAL Out punch happened
-        $isActualOut = $timeOut && $timeOut !== '00:00:00';
-        $undertimeMinutes = ($isActualOut && $out->lessThan($scheduleOut)) ? $out->diffInMinutes($scheduleOut) : 0;
+        // UNDERTIME CALCULATION
+        $undertimeMinutes = ($actualOut && $actualOut->lessThan($scheduleOut)) ? $actualOut->diffInMinutes($scheduleOut) : 0;
+
+        // OVERTIME CALCULATION (Minutes beyond schedule out)
+        $overtimeMinutes = ($actualOut && $actualOut->greaterThan($scheduleOut)) ? $scheduleOut->diffInMinutes($actualOut) : 0;
+        $overtimeHours = round($overtimeMinutes / 60, 2);
 
         return [
             'total_hours' => abs(round($totalHours, 2)),
             'late_minutes' => $lateMinutes,
             'undertime_minutes' => $undertimeMinutes,
+            'overtime_hours' => $overtimeHours,
         ];
     }
 }

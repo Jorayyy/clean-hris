@@ -211,6 +211,11 @@
                     </table>
                 </div>
             </div>
+            @if($recentPayrolls->hasPages())
+                <div class="card-footer bg-white border-0 px-4 pb-4">
+                    {{ $recentPayrolls->links() }}
+                </div>
+            @endif
         </div>
     </div>
 

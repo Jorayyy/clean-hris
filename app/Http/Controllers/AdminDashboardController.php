@@ -60,7 +60,7 @@ class AdminDashboardController extends Controller
             ->take(5);
 
         // Recent Batches and Tickets
-        $recentPayrolls = Payroll::with('payrollGroup')->latest()->take(5)->get();
+        $recentPayrolls = Payroll::with('payrollGroup')->latest()->paginate(5, ['*'], 'payroll_page');
         $recentTickets = SupportTicket::with('employee')->latest()->take(5)->get();
 
         // Group Distribution

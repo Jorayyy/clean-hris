@@ -96,7 +96,7 @@ class DtrController extends Controller
                 [
                     'total_late_minutes' => $attendances->sum('late_minutes'),
                     'total_undertime_minutes' => $attendances->sum('undertime_minutes'),
-                    'total_overtime_hours' => 0,
+                    'total_overtime_hours' => $attendances->sum('overtime_hours'),
                     'total_regular_hours' => $attendances->count() * 8,
                     'status' => 'draft',
                 ]
@@ -173,6 +173,96 @@ class DtrController extends Controller
             'finalized_at' => now(),
         ]);
         return back()->with('success', 'DTR Finalized and locked for payroll.');
+    }
+
+    public function batchVerify(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:dtrs,id',
+            'admin_password' => 'required'
+        ]);
+
+        $user = Auth::user();
+        $targetPassword = $user->dtr_password;
+        $inputPassword = $request->admin_password;
+
+        $isAuthPassword = Hash::check($inputPassword, $user->password);
+        $isDtrPassword = $targetPassword && ($inputPassword === $targetPassword);
+
+        if (!$isAuthPassword && !$isDtrPassword) {
+            return back()->with('error', 'Invalid security password. Batch verification failed.');
+        }
+
+        $count = Dtr::whereIn('id', $request->ids)
+            ->where('status', 'draft')
+            ->update([
+                'status' => 'verified',
+                'verified_by' => Auth::id(),
+                'verified_at' => now(),
+            ]);
+
+        return back()->with('success', $count . ' DTR record(s) verified successfully.');
+    }
+
+    public function batchFinalize(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:dtrs,id',
+            'admin_password' => 'required'
+        ]);
+
+        $user = Auth::user();
+        $targetPassword = $user->dtr_password;
+        $inputPassword = $request->admin_password;
+
+        $isAuthPassword = Hash::check($inputPassword, $user->password);
+        $isDtrPassword = $targetPassword && ($inputPassword === $targetPassword);
+
+        if (!$isAuthPassword && !$isDtrPassword) {
+            return back()->with('error', 'Invalid security password. Batch finalization failed.');
+        }
+
+        $count = Dtr::whereIn('id', $request->ids)
+            ->where('status', 'verified')
+            ->update([
+                'status' => 'finalized',
+                'finalized_by' => Auth::id(),
+                'finalized_at' => now(),
+            ]);
+
+        return back()->with('success', $count . ' DTR record(s) finalized and locked.');
+    }
+
+    public function batchDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:dtrs,id',
+            'admin_password' => 'required'
+        ]);
+
+        $user = Auth::user();
+        $targetPassword = $user->dtr_password;
+        $inputPassword = $request->admin_password;
+
+        $isAuthPassword = Hash::check($inputPassword, $user->password);
+        $isDtrPassword = $targetPassword && ($inputPassword === $targetPassword);
+
+        if (!$isAuthPassword && !$isDtrPassword) {
+            return back()->with('error', 'Invalid security password. Batch deletion failed.');
+        }
+
+        // Logic check: Non-admins cannot delete finalized records
+        $query = Dtr::whereIn('id', $request->ids);
+        if ($user->role !== 'admin') {
+            $query->where('status', '!=', 'finalized');
+        }
+
+        $count = $query->delete();
+
+        return back()->with('success', $count . ' DTR record(s) deleted successfully.');
     }
 
     public function update(Request $request, Dtr $dtr)

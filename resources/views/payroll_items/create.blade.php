@@ -216,13 +216,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('total_days').value = totalDays;
 
                 const dailyRate = parseFloat(data.employee.daily_rate);
+                const hourlyRate = dailyRate / 8;
                 document.getElementById('basic_pay').value = (dailyRate * totalDays).toFixed(2);
 
                 if (data.dtr.total_overtime_hours > 0) {
-                    const hourlyRate = dailyRate / 8;
                     document.getElementById('overtime_pay').value = (data.dtr.total_overtime_hours * hourlyRate * 1.25).toFixed(2);
                 } else {
                     document.getElementById('overtime_pay').value = '0.00';
+                }
+
+                // Auto-fill LATE and UT deductions
+                const list = document.getElementById('deductions-list');
+                list.innerHTML = '';
+                let deductionIndex = 0;
+
+                const lateMultiplier = data.settings ? parseFloat(data.settings.late_rate) : 1.0;
+                const utMultiplier = data.settings ? parseFloat(data.settings.undertime_rate) : 1.0;
+
+                if (data.dtr.total_late_minutes > 0) {
+                    const lateAmt = (data.dtr.total_late_minutes / 60 * hourlyRate * lateMultiplier).toFixed(2);
+                    addDeductionRow('LATE', lateAmt, deductionIndex++);
+                }
+
+                if (data.dtr.total_undertime_minutes > 0) {
+                    const utAmt = (data.dtr.total_undertime_minutes / 60 * hourlyRate * utMultiplier).toFixed(2);
+                    addDeductionRow('UT', utAmt, deductionIndex++);
+                }
+
+                // Add standard row if empty
+                if (list.children.length === 0) {
+                    addDeductionRow('SSS', '0.00', 0);
                 }
 
                 calculateNetPay();
@@ -245,6 +268,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function addDeductionRow(typeCode, amount, index) {
+        const list = document.getElementById('deductions-list');
+        const template = `
+            <div class="row mb-2 g-2 deduction-entry">
+                <div class="col-md-7">
+                    <select name="deductions[${index}][type]" class="form-select status-select">
+                        @foreach($deductionTypes as $type)
+                            <option value="{{ $type->code }}" ${typeCode === '{{ $type->code }}' ? 'selected' : ''}>{{ $type->name }} ({{ $type->code }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" step="0.01" name="deductions[${index}][amount]" class="form-control amount-field deduction-amount" value="${amount}" placeholder="0.00">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-secondary w-100 remove-row"><i class="bi bi-dash"></i></button>
+                </div>
+            </div>
+        `;
+        list.insertAdjacentHTML('beforeend', template);
+        const newRow = list.lastElementChild;
+        newRow.querySelector('.deduction-amount').addEventListener('input', calculateNetPay);
+        newRow.querySelector('.remove-row').addEventListener('click', function() {
+            newRow.remove();
+            calculateNetPay();
+        });
+    }
+
     function calculateNetPay() {
         let b = parseFloat(document.getElementById('basic_pay').value) || 0;
         let ot = parseFloat(document.getElementById('overtime_pay').value) || 0;
@@ -261,30 +312,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Dynamic Row Adding
-    let rowIndex = 1;
+    let rowIndex = 10; // Start high to avoid collision with auto-filled indices
     document.getElementById('add-deduction-row').addEventListener('click', function() {
-        const list = document.getElementById('deductions-list');
-        const firstRow = list.querySelector('.deduction-entry');
-        const newRow = firstRow.cloneNode(true);
-        
-        // Update names
-        newRow.querySelector('select').name = `deductions[${rowIndex}][type]`;
-        newRow.querySelector('input').name = `deductions[${rowIndex}][amount]`;
-        newRow.querySelector('input').value = '';
-        
-        // Enable remove button
-        const removeBtn = newRow.querySelector('.remove-row');
-        removeBtn.disabled = false;
-        removeBtn.addEventListener('click', function() {
-            newRow.remove();
-            calculateNetPay();
-        });
-
-        // Add calc listener
-        newRow.querySelector('input').addEventListener('input', calculateNetPay);
-        
-        list.appendChild(newRow);
-        rowIndex++;
+        addDeductionRow('SSS', '0.00', rowIndex++);
     });
 
     employeeSelect.addEventListener('change', function(e) { fetchBasis(e.target.value); });

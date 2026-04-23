@@ -27,8 +27,20 @@ class PayrollItemController extends Controller
         }
 
         $employees = $query->get();
+
+        $settings = \App\Models\AppSetting::first();
+
+        // Filter out employees who already have a payslip in this payroll
+        $existingEmployeeIds = PayrollItem::where('payroll_id', $payroll->id)
+            ->pluck('employee_id')
+            ->toArray();
+            
+        $employees = $employees->reject(function($employee) use ($existingEmployeeIds) {
+            return in_array($employee->id, $existingEmployeeIds);
+        });
+
         $deductionTypes = DeductionType::where('is_active', true)->get();
-        return view('payroll_items.create', compact('payroll', 'employees', 'deductionTypes'));
+        return view('payroll_items.create', compact('payroll', 'employees', 'deductionTypes', 'settings'));
     }
 
     public function getEmployeeBasis(Request $request)
@@ -43,10 +55,10 @@ class PayrollItemController extends Controller
         $startDate = \Carbon\Carbon::parse($payroll->start_date)->toDateString();
         $endDate = \Carbon\Carbon::parse($payroll->end_date)->toDateString();
 
-        // Find finalized DTR summary
+        // Find finalized DTR summary that covers this period
         $dtr = Dtr::where('employee_id', $employeeId)
-            ->whereDate('start_date', $startDate)
-            ->whereDate('end_date', $endDate)
+            ->whereDate('start_date', '<=', $startDate)
+            ->whereDate('end_date', '>=', $endDate)
             ->where('status', 'finalized')
             ->first();
 
@@ -56,6 +68,8 @@ class PayrollItemController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
+        $settings = \App\Models\AppSetting::first();
+
         return response()->json([
             'payroll_id' => $payrollId,
             'period' => $startDate . ' to ' . $endDate,
@@ -63,6 +77,10 @@ class PayrollItemController extends Controller
                 'id' => $employee->id,
                 'daily_rate' => $employee->daily_rate,
                 'position' => $employee->position,
+            ],
+            'settings' => [
+                'late_rate' => $settings->late_rate ?? 1.0,
+                'undertime_rate' => $settings->undertime_rate ?? 1.0,
             ],
             'dtr' => $dtr ? [
                 'total_regular_hours' => $dtr->total_regular_hours,

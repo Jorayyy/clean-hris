@@ -6,7 +6,18 @@
         <h4 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Generate Daily Time Records (DTR)</h4>
     </div>
     <div class="col-auto">
-        <form action="{{ route('admin.dtrs.index') }}" method="GET" class="d-flex align-items-center bg-white rounded shadow-sm border p-1" style="min-width: 300px;">
+        <div class="btn-group me-2" id="batchActions" style="display: none;">
+            <button type="button" class="btn btn-info fw-bold" id="batchVerifyBtn" data-bs-toggle="modal" data-bs-target="#batchVerifyModal">
+                <i class="bi bi-check2-square me-1"></i> Verify Selected
+            </button>
+            <button type="button" class="btn btn-success fw-bold" id="batchFinalizeBtn" data-bs-toggle="modal" data-bs-target="#batchFinalizeModal">
+                <i class="bi bi-lock-fill me-1"></i> Finalize Selected
+            </button>
+            <button type="button" class="btn btn-danger fw-bold" id="batchDeleteBtn" data-bs-toggle="modal" data-bs-target="#batchDeleteModal">
+                <i class="bi bi-trash-fill me-1"></i> Delete Selected
+            </button>
+        </div>
+        <form action="{{ route('admin.dtrs.index') }}" method="GET" class="d-inline-flex align-items-center bg-white rounded shadow-sm border p-1" style="min-width: 300px;">
             <select name="period" class="form-select border-0 shadow-none fw-bold" onchange="const [start, end] = this.value.split('|'); if(start && end) { window.location.href = `{{ route('admin.dtrs.index') }}?start_date=${start}&end_date=${end}`; } else { window.location.href = `{{ route('admin.dtrs.index') }}`; }">
                 <option value="">All Periods</option>
                 @foreach($periods as $period)
@@ -35,7 +46,10 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th class="ps-4">Employee</th>
+                        <th class="ps-4" style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAll">
+                        </th>
+                        <th>Employee</th>
                         <th>Coverage Period</th>
                         <th>Metrics (Hrs)</th>
                         <th>Deficit (Mins)</th>
@@ -47,6 +61,9 @@
                     @forelse($dtrs as $dtr)
                     <tr>
                         <td class="ps-4">
+                            <input type="checkbox" class="form-check-input dtr-checkbox" value="{{ $dtr->id }}" data-status="{{ $dtr->status }}">
+                        </td>
+                        <td>
                             <div class="fw-bold">{{ $dtr->employee->full_name }}</div>
                             <small class="text-muted">{{ $dtr->employee->employee_id }}</small>
                         </td>
@@ -253,4 +270,184 @@
 <div class="mt-4">
     {{ $dtrs->links() }}
 </div>
+
+<!-- Batch Verify Modal -->
+<div class="modal fade" id="batchVerifyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Batch Verify DTRs</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.dtrs.batch-verify') }}" method="POST" id="batchVerifyForm">
+                @csrf
+                <div id="batchVerifyInputs"></div>
+                <div class="modal-body">
+                    <p>You are about to verify <strong id="batchVerifyCount">0</strong> selected DTR records.</p>
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle-fill"></i> Only <strong>Draft</strong> records will be updated.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Enter Security Password</label>
+                        <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info px-4">Verify All Selected</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Finalize Modal -->
+<div class="modal fade" id="batchFinalizeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Batch Finalize DTRs</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.dtrs.batch-finalize') }}" method="POST" id="batchFinalizeForm">
+                @csrf
+                <div id="batchFinalizeInputs"></div>
+                <div class="modal-body">
+                    <p>You are about to finalize and lock <strong id="batchFinalizeCount">0</strong> selected DTR records.</p>
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Only <strong>Verified</strong> records will be updated. Finalizing locks them for payroll.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Enter Security Password</label>
+                        <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success px-4">Finalize All Selected</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Delete Modal -->
+<div class="modal fade" id="batchDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Batch Delete DTRs</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.dtrs.batch-delete') }}" method="POST" id="batchDeleteForm">
+                @csrf
+                <div id="batchDeleteInputs"></div>
+                <div class="modal-body">
+                    <p>You are about to delete <strong id="batchDeleteCount">0</strong> selected DTR records.</p>
+                    <div class="alert alert-danger small">
+                        <i class="bi bi-exclamation-triangle-fill"></i> This action is permanent and cannot be undone. 
+                        @if(Auth::user()->role !== 'admin')
+                            <br/><strong>Note:</strong> Finalized records will be skipped.
+                        @endif
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Enter Security Password</label>
+                        <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger px-4">Delete All Selected</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.dtr-checkbox');
+    const batchActions = document.getElementById('batchActions');
+    const batchVerifyBtn = document.getElementById('batchVerifyBtn');
+    const batchFinalizeBtn = document.getElementById('batchFinalizeBtn');
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    
+    const batchVerifyForm = document.getElementById('batchVerifyForm');
+    const batchVerifyInputs = document.getElementById('batchVerifyInputs');
+    const batchVerifyCount = document.getElementById('batchVerifyCount');
+    
+    const batchFinalizeForm = document.getElementById('batchFinalizeForm');
+    const batchFinalizeInputs = document.getElementById('batchFinalizeInputs');
+    const batchFinalizeCount = document.getElementById('batchFinalizeCount');
+
+    const batchDeleteForm = document.getElementById('batchDeleteForm');
+    const batchDeleteInputs = document.getElementById('batchDeleteInputs');
+    const batchDeleteCount = document.getElementById('batchDeleteCount');
+
+    function updateBatchButtonVisibility() {
+        const checkedBoxes = document.querySelectorAll('.dtr-checkbox:checked');
+        const checkedCount = checkedBoxes.length;
+        batchActions.style.display = checkedCount > 0 ? 'inline-flex' : 'none';
+        
+        let hasDraft = false;
+        let hasVerified = false;
+
+        // Prepare hidden inputs for forms
+        batchVerifyInputs.innerHTML = '';
+        batchFinalizeInputs.innerHTML = '';
+        batchDeleteInputs.innerHTML = '';
+        
+        checkedBoxes.forEach(cb => {
+            const status = cb.getAttribute('data-status');
+            if (status === 'draft') hasDraft = true;
+            if (status === 'verified') hasVerified = true;
+
+            const inputV = document.createElement('input');
+            inputV.type = 'hidden';
+            inputV.name = 'ids[]';
+            inputV.value = cb.value;
+            batchVerifyInputs.appendChild(inputV);
+
+            const inputF = document.createElement('input');
+            inputF.type = 'hidden';
+            inputF.name = 'ids[]';
+            inputF.value = cb.value;
+            batchFinalizeInputs.appendChild(inputF);
+
+            const inputD = document.createElement('input');
+            inputD.type = 'hidden';
+            inputD.name = 'ids[]';
+            inputD.value = cb.value;
+            batchDeleteInputs.appendChild(inputD);
+        });
+
+        // Disable buttons based on the status of selected items
+        batchVerifyBtn.disabled = !hasDraft;
+        batchVerifyBtn.style.opacity = hasDraft ? '1' : '0.5';
+        
+        batchFinalizeBtn.disabled = !hasVerified;
+        batchFinalizeBtn.style.opacity = hasVerified ? '1' : '0.5';
+
+        batchVerifyCount.innerText = checkedCount;
+        batchFinalizeCount.innerText = checkedCount;
+        batchDeleteCount.innerText = checkedCount;
+    }
+
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        updateBatchButtonVisibility();
+    });
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            updateBatchButtonVisibility();
+            if(!this.checked) selectAll.checked = false;
+            if(document.querySelectorAll('.dtr-checkbox:checked').length === checkboxes.length) selectAll.checked = true;
+        });
+    });
+});
+</script>
+@endpush
 @endsection
