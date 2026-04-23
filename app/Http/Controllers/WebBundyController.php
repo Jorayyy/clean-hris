@@ -114,19 +114,19 @@ class WebBundyController extends Controller
 
         // Sequence Validations
         if ($request->punch_type == 'pm_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
-            return back()->with('bundy_error', 'ERROR: Cannot punch OUT without punching IN first.');
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch OUT (End Shift) because you haven\'t punched IN (Start Shift) today.');
         }
 
         if ($request->punch_type == 'pm_out' && ($attendance->break1_in === null || $attendance->break1_in === '00:00:00')) {
-            return back()->with('bundy_error', 'ERROR: Cannot punch OUT without punching LUNCH IN first.');
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch OUT (End Shift) because you are still on LUNCH. Please punch LUNCH IN first to resume your shift.');
         }
         
         if ($request->punch_type == 'am_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
-            return back()->with('bundy_error', 'ERROR: Cannot punch LUNCH OUT without punching IN first.');
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH OUT because you haven\'t punched IN (Start Shift) today.');
         }
 
         if ($request->punch_type == 'pm_in' && ($attendance->break1_out === null || $attendance->break1_out === '00:00:00')) {
-            return back()->with('bundy_error', 'ERROR: Cannot punch LUNCH IN without punching LUNCH OUT first.');
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH IN (Return) because you haven\'t recorded a LUNCH OUT yet.');
         }
 
         // Update the specific punch column
