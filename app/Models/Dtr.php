@@ -10,7 +10,9 @@ class Dtr extends Model
         'employee_id', 'start_date', 'end_date', 'total_late_minutes', 
         'total_undertime_minutes', 'total_overtime_hours', 'total_regular_hours', 
         'total_absent_days', 'status', 'verified_by', 'finalized_by', 
-        'verified_at', 'finalized_at', 'admin_notes'
+        'verified_at', 'finalized_at', 'admin_notes', 'is_ot_authorized', 'ot_authorized_by',
+        'total_night_diff_hours', 'total_holiday_hours', 'incentives', 
+        'is_nd_authorized', 'is_holiday_authorized'
     ];
 
     protected $casts = [

@@ -7,6 +7,20 @@
     </div>
     <div class="col-auto">
         <div class="btn-group me-2" id="batchActions" style="display: none;">
+            <div class="dropdown me-1">
+                <button type="button" class="btn btn-outline-primary fw-bold dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-shield-check me-1"></i> Batch Authorize
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_all')"><i class="bi bi-check-all text-primary me-2"></i>Authorize All Extras</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_ot')"><i class="bi bi-clock-history text-success me-2"></i>Authorize OT Only</button></li>
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_nd')"><i class="bi bi-moon-stars text-info me-2"></i>Authorize Night Diff Only</button></li>
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_holiday')"><i class="bi bi-calendar-event text-warning me-2"></i>Authorize Holiday Only</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button type="button" class="dropdown-item py-2 text-danger" onclick="submitBatchAuth('unauthorize_all')"><i class="bi bi-x-circle me-2"></i>Unauthorize All</button></li>
+                </ul>
+            </div>
             <button type="button" class="btn btn-info fw-bold" id="batchVerifyBtn" data-bs-toggle="modal" data-bs-target="#batchVerifyModal">
                 <i class="bi bi-check2-square me-1"></i> Verify Selected
             </button>
@@ -73,6 +87,18 @@
                         </td>
                         <td>
                             <span class="badge bg-light text-dark fw-normal border text-uppercase">Reg: {{ $dtr->total_regular_hours }}h</span>
+                            @if($dtr->total_overtime_hours > 0)
+                                <br/>
+                                @if($dtr->is_ot_authorized)
+                                    <span class="badge bg-success-subtle text-success fw-bold border border-success border-opacity-25 text-uppercase mt-1" title="Authorized OT">
+                                        <i class="bi bi-shield-check me-1"></i> OT: {{ $dtr->total_overtime_hours }}h
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary-subtle text-secondary fw-normal border border-secondary border-opacity-25 text-uppercase mt-1" title="Unauthorized OT (Will not be paid)">
+                                        <i class="bi bi-shield-slash me-1"></i> OT: {{ $dtr->total_overtime_hours }}h
+                                    </span>
+                                @endif
+                            @endif
                         </td>
                         <td>
                             @if($dtr->total_late_minutes > 0)
@@ -195,12 +221,48 @@
                                                             <input type="number" name="total_overtime_hours" class="form-control" value="{{ $dtr->total_overtime_hours }}" step="0.5" required>
                                                         </div>
                                                         <div class="col-6">
+                                                            <label class="form-label small fw-bold">Night Diff Hours</label>
+                                                            <input type="number" name="total_night_diff_hours" class="form-control" value="{{ $dtr->total_night_diff_hours ?? 0 }}" step="0.5">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small fw-bold">Holiday Hours</label>
+                                                            <input type="number" name="total_holiday_hours" class="form-control" value="{{ $dtr->total_holiday_hours ?? 0 }}" step="0.5">
+                                                        </div>
+                                                        <div class="col-6">
                                                             <label class="form-label small fw-bold">Late (Mins)</label>
                                                             <input type="number" name="total_late_minutes" class="form-control" value="{{ $dtr->total_late_minutes }}" required>
                                                         </div>
                                                         <div class="col-6">
                                                             <label class="form-label small fw-bold">Undertime (Mins)</label>
                                                             <input type="number" name="total_undertime_minutes" class="form-control" value="{{ $dtr->total_undertime_minutes }}" required>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label small fw-bold">Incentives (Solds/Spiffs)</label>
+                                                            <input type="number" name="incentives" class="form-control" value="{{ $dtr->incentives ?? 0 }}" step="0.01">
+                                                        </div>
+                                                        <div class="col-12 text-center py-2">
+                                                            <span class="badge bg-dark px-3 mt-2">PAYMENT AUTHORIZATIONS</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-check form-switch bg-light p-2 rounded border h-100">
+                                                                <input class="form-check-input ms-0 me-2" type="checkbox" name="is_ot_authorized" value="1" id="authOt{{ $dtr->id }}" {{ $dtr->is_ot_authorized ? 'checked' : '' }}>
+                                                                <label class="form-check-label fw-bold small text-primary" for="authOt{{ $dtr->id }}">OT</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-check form-switch bg-light p-2 rounded border h-100">
+                                                                <input class="form-check-input ms-0 me-2" type="checkbox" name="is_nd_authorized" value="1" id="authNd{{ $dtr->id }}" {{ $dtr->is_nd_authorized ? 'checked' : '' }}>
+                                                                <label class="form-check-label fw-bold small text-info" for="authNd{{ $dtr->id }}">Night Diff</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-check form-switch bg-light p-2 rounded border h-100">
+                                                                <input class="form-check-input ms-0 me-2" type="checkbox" name="is_holiday_authorized" value="1" id="authHol{{ $dtr->id }}" {{ $dtr->is_holiday_authorized ? 'checked' : '' }}>
+                                                                <label class="form-check-label fw-bold small text-success" for="authHol{{ $dtr->id }}">Holiday</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <p class="small text-muted mb-0 mt-1">Checked items will be automatically calculated during payslip generation.</p>
                                                         </div>
                                                         <div class="col-12">
                                                             <label class="form-label small fw-bold">Admin Notes</label>
@@ -301,6 +363,13 @@
     </div>
 </div>
 
+<!-- Batch Authorize Hidden Form -->
+<form id="batchAuthForm" action="{{ route('admin.dtrs.batch-authorize') }}" method="POST" style="display: none;">
+    @csrf
+    <div id="batchAuthInputs"></div>
+    <input type="hidden" name="action" id="batchAuthAction">
+</form>
+
 <!-- Batch Finalize Modal -->
 <div class="modal fade" id="batchFinalizeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -385,6 +454,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const batchDeleteForm = document.getElementById('batchDeleteForm');
     const batchDeleteInputs = document.getElementById('batchDeleteInputs');
     const batchDeleteCount = document.getElementById('batchDeleteCount');
+
+    const batchAuthForm = document.getElementById('batchAuthForm');
+    const batchAuthInputs = document.getElementById('batchAuthInputs');
+    const batchAuthAction = document.getElementById('batchAuthAction');
+
+    window.submitBatchAuth = function(action) {
+        const checkedBoxes = document.querySelectorAll('.dtr-checkbox:checked');
+        if (checkedBoxes.length === 0) return;
+        
+        if (confirm(`Are you sure you want to ${action.replace('_', ' ')} for ${checkedBoxes.length} selected records?`)) {
+            batchAuthInputs.innerHTML = '';
+            checkedBoxes.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = cb.value;
+                batchAuthInputs.appendChild(input);
+            });
+            batchAuthAction.value = action;
+            batchAuthForm.submit();
+        }
+    };
 
     function updateBatchButtonVisibility() {
         const checkedBoxes = document.querySelectorAll('.dtr-checkbox:checked');

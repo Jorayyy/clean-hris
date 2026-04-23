@@ -85,6 +85,12 @@ class PayrollItemController extends Controller
             'dtr' => $dtr ? [
                 'total_regular_hours' => $dtr->total_regular_hours,
                 'total_overtime_hours' => $dtr->total_overtime_hours,
+                'total_night_diff_hours' => $dtr->total_night_diff_hours ?? 0,
+                'total_holiday_hours' => $dtr->total_holiday_hours ?? 0,
+                'incentives' => $dtr->incentives ?? 0,
+                'is_ot_authorized' => (bool)$dtr->is_ot_authorized,
+                'is_nd_authorized' => (bool)$dtr->is_nd_authorized,
+                'is_holiday_authorized' => (bool)$dtr->is_holiday_authorized,
                 'total_late_minutes' => $dtr->total_late_minutes,
                 'total_undertime_minutes' => $dtr->total_undertime_minutes,
                 'total_absent_days' => $dtr->total_absent_days,

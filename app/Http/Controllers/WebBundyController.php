@@ -41,13 +41,20 @@ class WebBundyController extends Controller
             'punch_type' => 'required|in:am_in,am_out,pm_in,pm_out,break1_out,break1_in,break2_out,break2_in'
         ]);
 
-        $employee = Employee::where('employee_id', $request->employee_id_string)
-            ->where('web_bundy_code', $request->web_bundy_code)
-            ->first();
+        $employee = Employee::where('employee_id', $request->employee_id_string)->first();
 
         if (!$employee) {
-            return back()->with('bundy_error', 'Invalid Employee ID or Bundy Code.');
+            return back()->with('bundy_error', 'Invalid Employee ID.');
         }
+
+        if (empty($employee->web_bundy_code)) {
+            return back()->with('bundy_error', 'No Web Bundy Code Set: Please contact HR to assign a passcode for your account before you can punch.');
+        }
+
+        if ($employee->web_bundy_code !== $request->web_bundy_code) {
+            return back()->with('bundy_error', 'Incorrect Bundy Passcode.');
+        }
+
         // IP Restriction Check
         if ($employee->registered_ip && $request->ip() !== $employee->registered_ip) {
             return back()->with('bundy_error', 'Access Denied: Please use your registered internet connection to punch. (Your IP: ' . $request->ip() . ')');
@@ -108,6 +115,10 @@ class WebBundyController extends Controller
         // Sequence Validations
         if ($request->punch_type == 'pm_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
             return back()->with('bundy_error', 'ERROR: Cannot punch OUT without punching IN first.');
+        }
+
+        if ($request->punch_type == 'pm_out' && ($attendance->break1_in === null || $attendance->break1_in === '00:00:00')) {
+            return back()->with('bundy_error', 'ERROR: Cannot punch OUT without punching LUNCH IN first.');
         }
         
         if ($request->punch_type == 'am_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {

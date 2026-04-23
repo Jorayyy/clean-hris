@@ -82,6 +82,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::post('/batch-verify', [App\Http\Controllers\Admin\DtrController::class, 'batchVerify'])->name('batch-verify');
         Route::post('/batch-finalize', [App\Http\Controllers\Admin\DtrController::class, 'batchFinalize'])->name('batch-finalize');
         Route::post('/batch-delete', [App\Http\Controllers\Admin\DtrController::class, 'batchDestroy'])->name('batch-delete');
+        Route::post('/batch-authorize', [App\Http\Controllers\Admin\DtrController::class, 'batchAuthorize'])->name('batch-authorize');
         Route::delete('/{dtr}', [App\Http\Controllers\Admin\DtrController::class, 'destroy'])->name('destroy');
     });
 

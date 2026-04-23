@@ -219,11 +219,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 const hourlyRate = dailyRate / 8;
                 document.getElementById('basic_pay').value = (dailyRate * totalDays).toFixed(2);
 
-                if (data.dtr.total_overtime_hours > 0) {
+                if (data.dtr.total_overtime_hours > 0 && data.dtr.is_ot_authorized) {
                     document.getElementById('overtime_pay').value = (data.dtr.total_overtime_hours * hourlyRate * 1.25).toFixed(2);
                 } else {
                     document.getElementById('overtime_pay').value = '0.00';
                 }
+
+                let totalBonuses = 0;
+                if (data.dtr.incentives > 0) {
+                    totalBonuses += parseFloat(data.dtr.incentives);
+                }
+                
+                // Add Night Diff (typically 10% of hourly rate)
+                if (data.dtr.total_night_diff_hours > 0 && data.dtr.is_nd_authorized) {
+                    totalBonuses += (data.dtr.total_night_diff_hours * hourlyRate * 0.10);
+                }
+
+                // Add Holiday Pay (typically 100% extra for regular holiday)
+                if (data.dtr.total_holiday_hours > 0 && data.dtr.is_holiday_authorized) {
+                    totalBonuses += (data.dtr.total_holiday_hours * hourlyRate);
+                }
+
+                document.getElementById('bonuses').value = totalBonuses.toFixed(2);
 
                 // Auto-fill LATE and UT deductions
                 const list = document.getElementById('deductions-list');

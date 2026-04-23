@@ -29,6 +29,7 @@
             height: 100%;
             z-index: -1;
             overflow: hidden;
+            background: #000; /* Fallback */
         }
         .video-bg iframe {
             position: absolute;
@@ -41,7 +42,8 @@
             transform: translate(-50%, -50%);
             object-fit: cover;
             pointer-events: none;
-            opacity: 0.6;
+            opacity: 1; /* Reset to full visibility for the stripes */
+            filter: contrast(1.2) brightness(0.8); /* Enhance the white lines */
         }
         .video-overlay {
             position: fixed;
@@ -164,8 +166,8 @@
 </head>
 <body>
     <div class="video-bg">
-        <!-- New Background Video -->
-        <iframe src="https://www.youtube.com/embed/MtRtuR1fa_8?autoplay=1&mute=1&controls=0&loop=1&playlist=MtRtuR1fa_8&showinfo=0&rel=0" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+        <!-- New Background Video (10s Loop) -->
+        <iframe src="https://www.youtube.com/embed/9vntypeV5QU?autoplay=1&mute=1&controls=0&loop=1&playlist=9vntypeV5QU&start=360&end=370&showinfo=0&rel=0&enablejsapi=1&origin={{ urlencode(url('/')) }}" frameborder="0" allow="autoplay; encrypted-media"></iframe>
     </div>
     <div class="video-overlay"></div>
 

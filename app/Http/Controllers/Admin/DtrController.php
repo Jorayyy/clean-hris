@@ -265,6 +265,59 @@ class DtrController extends Controller
         return back()->with('success', $count . ' DTR record(s) deleted successfully.');
     }
 
+    public function batchAuthorize(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:dtrs,id',
+            'action' => 'required|string'
+        ]);
+
+        $ids = $request->ids;
+        $action = $request->action;
+
+        $update = [];
+        switch ($action) {
+            case 'authorize_all':
+                $update = [
+                    'is_ot_authorized' => true,
+                    'is_nd_authorized' => true,
+                    'is_holiday_authorized' => true
+                ];
+                break;
+            case 'authorize_ot':
+                $update = ['is_ot_authorized' => true];
+                break;
+            case 'authorize_nd':
+                $update = ['is_nd_authorized' => true];
+                break;
+            case 'authorize_holiday':
+                $update = ['is_holiday_authorized' => true];
+                break;
+            case 'unauthorize_all':
+                $update = [
+                    'is_ot_authorized' => false,
+                    'is_nd_authorized' => false,
+                    'is_holiday_authorized' => false
+                ];
+                break;
+        }
+
+        if (empty($update)) {
+            return back()->with('error', 'Invalid batch action.');
+        }
+
+        // Only allow updating non-finalized records OR allow if admin
+        $query = Dtr::whereIn('id', $ids);
+        if (Auth::user()->role !== 'admin') {
+            $query->where('status', '!=', 'finalized');
+        }
+
+        $count = $query->update($update);
+
+        return back()->with('success', "$count DTR record(s) updated successfully.");
+    }
+
     public function update(Request $request, Dtr $dtr)
     {
         $user = Auth::user();
@@ -276,6 +329,12 @@ class DtrController extends Controller
             'total_late_minutes' => 'required|numeric|min:0',
             'total_undertime_minutes' => 'required|numeric|min:0',
             'total_overtime_hours' => 'required|numeric|min:0',
+            'total_night_diff_hours' => 'nullable|numeric|min:0',
+            'total_holiday_hours' => 'nullable|numeric|min:0',
+            'incentives' => 'nullable|numeric|min:0',
+            'is_ot_authorized' => 'nullable|boolean',
+            'is_nd_authorized' => 'nullable|boolean',
+            'is_holiday_authorized' => 'nullable|boolean',
             'admin_notes' => 'nullable|string'
         ]);
 
@@ -291,10 +350,26 @@ class DtrController extends Controller
             return back()->with('error', 'Cannot edit a finalized DTR record.');
         }
 
+        $wasOtAuthorized = $dtr->is_ot_authorized;
+        $isOtAuthorized = $request->has('is_ot_authorized');
+
+        $updateData = $request->only([
+            'total_regular_hours', 'total_late_minutes', 'total_undertime_minutes', 
+            'total_overtime_hours', 'total_night_diff_hours', 'total_holiday_hours', 
+            'incentives', 'admin_notes'
+        ]);
+        $updateData['is_ot_authorized'] = $isOtAuthorized;
+        $updateData['is_nd_authorized'] = $request->has('is_nd_authorized');
+        $updateData['is_holiday_authorized'] = $request->has('is_holiday_authorized');
+
+        if (!$wasOtAuthorized && $isOtAuthorized) {
+            $updateData['ot_authorized_by'] = Auth::id();
+        } elseif (!$isOtAuthorized) {
+            $updateData['ot_authorized_by'] = null;
+        }
+
         $oldData = $dtr->toArray();
-        $dtr->update($request->only([
-            'total_regular_hours', 'total_late_minutes', 'total_undertime_minutes', 'total_overtime_hours', 'admin_notes'
-        ]));
+        $dtr->update($updateData);
 
         AuditLog::create([
             'user_id' => $user->id,
