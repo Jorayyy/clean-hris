@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "dotlottie-player": "^2.5.6",
-        "lottie-react": "^2.4.1"
+        "lottie-react": "^2.4.1",
+        "vanilla-calendar-pro": "^3.1.0"
     }
 }
