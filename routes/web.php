@@ -45,6 +45,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
     Route::get('attendance/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::get('attendance/{employee}/monthly', [AttendanceController::class, 'getMonthlyAttendance'])->name('attendance.monthly');
     Route::get('attendance/{employee}', [AttendanceController::class, 'show'])->name('attendance.show');
     Route::resource('employees', EmployeeController::class);
     Route::resource('sites', SiteController::class);

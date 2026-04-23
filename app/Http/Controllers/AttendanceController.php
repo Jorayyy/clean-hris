@@ -48,6 +48,56 @@ class AttendanceController extends Controller
         return view('attendance.show', compact('employee', 'attendances', 'date'));
     }
 
+    public function getMonthlyAttendance(Request $request, Employee $employee)
+    {
+        $year = $request->get('year', now()->year);
+        $month = $request->get('month', now()->month);
+
+        $attendances = Attendance::where('employee_id', $employee->id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->get()
+            ->groupBy('date');
+
+        $schedule = $employee->active_schedule;
+        $workDays = $schedule ? (is_array($schedule->days) ? $schedule->days : []) : [];
+        
+        $daysInMonth = \Carbon\Carbon::createFromDate($year, $month, 1)->daysInMonth;
+        $formatted = [];
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dateString = sprintf('%04d-%02d-%02d', $year, $month, $day);
+            $dayName = \Carbon\Carbon::parse($dateString)->format('l');
+            
+            $logs = $attendances->get($dateString);
+            $hasAttendance = $logs && $logs->count() > 0;
+            $isWorkDay = in_array($dayName, $workDays);
+
+            $status = 'rest-day';
+            if ($hasAttendance) {
+                $status = 'present';
+            } elseif ($isWorkDay && strtotime($dateString) <= time()) {
+                $status = 'absent';
+            }
+
+            $formatted[$dateString] = [
+                'status' => $status,
+                'count' => $hasAttendance ? $logs->count() : 0,
+                'total_hours' => $hasAttendance ? $logs->sum('total_hours') : 0,
+                'is_late' => $hasAttendance ? $logs->sum('late_minutes') > 0 : false,
+                'is_undertime' => $hasAttendance ? $logs->sum('undertime_minutes') > 0 : false,
+                'logs' => $hasAttendance ? $logs->map(function($log) {
+                    return [
+                        'time_in' => date('h:i A', strtotime($log->time_in)),
+                        'time_out' => date('h:i A', strtotime($log->time_out)),
+                    ];
+                }) : []
+            ];
+        }
+
+        return response()->json($formatted);
+    }
+
     public function create()
     {
         $employees = Employee::where('status', 'active')->get();
