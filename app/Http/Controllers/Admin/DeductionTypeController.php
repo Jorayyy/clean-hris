@@ -16,25 +16,25 @@ class DeductionTypeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'code' => 'required|string|unique:deduction_types,code',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        DeductionType::create($request->all());
+        DeductionType::create($validated);
         return back()->with('success', 'Deduction type added successfully.');
     }
 
     public function update(Request $request, DeductionType $deductionType)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
         ]);
 
-        $deductionType->update($request->all());
+        $deductionType->update($validated);
         return back()->with('success', 'Deduction type updated successfully.');
     }
 
