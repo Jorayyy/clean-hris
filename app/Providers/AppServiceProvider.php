@@ -24,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
     {
         \Illuminate\Pagination\Paginator::useBootstrapFive();
 
+        // Implicitly grant "Super Admin" role all permissions
+        \Illuminate\Support\Facades\Gate::before(function ($user, $capability) {
+            return $user->hasRole('super-admin') || $user->hasRole('Super Admin') ? true : null;
+        });
+
         \App\Models\Employee::observe(\App\Observers\AuditObserver::class);
         \App\Models\Payroll::observe(\App\Observers\AuditObserver::class);
         \App\Models\PayrollItem::observe(\App\Observers\AuditObserver::class);

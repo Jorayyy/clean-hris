@@ -68,7 +68,7 @@
         </div>
         
         <div class="py-3">
-            @if(Auth::user()->role === 'admin')
+            @if(Auth::user()->role === 'super-admin' || Auth::user()->hasRole('super-admin'))
                 <div class="nav-category">Main Menu</div>
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
@@ -90,7 +90,7 @@
                 <a href="{{ route('attendance.index') }}" class="sidebar-link {{ request()->routeIs('attendance.*') ? 'active' : '' }}">
                     <i class="bi bi-clock-history"></i> Attendance
                 </a>
-                
+
                 <div class="nav-category">Payroll & Finance</div>
                 <a href="{{ route('payroll.index') }}" class="sidebar-link {{ request()->routeIs('payroll.*') ? 'active' : '' }}">
                     <i class="bi bi-cash-stack"></i> Payroll
@@ -109,16 +109,14 @@
                 <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                     <i class="bi bi-gear"></i> System Settings
                 </a>
-                @if(Auth::user()->role === 'super-admin' || Auth::user()->hasRole('Super Admin'))
                 <a href="{{ route('admin.roles.index') }}" class="sidebar-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
                     <i class="bi bi-shield-check"></i> Roles & Permissions
                 </a>
-                @endif
                 <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-link {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
                     <i class="bi bi-eye"></i> Audit Logs
                 </a>
                 <a href="{{ route('admin.queue-monitor.index') }}" class="sidebar-link {{ request()->routeIs('admin.queue-monitor.*') ? 'active' : '' }}">
-                    <i class="bi bi-cpu"></i> System Health
+                    <i class="bi bi-activity"></i> System Health
                 </a>
                 <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bi bi-person-lock"></i> User Management
@@ -126,6 +124,50 @@
                 <a href="{{ route('admin.tickets.index') }}" class="sidebar-link {{ request()->routeIs('admin.tickets.index') ? 'active' : '' }}">
                     <i class="bi bi-chat-dots"></i> Transactions
                 </a>
+
+            @elseif(Auth::user()->hasAnyRole(['Accounting Admin', 'HR Admin']))
+                <div class="nav-category">Main Menu</div>
+                <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+
+                @if(Auth::user()->hasRole('HR Admin'))
+                    <div class="nav-category">Management</div>
+                    <a href="{{ route('employees.index') }}" class="sidebar-link {{ request()->routeIs('employees.*') ? 'active' : '' }}">
+                        <i class="bi bi-people"></i> Employees
+                    </a>
+                    <a href="{{ route('attendance.index') }}" class="sidebar-link {{ request()->routeIs('attendance.*') ? 'active' : '' }}">
+                        <i class="bi bi-clock-history"></i> Attendance
+                    </a>
+                    
+                    <div class="nav-category">DTR & Records</div>
+                    <a href="{{ route('admin.dtrs.index') }}" class="sidebar-link {{ request()->routeIs('admin.dtrs.*') ? 'active' : '' }}">
+                        <i class="bi bi-journal-text"></i> DTR Logs
+                    </a>
+
+                    <div class="nav-category">Support</div>
+                    <a href="{{ route('admin.tickets.index') }}" class="sidebar-link {{ request()->routeIs('admin.tickets.index') ? 'active' : '' }}">
+                        <i class="bi bi-chat-dots"></i> Transactions
+                    </a>
+                @elseif(Auth::user()->hasRole('Accounting Admin'))
+                    <div class="nav-category">Main Menu</div>
+                    <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+
+                    <div class="nav-category">Payroll & Finance</div>
+                    <a href="{{ route('payroll.index') }}" class="sidebar-link {{ request()->routeIs('payroll.*') ? 'active' : '' }}">
+                        <i class="bi bi-cash-stack"></i> Payroll
+                    </a>
+                    <a href="{{ route('salaries.index') }}" class="sidebar-link {{ request()->routeIs('salaries.*') ? 'active' : '' }}">
+                        <i class="bi bi-graph-up-arrow"></i> Salaries History
+                    </a>
+                    
+                    <div class="nav-category">Attendance Reference</div>
+                    <a href="{{ route('admin.dtrs.index') }}" class="sidebar-link {{ request()->routeIs('admin.dtrs.*') ? 'active' : '' }}">
+                        <i class="bi bi-journal-text"></i> DTR Logs
+                    </a>
+                @endif
             @else
                 <div class="nav-category">Employee Portal</div>
                 <a href="{{ route('employee.dashboard') }}" class="sidebar-link {{ request()->routeIs('employee.dashboard') ? 'active' : '' }}">

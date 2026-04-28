@@ -27,27 +27,27 @@ class RoleAndPermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::findOrCreate($permission);
         }
 
         // Create Roles and assign permissions
-        $superAdmin = Role::create(['name' => 'Super Admin']);
-        $superAdmin->givePermissionTo(Permission::all());
+        $superAdmin = Role::findOrCreate('Super Admin');
+        $superAdmin->syncPermissions(Permission::all());
 
-        $hrAdmin = Role::create(['name' => 'HR Admin']);
-        $hrAdmin->givePermissionTo([
+        $hrAdmin = Role::findOrCreate('HR Admin');
+        $hrAdmin->syncPermissions([
             'view employees', 'create employees', 'edit employees',
             'view attendance', 'create attendance', 'edit attendance',
             'view payroll', 'view users'
         ]);
 
-        $accountingAdmin = Role::create(['name' => 'Accounting Admin']);
-        $accountingAdmin->givePermissionTo([
+        $accountingAdmin = Role::findOrCreate('Accounting Admin');
+        $accountingAdmin->syncPermissions([
             'view payroll', 'create payroll', 'edit payroll', 'process payroll',
             'view employees', 'view attendance'
         ]);
 
-        $employeeRole = Role::create(['name' => 'Employee']);
+        $employeeRole = Role::findOrCreate('Employee');
         // Employees usually have specific policies or dashboard permissions
 
         // Assign Super Admin role to the first admin user

@@ -13,7 +13,7 @@ class EmployeePolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['hr', 'admin', 'super-admin']);
+        return $user->hasPermissionTo('view employees') || in_array($user->role, ['super-admin', 'admin']);
     }
 
     /**
@@ -21,7 +21,7 @@ class EmployeePolicy
      */
     public function view(User $user, Employee $employee): bool
     {
-        return in_array($user->role, ['hr', 'admin', 'super-admin']);
+        return $user->hasPermissionTo('view employees') || in_array($user->role, ['super-admin', 'admin']);
     }
 
     /**
@@ -29,7 +29,7 @@ class EmployeePolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['hr', 'admin', 'super-admin']);
+        return $user->hasPermissionTo('create employees') || in_array($user->role, ['super-admin', 'admin']);
     }
 
     /**
@@ -37,7 +37,7 @@ class EmployeePolicy
      */
     public function update(User $user, Employee $employee): bool
     {
-        return in_array($user->role, ['hr', 'admin', 'super-admin']);
+        return $user->hasPermissionTo('edit employees') || in_array($user->role, ['super-admin', 'admin']);
     }
 
     /**
@@ -45,7 +45,7 @@ class EmployeePolicy
      */
     public function delete(User $user, Employee $employee): bool
     {
-        return false;
+        return $user->hasPermissionTo('delete employees') || in_array($user->role, ['super-admin', 'admin']);
     }
 
     /**

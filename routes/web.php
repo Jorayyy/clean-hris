@@ -97,7 +97,9 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     // Roles & Permissions (Now restricted to Super Admin only)
     Route::middleware(['super_admin'])->group(function () {
         Route::get('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'index'])->name('admin.roles.index');
+        Route::post('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'store'])->name('admin.roles.store');
         Route::put('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'update'])->name('admin.roles.update');
+        Route::delete('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'destroy'])->name('admin.roles.destroy');
     });
 
     // Audit Logs

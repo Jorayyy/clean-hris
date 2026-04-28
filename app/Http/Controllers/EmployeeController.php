@@ -8,12 +8,23 @@ use App\Models\Site;
 use App\Http\Requests\EmployeeRequest;
 use App\Http\Requests\StoreEmployeeRequest;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class EmployeeController extends Controller
+class EmployeeController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:view employees', only: ['index', 'show']),
+            new Middleware('can:create employees', only: ['create', 'store']),
+            new Middleware('can:edit employees', only: ['edit', 'update']),
+            new Middleware('can:delete employees', only: ['destroy']),
+        ];
+    }
+
     public function index()
     {
-        $this->authorize('viewAny', Employee::class);
         $employees = Employee::with('payrollGroup')->get();
         return view('employees.index', compact('employees'));
     }

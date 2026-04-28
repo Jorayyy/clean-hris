@@ -8,9 +8,21 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:view users', only: ['index', 'show']),
+            new Middleware('can:create users', only: ['create', 'store']),
+            new Middleware('can:edit users', only: ['edit', 'update']),
+            new Middleware('can:delete users', only: ['destroy']),
+        ];
+    }
+
     public function index()
     {
         $users = User::with('roles')->paginate(10);
@@ -45,6 +57,16 @@ class UserController extends Controller
 
         $user->assignRole($request->roles);
 
+        // Sync legacy role column for sidebar compatibility
+        if ($user->hasRole('Super Admin')) {
+            $user->role = 'super-admin';
+        } elseif ($user->hasAnyRole(['Accounting Admin', 'HR Admin'])) {
+            $user->role = 'admin';
+        } else {
+            $user->role = 'employee';
+        }
+        $user->save();
+
         return redirect()->route('users.index')->with('success', 'User created and roles assigned successfully.');
     }
 
@@ -76,6 +98,16 @@ class UserController extends Controller
 
         $user->update($data);
         $user->syncRoles($request->roles);
+
+        // Sync legacy role column for sidebar compatibility
+        if ($user->hasRole('Super Admin')) {
+            $user->role = 'super-admin';
+        } elseif ($user->hasAnyRole(['Accounting Admin', 'HR Admin'])) {
+            $user->role = 'admin';
+        } else {
+            $user->role = 'employee';
+        }
+        $user->save();
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

@@ -63,8 +63,43 @@ class AdminDashboardController extends Controller
         $recentPayrolls = Payroll::with('payrollGroup')->latest()->paginate(5, ['*'], 'payroll_page');
         $recentTickets = SupportTicket::with('employee')->latest()->take(5)->get();
 
-        // Group Distribution
         $groups = PayrollGroup::withCount('employees')->get();
+
+        if (auth()->user()->hasRole('Accounting Admin')) {
+            return view('admin.dashboard_accounting', compact(
+                'totalEmployees',
+                'totalAttendanceToday',
+                'pendingTickets',
+                'totalPayrollDisbursed',
+                'attendanceLabels',
+                'attendanceCounts',
+                'recentPayrolls',
+                'recentTickets',
+                'groups',
+                'upcomingHolidays',
+                'upcomingBirthdays',
+                'pendingDtrs',
+                'unprocessedPayrolls'
+            ));
+        }
+
+        if (auth()->user()->hasRole('HR Admin')) {
+            return view('admin.dashboard_hr', compact(
+                'totalEmployees',
+                'totalAttendanceToday',
+                'pendingTickets',
+                'totalPayrollDisbursed',
+                'attendanceLabels',
+                'attendanceCounts',
+                'recentPayrolls',
+                'recentTickets',
+                'groups',
+                'upcomingHolidays',
+                'upcomingBirthdays',
+                'pendingDtrs',
+                'unprocessedPayrolls'
+            ));
+        }
 
         return view('admin.dashboard', compact(
             'totalEmployees',
