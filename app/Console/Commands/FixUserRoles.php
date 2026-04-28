@@ -19,7 +19,8 @@ class FixUserRoles extends Command
         foreach ($users as $user) {
             // Check emails or role names
             if ($user->email === 'superadmin@hris.com' || $user->email === 'super.admin@example.com' || $user->name === 'MEBS Super Admin') {
-                $user->syncRoles(['Super Admin']);
+                $roleName = \Spatie\Permission\Models\Role::where('name', 'Super Admin')->exists() ? 'Super Admin' : 'super-admin';
+                $user->syncRoles([$roleName]);
                 $user->role = 'super-admin';
                 $user->save();
                 $this->info("Updated {$user->email} to Super Admin status.");
