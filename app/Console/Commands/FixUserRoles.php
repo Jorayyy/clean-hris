@@ -18,12 +18,12 @@ class FixUserRoles extends Command
         $users = \App\Models\User::all();
         foreach ($users as $user) {
             // Check emails or role names
-            if ($user->email === 'super.admin@example.com' || $user->name === 'Super Admin User') {
-                $user->assignRole('Super Admin');
+            if ($user->email === 'superadmin@hris.com' || $user->email === 'super.admin@example.com' || $user->name === 'MEBS Super Admin') {
+                $user->syncRoles(['Super Admin']);
                 $user->role = 'super-admin';
                 $user->save();
                 $this->info("Updated {$user->email} to Super Admin status.");
-            } elseif ($user->name === 'HR Admin' || $user->email === 'admin@test.com') {
+            } elseif ($user->name === 'HR Admin' || $user->email === 'admin@test.com' || $user->email === 'janie.mebs@hris.com') {
                 $user->syncRoles(['HR Admin']);
                 $user->role = 'admin';
                 $user->save();
