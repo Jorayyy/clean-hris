@@ -150,11 +150,6 @@
                         <i class="bi bi-chat-dots"></i> Transactions
                     </a>
                 @elseif(Auth::user()->hasRole('Accounting Admin'))
-                    <div class="nav-category">Main Menu</div>
-                    <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-
                     <div class="nav-category">Payroll & Finance</div>
                     <a href="{{ route('payroll.index') }}" class="sidebar-link {{ request()->routeIs('payroll.*') ? 'active' : '' }}">
                         <i class="bi bi-cash-stack"></i> Payroll
