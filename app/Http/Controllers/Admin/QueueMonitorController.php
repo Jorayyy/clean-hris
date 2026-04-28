@@ -32,7 +32,7 @@ class QueueMonitorController extends Controller
         $stats = [
             'total_employees' => Employee::count(),
             'active_employees' => Employee::where('status', 'active')->count(),
-            'dtr_today' => Dtr::whereDate('date', Carbon::today())->count(),
+            'dtr_today' => Dtr::whereDate('created_at', Carbon::today())->count(),
             'last_audit' => AuditLog::latest()->first()?->created_at?->diffForHumans() ?? 'Never',
             'db_size' => $dbSize,
             'app_env' => ucfirst(config('app.env')),
