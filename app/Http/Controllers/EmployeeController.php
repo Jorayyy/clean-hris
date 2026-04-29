@@ -38,6 +38,11 @@ class EmployeeController extends Controller
         return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
 
+    public function show(Employee $employee)
+    {
+        return view('employees.show', compact('employee'));
+    }
+
     public function edit(Employee $employee)
     {
         $groups = PayrollGroup::all();
