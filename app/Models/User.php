@@ -38,6 +38,6 @@ class User extends Authenticatable
 
     public function getIsSuperAdminAttribute()
     {
-        return $this->role === 'super-admin';
+        return $this->role === 'super-admin' || $this->hasAnyRole(['Super Admin', 'super-admin']);
     }
 }

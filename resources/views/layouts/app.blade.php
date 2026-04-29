@@ -68,7 +68,7 @@
         </div>
         
         <div class="py-3">
-            @if(Auth::user()->role === 'super-admin' || Auth::user()->hasRole('super-admin'))
+            @if(Auth::user()->role === 'super-admin' || Auth::user()->hasAnyRole(['Super Admin', 'super-admin']))
                 <div class="nav-category">Main Menu</div>
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
