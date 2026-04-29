@@ -41,4 +41,17 @@ class AuditLogController extends Controller
         $logs = $query->paginate(20)->withQueryString();
         return view('admin.audit-logs.index', compact('logs'));
     }
+
+    public function prune(Request $request)
+    {
+        // Require super_admin for pruning
+        if (!auth()->user()->is_super_admin) {
+            return back()->with('error', 'Only super administrators can prune audit logs.');
+        }
+
+        // Delete logs older than 30 days
+        $count = AuditLog::where('created_at', '<', now()->subDays(30))->delete();
+
+        return back()->with('success', "Successfully pruned $count old audit logs.");
+    }
 }

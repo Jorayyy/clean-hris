@@ -7,9 +7,14 @@
             <h3 class="fw-bold">My Transactions & Requests</h3>
             <p class="text-muted small">Submit and track your Timekeeping (TK), Payroll, and other company-related concerns.</p>
         </div>
-        <a href="{{ route('employee.tickets.create') }}" class="btn btn-primary d-flex align-items-center">
-            <i class="bi bi-plus-circle me-2"></i> Create New Request
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('employee.tickets.tk-create') }}" class="btn btn-success d-flex align-items-center">
+                <i class="bi bi-clock-history me-2"></i> File TK Complaint
+            </a>
+            <a href="{{ route('employee.tickets.create') }}" class="btn btn-primary d-flex align-items-center">
+                <i class="bi bi-plus-circle me-2"></i> Create New Request
+            </a>
+        </div>
     </div>
 
     <div class="col-md-12">

@@ -7,6 +7,14 @@
         <p class="text-muted small">Track every administrative action, update, and deletion in real-time.</p>
     </div>
     <div class="col-md-4 text-end">
+        @if(auth()->user()->is_super_admin)
+            <form action="{{ route('admin.audit-logs.prune') }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to prune logs older than 30 days? This action cannot be undone.')">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger btn-sm no-print me-1">
+                    <i class="bi bi-trash me-1"></i>Prune Old Logs
+                </button>
+            </form>
+        @endif
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm no-print">
             <i class="bi bi-printer me-1"></i>Print Report
         </button>

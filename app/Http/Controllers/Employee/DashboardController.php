@@ -17,10 +17,22 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        
+        if (!$user->employee_id) {
+            // Check if there's an employee record with the same email
+            $employee = \App\Models\Employee::where('email', $user->email)->first();
+            if ($employee) {
+                $user->update(['employee_id' => $employee->id]);
+            }
+        }
+
         $employee = \App\Models\Employee::where('id', $user->employee_id)->first();
         
         if (!$employee) {
-            return back()->with('error', 'User not linked to an employee profile.');
+            if ($user->role === 'admin' || $user->role === 'super-admin') {
+                return redirect()->route('admin.dashboard')->with('info', 'You are on the employee dashboard but do not have an employee profile linked. Redirected to Admin Dashboard.');
+            }
+            return redirect('/login')->with('error', 'User not linked to an employee profile. Please contact human resources.');
         }
 
         // Stats

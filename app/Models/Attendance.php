@@ -20,7 +20,8 @@ class Attendance extends Model
         'break2_in',
         'total_hours',
         'late_minutes',
-        'undertime_minutes'
+        'undertime_minutes',
+        'overtime_hours'
     ];
 
     public function employee()

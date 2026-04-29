@@ -55,7 +55,12 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/payroll-items/basis', [PayrollItemController::class, 'getEmployeeBasis'])->name('payroll-items.basis');
     Route::resource('payroll-items', PayrollItemController::class);
     Route::get('/api/finalized-dtrs', [PayrollController::class, 'getFinalizedDtrs'])->name('payroll.api.finalized-dtrs');
-    Route::resource('payroll-groups', PayrollGroupController::class);
+    
+    // Payroll Groups (Restricted to Super Admin)
+    Route::middleware(['super_admin'])->group(function () {
+        Route::resource('payroll-groups', PayrollGroupController::class);
+    });
+
     Route::resource('schedules', ScheduleController::class);
     Route::resource('authorized-networks', AuthorizedNetworkController::class);
     Route::get('admin/settings', [AppSettingController::class, 'index'])->name('admin.settings.index');
@@ -104,6 +109,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 
     // Audit Logs
     Route::get('admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
+    Route::post('admin/audit-logs/prune', [AuditLogController::class, 'prune'])->name('admin.audit-logs.prune');
 
     // Queue Monitor
     Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
@@ -122,6 +128,7 @@ Route::middleware(['auth', EmployeeMiddleware::class])->prefix('employee')->grou
     // Employee Tickets
     Route::get('/tickets', [EmployeeTicketController::class, 'index'])->name('employee.tickets.index');
     Route::get('/tickets/create', [EmployeeTicketController::class, 'create'])->name('employee.tickets.create');
+    Route::get('/tickets/tk-create', [EmployeeTicketController::class, 'tkCreate'])->name('employee.tickets.tk-create');
     Route::post('/tickets', [EmployeeTicketController::class, 'store'])->name('employee.tickets.store');
     Route::get('/tickets/{id}', [EmployeeTicketController::class, 'show'])->name('employee.tickets.show');
 

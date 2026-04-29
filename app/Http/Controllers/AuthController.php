@@ -10,12 +10,17 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            if (Auth::user()->role === 'admin' || Auth::user()->role === 'super-admin') {
-                return redirect('/admin/dashboard');
-            }
-            return redirect('/employee/dashboard');
+            return $this->redirectUserByRole(Auth::user());
         }
         return view('auth.login');
+    }
+
+    protected function redirectUserByRole($user)
+    {
+        if ($user->role === 'admin' || $user->role === 'super-admin' || (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'Super Admin']))) {
+            return redirect('/admin/dashboard');
+        }
+        return redirect('/employee/dashboard');
     }
 
     public function login(Request $request)
@@ -28,10 +33,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             
-            if (Auth::user()->role === 'admin' || Auth::user()->role === 'super-admin') {
-                return redirect('/admin/dashboard');
-            }
-            return redirect('/employee/dashboard');
+            return $this->redirectUserByRole(Auth::user());
         }
 
         return back()->withErrors([

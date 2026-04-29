@@ -18,7 +18,14 @@ class AppSettingController extends Controller
 
     public function update(Request $request)
     {
-        $settings = AppSetting::first();
+        $settings = AppSetting::firstOrCreate([], [
+            'app_name' => 'MEBS HIYAS',
+            'sss_rate' => 0.0450,
+            'pagibig_rate' => 0.0200,
+            'philhealth_rate' => 0.0500,
+            'late_rate' => 1.0000,
+            'undertime_rate' => 1.0000,
+        ]);
         
         $request->validate([
             'app_name' => 'required|string|max:255',

@@ -36,15 +36,15 @@
                 </style>
                 
                 <div class="calendar-grid">
-                    @foreach(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $day)
+                    @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $day)
                         <div class="calendar-day-header">{{ $day }}</div>
                     @endforeach
 
                     @php
                         $startOfMonth = $selectedDate->copy()->startOfMonth();
                         $endOfMonth = $selectedDate->copy()->endOfMonth();
-                        $startOfCalendar = $startOfMonth->copy()->startOfWeek();
-                        $endOfCalendar = $endOfMonth->copy()->endOfWeek();
+                        $startOfCalendar = $startOfMonth->copy()->startOfWeek(Carbon\Carbon::MONDAY);
+                        $endOfCalendar = $endOfMonth->copy()->endOfWeek(Carbon\Carbon::SUNDAY);
                         $current = $startOfCalendar->copy();
                     @endphp
 
@@ -61,6 +61,17 @@
                             
                             @if($record)
                                 <div class="attendance-info">
+                                    @php
+                                        $isRestDay = $schedule && is_array($schedule->days) && !in_array($current->format('l'), $schedule->days);
+                                        $hasOT = isset($record->overtime_hours) && $record->overtime_hours > 0;
+                                    @endphp
+
+                                    @if($isRestDay && !$hasOT)
+                                        <div class="text-muted small italic mb-1" style="font-size: 0.65rem;">Rest Day (Worked)</div>
+                                    @elseif($isRestDay && $hasOT)
+                                        <div class="text-primary small fw-bold mb-1" style="font-size: 0.65rem;">Rest Day (OT)</div>
+                                    @endif
+
                                     @if($record->time_in && $record->time_in !== '00:00:00')
                                         <span class="badge bg-success badge-time text-truncate" title="In: {{ date('h:i A', strtotime($record->time_in)) }}">
                                             In: {{ date('h:i A', strtotime($record->time_in)) }}
@@ -91,9 +102,22 @@
                                     @if($record->undertime_minutes > 0)
                                         <span class="badge bg-warning text-dark badge-time">UT: {{ $record->undertime_minutes }}m</span>
                                     @endif
+                                    @if(isset($record->overtime_hours) && $record->overtime_hours > 0)
+                                        <span class="badge bg-info text-dark badge-time">OT: {{ $record->overtime_hours }}h</span>
+                                    @endif
                                 </div>
-                            @elseif(!$isOtherMonth && $schedule && is_array($schedule->days) && in_array($current->format('l'), $schedule->days))
-                                <div class="text-muted small italic" style="font-size: 0.7rem;">Scheduled</div>
+                            @else
+                                @php
+                                    $isRestDay = $schedule && is_array($schedule->days) && !in_array($current->format('l'), $schedule->days);
+                                @endphp
+                                
+                                @if(!$isOtherMonth)
+                                    @if($isRestDay)
+                                        <div class="text-muted small italic opacity-75" style="font-size: 0.7rem;">Rest Day</div>
+                                    @elseif($schedule && is_array($schedule->days) && in_array($current->format('l'), $schedule->days))
+                                        <div class="text-muted small italic" style="font-size: 0.7rem;">Scheduled</div>
+                                    @endif
+                                @endif
                             @endif
                         </div>
                         @php $current->addDay(); @endphp

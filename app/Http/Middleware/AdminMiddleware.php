@@ -19,7 +19,7 @@ class AdminMiddleware
         if (Auth::check() && (
             Auth::user()->role === 'admin' || 
             Auth::user()->role === 'super-admin' || 
-            Auth::user()->roles()->count() > 0
+            (method_exists(Auth::user(), 'roles') && Auth::user()->roles()->count() > 0)
         )) {
             return $next($request);
         }

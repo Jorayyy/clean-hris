@@ -35,4 +35,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Employee::class);
     }
+
+    public function getIsSuperAdminAttribute()
+    {
+        return $this->role === 'super-admin';
+    }
 }
