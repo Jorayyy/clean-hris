@@ -44,14 +44,9 @@ Route::get('/', function () {
 // Admin Protected Routes
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
-    Route::get('attendance/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::resource('attendance', AttendanceController::class);
     Route::get('attendance/{employee}/monthly', [AttendanceController::class, 'getMonthlyAttendance'])->name('attendance.monthly');
-    Route::get('attendance/{employee}', [AttendanceController::class, 'show'])->name('attendance.show');
     Route::resource('employees', EmployeeController::class);
-    Route::resource('sites', SiteController::class);
-    Route::resource('users', UserController::class);
-    Route::resource('attendance', AttendanceController::class)->except(['create', 'edit']);
     Route::resource('payroll', PayrollController::class)->except(['edit', 'update', 'destroy']);
     Route::get('/payroll-items/basis', [PayrollItemController::class, 'getEmployeeBasis'])->name('payroll-items.basis');
     Route::resource('payroll-items', PayrollItemController::class);
@@ -67,7 +62,6 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
     });
 
-    Route::resource('sites', SiteController::class);
     Route::resource('schedules', ScheduleController::class);
     
     // Group Salaries under SuperAdminMiddleware for wide-open Admin/Super-Admin access
