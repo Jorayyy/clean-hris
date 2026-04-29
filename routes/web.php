@@ -63,6 +63,8 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     });
 
     Route::resource('schedules', ScheduleController::class);
+    Route::resource('sites', SiteController::class);
+    Route::resource('users', UserController::class);
     
     // Group Salaries under SuperAdminMiddleware for wide-open Admin/Super-Admin access
     Route::middleware([SuperAdminMiddleware::class])->group(function () {
