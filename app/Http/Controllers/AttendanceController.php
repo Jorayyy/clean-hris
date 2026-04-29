@@ -7,6 +7,9 @@ use App\Models\Employee;
 use App\Services\PayrollService;
 use Illuminate\Http\Request;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+
 class AttendanceController extends Controller
 {
     protected $payrollService;

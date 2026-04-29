@@ -65,7 +65,7 @@ class AdminDashboardController extends Controller
 
         $groups = PayrollGroup::withCount('employees')->get();
 
-        if (auth()->user()->hasRole('Accounting Admin')) {
+        if (auth()->user()->hasRole('Accounting Admin') || auth()->user()->role === 'admin') {
             return view('admin.dashboard_accounting', compact(
                 'totalEmployees',
                 'totalAttendanceToday',

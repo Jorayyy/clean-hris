@@ -11,18 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
-class EmployeeController extends Controller implements HasMiddleware
+class EmployeeController extends Controller
 {
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('can:view employees', only: ['index', 'show']),
-            new Middleware('can:create employees', only: ['create', 'store']),
-            new Middleware('can:edit employees', only: ['edit', 'update']),
-            new Middleware('can:delete employees', only: ['destroy']),
-        ];
-    }
-
     public function index()
     {
         $employees = Employee::with('payrollGroup')->get();

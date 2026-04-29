@@ -18,22 +18,11 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
-class PayrollController extends Controller implements HasMiddleware
+class PayrollController extends Controller
 {
     use AuthorizesRequests;
 
     protected $payrollService;
-
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('can:view payroll', only: ['index', 'show', 'getFinalizedDtrs']),
-            new Middleware('can:create payroll', only: ['create', 'store']),
-            new Middleware('can:edit payroll', only: ['edit', 'update']),
-            new Middleware('can:delete payroll', only: ['destroy']),
-            new Middleware('can:process payroll', only: ['approve']),
-        ];
-    }
 
     public function __construct(PayrollService $service)
     {

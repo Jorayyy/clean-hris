@@ -11,18 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
-class UserController extends Controller implements HasMiddleware
+class UserController extends Controller
 {
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('can:view users', only: ['index', 'show']),
-            new Middleware('can:create users', only: ['create', 'store']),
-            new Middleware('can:edit users', only: ['edit', 'update']),
-            new Middleware('can:delete users', only: ['destroy']),
-        ];
-    }
-
     public function index()
     {
         $users = User::with('roles')->paginate(10);

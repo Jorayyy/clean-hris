@@ -9,7 +9,7 @@
             </div>
             <h1 class="display-5 fw-bold text-gray-800">No Permission</h1>
             <p class="lead text-gray-600 mb-5">
-                Sorry, you don't have enough authority to access this page. This section is restricted to Super Administrators only.
+                Sorry, you don't have enough authority to access this page. Please contact your administrator if you believe this is an error.
             </p>
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                 <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-lg px-4 gap-3">

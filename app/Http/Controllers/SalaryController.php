@@ -6,6 +6,8 @@ use App\Models\PayrollItem;
 use App\Models\Employee;
 use App\Models\Payroll;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
 class SalaryController extends Controller
 {

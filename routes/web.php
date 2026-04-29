@@ -12,6 +12,7 @@ use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardContro
 use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\EmployeeMiddleware;
+use App\Http\Middleware\SuperAdminMiddleware;
 
 use App\Http\Controllers\Employee\AttendanceController as EmployeeAttendanceController;
 use App\Http\Controllers\Employee\SupportTicketController as EmployeeTicketController;
@@ -56,21 +57,26 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::resource('payroll-items', PayrollItemController::class);
     Route::get('/api/finalized-dtrs', [PayrollController::class, 'getFinalizedDtrs'])->name('payroll.api.finalized-dtrs');
     
-    // Payroll Groups (Restricted to Super Admin)
-    Route::middleware(['super_admin'])->group(function () {
+    // Structure & Settings (Restricted to Super Admin & Admin)
+    Route::middleware([SuperAdminMiddleware::class])->group(function () {
         Route::resource('payroll-groups', PayrollGroupController::class);
+        Route::resource('authorized-networks', AuthorizedNetworkController::class);
+        Route::get('admin/settings', [AppSettingController::class, 'index'])->name('admin.settings.index');
+        Route::post('admin/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
+        Route::resource('admin/settings/deductions', DeductionTypeController::class)->names('admin.settings.deductions');
+        Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
     });
 
+    Route::resource('sites', SiteController::class);
     Route::resource('schedules', ScheduleController::class);
-    Route::resource('authorized-networks', AuthorizedNetworkController::class);
-    Route::get('admin/settings', [AppSettingController::class, 'index'])->name('admin.settings.index');
-    Route::post('admin/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
-    Route::resource('admin/settings/deductions', DeductionTypeController::class)->names('admin.settings.deductions');
     
-    Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
-    Route::get('salaries/{salary}/edit', [SalaryController::class, 'edit'])->name('salaries.edit');
-    Route::put('salaries/{salary}', [SalaryController::class, 'update'])->name('salaries.update');
-    Route::delete('salaries/{salary}', [SalaryController::class, 'destroy'])->name('salaries.destroy');
+    // Group Salaries under SuperAdminMiddleware for wide-open Admin/Super-Admin access
+    Route::middleware([SuperAdminMiddleware::class])->group(function () {
+        Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
+        Route::get('salaries/{salary}/edit', [SalaryController::class, 'edit'])->name('salaries.edit');
+        Route::put('salaries/{salary}', [SalaryController::class, 'update'])->name('salaries.update');
+        Route::delete('salaries/{salary}', [SalaryController::class, 'destroy'])->name('salaries.destroy');
+    });
 
     Route::post('/payroll/{payroll}/approve', [PayrollController::class, 'approve'])->name('payroll.approve');
     Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');
@@ -100,7 +106,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::resource('announcements', AdminAnnouncementController::class);
 
     // Roles & Permissions (Now restricted to Super Admin only)
-    Route::middleware(['super_admin'])->group(function () {
+    Route::middleware([SuperAdminMiddleware::class])->group(function () {
         Route::get('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'index'])->name('admin.roles.index');
         Route::post('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'store'])->name('admin.roles.store');
         Route::put('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'update'])->name('admin.roles.update');
@@ -111,8 +117,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
     Route::post('admin/audit-logs/prune', [AuditLogController::class, 'prune'])->name('admin.audit-logs.prune');
 
-    // Queue Monitor
-    Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
+    // Queue Monitor (Moved to Super Admin)
 
     // Profile
     Route::get('/admin/profile', [ProfileController::class, 'showAdmin'])->name('admin.profile');

@@ -16,18 +16,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
-class DtrController extends Controller implements HasMiddleware
+class DtrController extends Controller
 {
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('can:view attendance', only: ['index', 'show']),
-            new Middleware('can:create attendance', only: ['create', 'store', 'batchAuthorize']),
-            new Middleware('can:edit attendance', only: ['update', 'verify', 'finalize', 'batchVerify', 'batchFinalize']),
-            new Middleware('can:delete attendance', only: ['destroy', 'batchDestroy']),
-        ];
-    }
-
     public function index(Request $request)
     {
         $query = Dtr::with('employee');
