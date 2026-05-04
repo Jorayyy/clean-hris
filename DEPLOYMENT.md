@@ -12,14 +12,26 @@ Follow these simplified steps to ensure everything works perfectly on your live 
 
 ## 2. Terminal Commands (via SSH)
 Run these inside your project folder to optimize and prepare. Since the server defaults to an older PHP version, you **MUST** use the full path to PHP 8.4:
+
+### Best Method (PHP 8.4 Absolute Path):
+Use this to ensure you are using the correct version required by the dependencies:
 ```bash
-/opt/alt/php84/usr/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader
+# General Artisan commands
 /opt/alt/php84/usr/bin/php artisan key:generate
 /opt/alt/php84/usr/bin/php artisan migrate --force
 /opt/alt/php84/usr/bin/php artisan storage:link
 /opt/alt/php84/usr/bin/php artisan config:cache
-/opt/alt/php84/usr/bin/php artisan route:cache
+/opt/alt/php84/usr/bin/php artisan route:clear
 /opt/alt/php84/usr/bin/php artisan view:cache
+
+# Composer commands
+/opt/alt/php84/usr/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader
+```
+
+### Alternative Method (Bypass PHP version checks):
+If the path above is not found, you can try bypassing the version check (not recommended for composer, but works for simple cache clears):
+```bash
+php -d suhosin.executor.include.whitelist=phar artisan route:clear
 ```
 
 ## 3. Background Services

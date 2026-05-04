@@ -47,7 +47,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::resource('attendance', AttendanceController::class);
     Route::get('attendance/{employee}/monthly', [AttendanceController::class, 'getMonthlyAttendance'])->name('attendance.monthly');
     Route::resource('employees', EmployeeController::class);
-    Route::resource('payroll', PayrollController::class)->except(['edit', 'update', 'destroy']);
+    Route::resource('payroll', PayrollController::class);
     Route::get('/payroll-items/basis', [PayrollItemController::class, 'getEmployeeBasis'])->name('payroll-items.basis');
     Route::resource('payroll-items', PayrollItemController::class);
     Route::get('/api/finalized-dtrs', [PayrollController::class, 'getFinalizedDtrs'])->name('payroll.api.finalized-dtrs');
