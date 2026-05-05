@@ -37,18 +37,27 @@ class AttendanceController extends Controller
         return view('attendance.index', compact('employees'));
     }
 
-    public function show(Request $request, Employee $employee)
+    public function show(Request $request, $id)
     {
-        $date = $request->get('date', today()->format('Y-m-d'));
+        $employee = Employee::findOrFail($id);
+        
+        $month = $request->get('month', now()->month);
+        $year = $request->get('year', now()->year);
+        $date = $request->get('date');
         
         $attendances = Attendance::where('employee_id', $employee->id)
             ->when($date, function($query, $date) {
-                $query->where('date', $date);
+                $query->whereDate('date', $date);
             })
-            ->latest()
+            ->when(!$date, function($query) use ($month, $year) {
+                $query->whereMonth('date', $month)
+                      ->whereYear('date', $year);
+            })
+            ->orderBy('date', 'desc')
+            ->orderBy('time_in', 'desc')
             ->get();
 
-        return view('attendance.show', compact('employee', 'attendances', 'date'));
+        return view('attendance.show', compact('employee', 'attendances', 'date', 'month', 'year'));
     }
 
     public function getMonthlyAttendance(Request $request, Employee $employee)

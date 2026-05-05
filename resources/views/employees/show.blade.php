@@ -68,7 +68,7 @@
                     <a href="{{ route('employees.edit', $employee) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
                         Edit Employee
                     </a>
-                    <a href="{{ route('attendance.show', $employee) }}" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm">
+                    <a href="{{ route('attendance.show', ['attendance' => $employee->id]) }}" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm">
                         View Attendance
                     </a>
                 </div>

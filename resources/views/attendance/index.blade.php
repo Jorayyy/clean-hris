@@ -130,7 +130,7 @@
                                 </div>
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{{ route("attendance.show", $employee->id) }}" class="btn btn-sm btn-white border shadow-sm rounded-pill px-3">
+                                <a href="{{ route("attendance.show", ["attendance" => $employee->id]) }}" class="btn btn-sm btn-white border shadow-sm rounded-pill px-3">
                                     View Logs <i class="bi bi-chevron-right ms-1 small"></i>
                                 </a>
                             </td>

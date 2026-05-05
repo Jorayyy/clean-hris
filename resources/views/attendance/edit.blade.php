@@ -112,7 +112,7 @@
                             <button type="submit" class="btn btn-primary px-5 py-2 fw-bold flex-grow-1 shadow-sm">
                                 <i class="bi bi-check-circle me-2"></i> Update Record
                             </button>
-                            <a href="{{ route('attendance.show', $attendance->employee_id) }}" class="btn btn-light px-4 py-2 text-secondary border">
+                            <a href="{{ route('attendance.show', ['attendance' => $attendance->employee_id]) }}" class="btn btn-light px-4 py-2 text-secondary border">
                                 Cancel
                             </a>
                         </div>

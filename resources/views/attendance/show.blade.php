@@ -6,7 +6,7 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{{ route('attendance.index') }}">Attendance</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url('attendance') }}">Attendance</a></li>
                     <li class="breadcrumb-item active">{{ $employee->full_name }}</li>
                 </ol>
             </nav>
@@ -21,10 +21,10 @@
                     <i class="bi bi-calendar3"></i> Calendar
                 </button>
             </div>
-            <a href="{{ route('attendance.index') }}" class="btn btn-outline-secondary">
+            <a href="{{ url('attendance') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
-            <a href="{{ route('attendance.create', ['employee_id' => $employee->id]) }}" class="btn btn-primary">
+            <a href="{{ url('attendance/create?employee_id=' . $employee->id) }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i> Manual Entry
             </a>
         </div>
@@ -35,11 +35,11 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center">
                 <div class="avatar-circle bg-primary text-white fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm me-4" style="width: 64px; height: 64px; font-size: 1.25rem;">
-                    {{ substr($employee->first_name, 0, 1) }}{{ substr($employee->last_name, 0, 1) }}
+                    {{ substr($employee->first_name ?? 'E', 0, 1) }}{{ substr($employee->last_name ?? 'P', 0, 1) }}
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-1">{{ $employee->full_name }}</h5>
-                    <p class="text-muted mb-0 small">ID: {{ $employee->employee_id }} | {{ $employee->position }}</p>
+                    <h5 class="fw-bold mb-1">{{ $employee->first_name ?? 'N/A' }} {{ $employee->last_name ?? '' }}</h5>
+                    <p class="text-muted mb-0 small">ID: {{ $employee->employee_id ?? 'Unknown' }} | {{ $employee->position ?? 'No Position' }}</p>
                 </div>
                 <div class="ms-auto">
                     <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} rounded-pill px-3">
@@ -54,13 +54,33 @@
     <div id="list-view-container">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body p-3">
-                <form action="{{ route('attendance.show', $employee->id) }}" method="GET" class="row g-3 align-items-center">
+                <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-center">
                     <div class="col-auto">
-                        <label class="form-label mb-0 fw-bold">Filter Date:</label>
+                        <label class="form-label mb-0 fw-bold">Filter Month/Year:</label>
                     </div>
-                    <div class="col-md-3">
-                        <input type="date" name="date" class="form-control" value="{{ $date }}" onchange="this.form.submit()">
-                        <input type="hidden" name="view" value="list">
+                    <div class="col-md-2">
+                        <select name="month" class="form-select">
+                            @foreach(range(1, 12) as $m)
+                                <option value="{{ $m }}" {{ request('month', date('n')) == $m ? 'selected' : '' }}>
+                                    {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="year" class="form-select">
+                            @foreach(range(date('Y') - 2, date('Y') + 1) as $y)
+                                <option value="{{ $y }}" {{ request('year', date('Y')) == $y ? 'selected' : '' }}>
+                                    {{ $y }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{{ url()->current() }}" class="btn btn-outline-secondary">Reset</a>
                     </div>
                 </form>
             </div>
@@ -72,7 +92,8 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light text-muted small text-uppercase">
                             <tr>
-                                <th class="ps-4">Time In</th>
+                                <th class="ps-4">Date</th>
+                                <th>Time In</th>
                                 <th>Time Out</th>
                                 <th>Total Hours</th>
                                 <th class="text-end pe-4">Actions</th>
@@ -81,17 +102,18 @@
                         <tbody>
                             @forelse($attendances as $row)
                             <tr>
-                                <td class="ps-4">
-                                    <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ date('h:i A', strtotime($row->time_in)) }}</span>
+                                <td class="ps-4 fw-medium">{{ \Carbon\Carbon::parse($row->date)->format('M d, Y') }}</td>
+                                <td>
+                                    <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ \Carbon\Carbon::parse($row->time_in)->format('h:i A') }}</span>
                                 </td>
                                 <td>
-                                    <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? date('h:i A', strtotime($row->time_out)) : '---' }}</span>
+                                    <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('h:i A') : '---' }}</span>
                                 </td>
                                 <td>{{ number_format($row->total_hours, 2) }} hrs</td>
                                 <td class="text-end pe-4">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('attendance.edit', $row->id) }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                                        <form action="{{ route('attendance.destroy', $row->id) }}" method="POST" class="d-inline">
+                                        <a href="{{ url('attendance/' . $row->id . '/edit') }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                        <form action="{{ url('attendance/' . $row->id) }}" method="POST" class="d-inline">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></button>
                                         </form>
@@ -99,7 +121,7 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="4" class="text-center py-5 text-muted">No records found for this date.</td></tr>
+                            <tr><td colspan="5" class="text-center py-5 text-muted">No records found for this period.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -163,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
             events: async function(info, successCallback, failureCallback) {
                 const midDate = new Date((info.start.getTime() + info.end.getTime()) / 2);
                 try {
-                    const response = await fetch(`{{ route('attendance.monthly', $employee->id) }}?year=${midDate.getFullYear()}&month=${midDate.getMonth() + 1}`);
+                    const response = await fetch(`{{ url("attendance") }}/{{ $employee->id }}/monthly?year=${midDate.getFullYear()}&month=${midDate.getMonth() + 1}`);
                     const data = await response.json();
                     const events = Object.entries(data).map(([date, info]) => ({
                         title: info.status === 'present' ? `${info.logs[0].time_in}` : info.status.toUpperCase(),
