@@ -32,7 +32,9 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 fw-bold">Deduction Types Library</h6>
-                <a href="{{ route('admin.settings.index') }}" class="btn btn-sm btn-outline-secondary text-decoration-none">Back to Settings</a>
+                <a href="{{ route('admin.payroll-settings.index') }}" class="btn btn-sm btn-outline-secondary text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Payroll Settings
+                </a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">

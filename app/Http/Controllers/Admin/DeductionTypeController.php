@@ -26,8 +26,9 @@ class DeductionTypeController extends Controller
         return back()->with('success', 'Deduction type added successfully.');
     }
 
-    public function update(Request $request, DeductionType $deductionType)
+    public function update(Request $request, $id)
     {
+        $deductionType = DeductionType::findOrFail($id);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -38,9 +39,9 @@ class DeductionTypeController extends Controller
         return back()->with('success', 'Deduction type updated successfully.');
     }
 
-    public function destroy(DeductionType $deductionType)
+    public function destroy($id)
     {
-        $deductionType->delete();
+        DeductionType::findOrFail($id)->delete();
         return back()->with('success', 'Deduction type deleted successfully.');
     }
 }

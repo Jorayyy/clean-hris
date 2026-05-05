@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="row mb-4">
+<div class="row mb-4 align-items-center">
     <div class="col-md-auto">
         <div class="dropdown">
             <button class="btn btn-white shadow-sm border rounded-3 px-3 py-2 dropdown-toggle fw-bold text-dark d-flex align-items-center justify-content-between" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 200px;">
@@ -33,6 +33,11 @@
                 @endforeach
             </ul>
         </div>
+    </div>
+    <div class="col-md text-end">
+        <a href="{{ route('admin.payroll-settings.index') }}" class="btn btn-white shadow-sm border rounded-3 px-3 py-2 fw-bold text-dark" title="Payroll Settings">
+            <i class="bi bi-gear-fill me-1"></i> Settings
+        </a>
     </div>
 </div>
 

@@ -125,30 +125,42 @@
 
                     <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mt-4 mb-3">
                         <h6 class="text-danger mb-0">Deductions</h6>
-                        <button type="button" id="add-deduction-row" class="btn btn-sm btn-outline-danger py-0">
-                            <i class="bi bi-plus-circle me-1"></i> Add Deduction
-                        </button>
+                        <div class="d-flex gap-2">
+                            @if($deductionTypes->isEmpty())
+                                <a href="{{ route('admin.settings.deductions.index') }}" class="btn btn-sm btn-warning py-0">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Setup Deduction Types
+                                </a>
+                            @endif
+                            <button type="button" id="add-deduction-row" class="btn btn-sm btn-outline-danger py-0" {{ $deductionTypes->isEmpty() ? 'disabled' : '' }}>
+                                <i class="bi bi-plus-circle me-1"></i> Add Deduction
+                            </button>
+                        </div>
                     </div>
 
-                    <div id="deductions-list">
+                    <div id="deductions-list" class="vstack gap-2">
                         <!-- Initial Standard Deductions -->
                         @php
                             $standard = ['SSS', 'LOAN_SSS', 'PAGIBIG', 'LOAN_PAGIBIG', 'PHILHEALTH', 'HMO_DEP'];
                         @endphp
                         
-                        <div class="row mb-2 g-2 deduction-entry">
+                        <div class="row g-2 deduction-entry align-items-center">
                             <div class="col-md-7">
-                                <select name="deductions[0][type]" class="form-select status-select">
-                                    @foreach($deductionTypes as $type)
+                                <select name="deductions[0][type]" class="form-select status-select shadow-sm" style="height: auto !important; min-height: 38px;">
+                                    @forelse($deductionTypes as $type)
                                         <option value="{{ $type->code }}" {{ $type->code == 'SSS' ? 'selected' : '' }}>{{ $type->name }} ({{ $type->code }})</option>
-                                    @endforeach
+                                    @empty
+                                        <option value="">-- No Deduction Types Defined --</option>
+                                    @endforelse
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <input type="number" step="0.01" name="deductions[0][amount]" class="form-control amount-field deduction-amount" placeholder="0.00">
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-light border-end-0">₱</span>
+                                    <input type="number" step="0.01" name="deductions[0][amount]" class="form-control amount-field deduction-amount border-start-0" placeholder="0.00" style="height: 38px;">
+                                </div>
                             </div>
                             <div class="col-md-1">
-                                <button type="button" class="btn btn-outline-secondary w-100 remove-row" disabled><i class="bi bi-dash"></i></button>
+                                <button type="button" class="btn btn-outline-secondary w-100 remove-row" disabled style="height: 38px;"><i class="bi bi-dash"></i></button>
                             </div>
                         </div>
                     </div>
@@ -288,19 +300,24 @@ document.addEventListener('DOMContentLoaded', function() {
     function addDeductionRow(typeCode, amount, index) {
         const list = document.getElementById('deductions-list');
         const template = `
-            <div class="row mb-2 g-2 deduction-entry">
+            <div class="row g-2 deduction-entry align-items-center">
                 <div class="col-md-7">
-                    <select name="deductions[${index}][type]" class="form-select status-select">
-                        @foreach($deductionTypes as $type)
+                    <select name="deductions[${index}][type]" class="form-select status-select shadow-sm" style="height: auto !important; min-height: 38px;">
+                        @forelse($deductionTypes as $type)
                             <option value="{{ $type->code }}" ${typeCode === '{{ $type->code }}' ? 'selected' : ''}>{{ $type->name }} ({{ $type->code }})</option>
-                        @endforeach
+                        @empty
+                            <option value="">-- No Deduction Types Defined --</option>
+                        @endforelse
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input type="number" step="0.01" name="deductions[${index}][amount]" class="form-control amount-field deduction-amount" value="${amount}" placeholder="0.00">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">₱</span>
+                        <input type="number" step="0.01" name="deductions[${index}][amount]" class="form-control amount-field deduction-amount border-start-0" value="${amount}" placeholder="0.00" style="height: 38px;">
+                    </div>
                 </div>
                 <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-secondary w-100 remove-row"><i class="bi bi-dash"></i></button>
+                    <button type="button" class="btn btn-outline-danger w-100 remove-row shadow-sm" style="height: 38px;"><i class="bi bi-trash"></i></button>
                 </div>
             </div>
         `;

@@ -28,46 +28,68 @@
             </div>
         </div>
 
-        @if($payroll->status == 'draft' || $payroll->status == 'processing')
-        <div class="alert {{ $payroll->status == 'processing' ? 'alert-info' : 'alert-warning' }} text-center shadow-sm">
-            @if($payroll->status == 'processing')
-                <h6 class="fw-bold"><i class="bi bi-clock-history me-2"></i>Status: PROCESSING</h6>
-                <p class="mb-3">Manual payslip entry is in progress. Please ensure all employees in this target have their payslips created before finalizing.</p>
-            @else
-                <h6 class="fw-bold"><i class="bi bi-pencil-square me-2"></i>Status: DRAFT</h6>
-                <p class="mb-3">This payroll is in draft mode. Start manually creating payslips for the target employee(s).</p>
-            @endif
-            
-            <div class="d-flex justify-content-center gap-2">
-                @php
-                    if ($payroll->payrollGroup) {
-                        $total_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)->where('is_active', true)->count();
-                    } else {
-                        $total_employees = 1;
-                    }
-                    $is_complete = $item_count >= $total_employees;
-                @endphp
+        @if($payroll->status == 'draft' || $payroll->status == 'processing' || $payroll->status == 'processed')
+        @php
+            if ($payroll->payrollGroup) {
+                // Get employees in the group that have finalized DTRs for this period
+                $target_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)
+                    ->where('status', 'active')
+                    ->count();
+            } else {
+                $target_employees = 1;
+            }
+            // A batch is only "ready" if there's actually someone to pay AND we've created items for them
+            $is_complete = ($target_employees > 0) && ($item_count >= $target_employees);
+        @endphp
 
-                <a href="{{ route('payroll-items.create', ['payroll_id' => $payroll->id]) }}" class="btn btn-success px-5 shadow-sm fw-bold">
-                    <i class="bi bi-plus-circle me-1"></i> Add Individual Payslip
-                </a>
-
-                <form action="{{ route('payroll.approve', $payroll->id) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold" 
-                        {{ !$is_complete ? 'disabled' : '' }}
-                        onclick="return confirm('Note: Approving will finalize this batch and lock it for changes. Proceed?')">
-                        <i class="bi bi-patch-check-fill me-1"></i> Finalize & Approve Whole Batch
-                    </button>
-                </form>
-            </div>
-            
-            @if(!$is_complete)
-                <div class="mt-2 text-danger small fw-bold">
-                    <i class="bi bi-exclamation-circle me-1"></i> 
-                    Finalize button is disabled: {{ $item_count }} of {{ $total_employees }} employees processed.
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card border-0 bg-light rounded-4 shadow-sm overflow-hidden">
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            <div class="col-md-4 bg-primary bg-opacity-10 d-flex flex-column align-items-center justify-content-center p-4">
+                                <div class="mb-2">
+                                    <span class="display-4 fw-bold text-primary">{{ $item_count }}</span>
+                                    <span class="fs-4 text-muted">/ {{ $target_employees }}</span>
+                                </div>
+                                <div class="text-uppercase small fw-bold text-primary opacity-75">Payslips Created</div>
+                                
+                                @if($is_complete)
+                                    <div class="mt-3 badge bg-success rounded-pill px-3 py-2 shadow-sm">
+                                        <i class="bi bi-check-circle-fill me-1"></i> BATCH COMPLETE
+                                    </div>
+                                @else
+                                    <div class="mt-3 badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm">
+                                        <i class="bi bi-hourglass-split me-1"></i> REMAINING: {{ $target_employees - $item_count }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="col-md-8 p-4">
+                                @if($is_complete)
+                                    <h5 class="fw-bold mb-2"><i class="bi bi-patch-check-fill text-success me-2"></i>Batch Ready for Finalization</h5>
+                                    <p class="text-muted">All expected employees have their payslips prepared. You can now finalize this batch to lock the data and approve it for disbursement.</p>
+                                    <div class="d-flex gap-2 mt-4">
+                                        <form action="{{ route('payroll.approve', $payroll->id) }}" method="POST" class="w-100">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm fw-bold">
+                                                <i class="bi bi-check-all me-2"></i> Finalize and Approve Batch
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <h5 class="fw-bold mb-2"><i class="bi bi-pencil-square text-info me-2"></i>Manual Entry in Progress</h5>
+                                    <p class="text-muted">Please continue adding payslips for the remaining employees in this group. The finalization option will become available once all payslips are added.</p>
+                                    <div class="d-flex gap-2 mt-4">
+                                        <a href="{{ route('payroll-items.create', ['payroll_id' => $payroll->id]) }}" class="btn btn-dark btn-lg w-100 rounded-pill shadow-sm fw-bold">
+                                            <i class="bi bi-plus-circle me-2"></i> Add Individual Payslip
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            @endif
+            </div>
         </div>
         @else
         <div class="row align-items-center mb-4 g-3">

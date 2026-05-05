@@ -1,101 +1,69 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="row justify-content-center">
+<div class="row justify-content-center py-4">
     <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-gear-fill me-2 text-primary"></i>System Settings</h5>
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white py-4 px-4 border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-display me-2 text-primary"></i>System Branding Settings</h5>
+                <p class="text-muted small mb-0 mt-1">Manage your application identity and appearance.</p>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body p-4 pt-0">
                 <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="row items-center align-items-center mb-4">
-                        <div class="col-md-4 text-center border-end">
-                            <label class="form-label d-block fw-bold text-muted small text-uppercase">Current Logo</label>
+                    <div class="row align-items-center mb-4 p-4 bg-light rounded-4 mx-0">
+                        <div class="col-md-4 text-center border-end border-2">
+                            <label class="form-label d-block fw-bold text-muted small text-uppercase mb-3">Company Logo</label>
                             @php $logo = is_array($settings) ? ($settings['app_logo'] ?? null) : ($settings->app_logo ?? null); @endphp
                             @if($logo)
-                                <img src="{{ asset('storage/' . $logo) }}" alt="App Logo" class="img-fluid rounded mb-3" style="max-height: 120px; object-fit: contain;">
+                                <img src="{{ asset('storage/' . $logo) }}" alt="App Logo" class="img-fluid rounded shadow-sm mb-3" style="max-height: 120px; object-fit: contain;">
                             @else
-                                <div class="bg-light rounded p-4 mb-3 text-muted">
+                                <div class="bg-white rounded shadow-sm p-4 mb-3 text-muted">
                                     <i class="bi bi-image h1"></i><br>
                                     <small>No Logo Set</small>
                                 </div>
                             @endif
                         </div>
                         <div class="col-md-8 ps-4">
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label class="form-label fw-bold">System Name</label>
-                                <input type="text" name="app_name" class="form-control" value="{{ is_array($settings) ? ($settings['app_name'] ?? '') : ($settings->app_name ?? '') }}" required>
-                                <small class="text-muted">This name will appear in the navigation bar and page titles.</small>
+                                <input type="text" name="app_name" class="form-control form-control-lg border-0 shadow-sm" value="{{ is_array($settings) ? ($settings['app_name'] ?? '') : ($settings->app_name ?? '') }}" required>
+                                <small class="text-muted">This name appears in the navigation bar and reports.</small>
                             </div>
                             
-                            <div class="mb-4">
+                            <div class="mb-2">
                                 <label class="form-label fw-bold">Update Logo</label>
-                                <input type="file" name="app_logo" class="form-control">
-                                <small class="text-muted">Recommended: Transparent PNG or SVG (Max 2MB)</small>
+                                <input type="file" name="app_logo" class="form-control border-0 shadow-sm">
+                                <small class="text-muted">Max size: 2MB (PNG/SVG recommended)</small>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row pt-4 border-top">
-                        <div class="col-12 mb-3">
-                            <h6 class="fw-bold text-uppercase text-primary small mb-3">Payroll Contribution Rates</h6>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">SSS Rate (%)</label>
-                            <input type="number" step="0.0001" name="sss_rate" class="form-control" value="{{ $settings->sss_rate ?? 0.045 }}" required>
-                            <small class="text-muted text-xs">Example: 0.0450 for 4.5%</small>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Pag-IBIG Rate (%)</label>
-                            <input type="number" step="0.0001" name="pagibig_rate" class="form-control" value="{{ $settings->pagibig_rate ?? 0.02 }}" required>
-                            <small class="text-muted text-xs">Example: 0.0200 for 2%</small>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">PhilHealth Rate (%)</label>
-                            <input type="number" step="0.0001" name="philhealth_rate" class="form-control" value="{{ $settings->philhealth_rate ?? 0.05 }}" required>
-                            <small class="text-muted text-xs">Example: 0.0500 for 5%</small>
-                        </div>
-                    </div>
-
-                    <div class="row pt-4 border-top">
-                        <div class="col-12 mb-3">
-                            <h6 class="fw-bold text-uppercase text-danger small mb-3">Attendance Deduction Multipliers</h6>
-                            <p class="small text-muted">Adjust how much is deducted per hour of late or undertime. 1.0 = 100% of hourly rate.</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Late Multiplier</label>
-                            <input type="number" step="0.01" name="late_rate" class="form-control" value="{{ $settings->late_rate ?? 1.00 }}" required>
-                            <small class="text-muted">1.0 means deducting the exact hourly equivalent.</small>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Undertime Multiplier</label>
-                            <input type="number" step="0.01" name="undertime_rate" class="form-control" value="{{ $settings->undertime_rate ?? 1.00 }}" required>
-                            <small class="text-muted">Increase this if you want to penalize undertime more heavily.</small>
-                        </div>
-                    </div>
-
-                    <div class="border-top pt-4 mt-2">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="card border-0 bg-dark text-white rounded-4 p-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-0 fw-bold">Custom Deduction Types</h6>
-                                <p class="small text-muted mb-0">Manage the library of BPO-related deductions (e.g. HMO Premium, Salary Loans).</p>
+                                <h6 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2 text-primary"></i>Security</h6>
+                                <p class="small text-white-50 mb-0">Password required for sensitive payroll edits (DTR Overrides).</p>
                             </div>
-                            <a href="{{ route('admin.settings.deductions.index') }}" class="btn btn-outline-primary shadow-sm">
-                                <i class="bi bi-list-ul me-1"></i> Manage Types
-                            </a>
+                            <div class="col-md-4">
+                                <input type="password" name="dtr_edit_password" class="form-control bg-white bg-opacity-10 border-0 text-white placeholder-white-50" placeholder="Change password...">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-4">
-                        <button type="submit" class="btn btn-primary px-5">
-                            <i class="bi bi-save me-2"></i>Save Changes
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end pt-2">
+                        <button type="submit" class="btn btn-primary px-5 btn-lg rounded-pill shadow-sm">
+                            <i class="bi bi-save me-2"></i>Save Branding
                         </button>
                     </div>
                 </form>
             </div>
         </div>
+        
+        <div class="mt-4 text-center">
+            <p class="text-muted small">Looking for payroll specific settings? <a href="{{ route('admin.payroll-settings.index') }}" class="fw-bold link-primary">Go to Payroll Configuration</a></p>
+        </div>
     </div>
 </div>
 @endsection
+

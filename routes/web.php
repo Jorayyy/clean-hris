@@ -19,6 +19,7 @@ use App\Http\Controllers\Employee\SupportTicketController as EmployeeTicketContr
 use App\Http\Controllers\Admin\SupportTicketController as AdminTicketController;
 use App\Http\Controllers\Admin\AuthorizedNetworkController;
 use App\Http\Controllers\Admin\AppSettingController;
+use App\Http\Controllers\Admin\PayrollSettingController;
 use App\Http\Controllers\Admin\DeductionTypeController;
 use App\Http\Controllers\PayrollItemController;
 use App\Http\Controllers\Admin\AuditLogController;
@@ -58,6 +59,11 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::resource('authorized-networks', AuthorizedNetworkController::class);
         Route::get('admin/settings', [AppSettingController::class, 'index'])->name('admin.settings.index');
         Route::post('admin/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
+
+        // Payroll-specific settings
+        Route::get('admin/payroll-settings', [PayrollSettingController::class, 'index'])->name('admin.payroll-settings.index');
+        Route::post('admin/payroll-settings', [PayrollSettingController::class, 'update'])->name('admin.payroll-settings.update');
+
         Route::resource('admin/settings/deductions', DeductionTypeController::class)->names('admin.settings.deductions');
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
     });
