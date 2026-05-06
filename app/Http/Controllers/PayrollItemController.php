@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Dtr;
 use App\Models\Attendance;
 use App\Models\DeductionType;
+use App\Models\AllowanceType;
 use Illuminate\Http\Request;
 
 class PayrollItemController extends Controller
@@ -40,7 +41,9 @@ class PayrollItemController extends Controller
         });
 
         $deductionTypes = DeductionType::where('is_active', true)->get();
-        return view('payroll_items.create', compact('payroll', 'employees', 'deductionTypes', 'settings'));
+        $allowanceTypes = AllowanceType::where('is_active', true)->get();
+        
+        return view('payroll_items.create', compact('payroll', 'employees', 'deductionTypes', 'allowanceTypes', 'settings'));
     }
 
     public function getEmployeeBasis(Request $request)
@@ -110,6 +113,9 @@ class PayrollItemController extends Controller
             'overtime_pay' => 'nullable|numeric',
             'night_diff' => 'nullable|numeric',
             'bonuses' => 'nullable|numeric',
+            'allowances' => 'nullable|array',
+            'allowances.*.type' => 'nullable|string',
+            'allowances.*.amount' => 'nullable|numeric|min:0',
             'deductions' => 'nullable|array',
             'deductions.*.type' => 'nullable|string',
             'deductions.*.amount' => 'nullable|numeric|min:0',
@@ -118,6 +124,20 @@ class PayrollItemController extends Controller
         $overtime_pay = $request->input('overtime_pay', 0) ?: 0;
         $night_diff = $request->input('night_diff', 0) ?: 0;
         $bonuses = $request->input('bonuses', 0) ?: 0;
+
+        $total_allowances = 0;
+        $allowances_log = [];
+        if ($request->has('allowances') && is_array($request->allowances)) {
+            foreach ($request->allowances as $a) {
+                if (!empty($a['type']) && isset($a['amount']) && is_numeric($a['amount'])) {
+                    $total_allowances += $a['amount'];
+                    $allowances_log[] = [
+                        'type' => $a['type'],
+                        'amount' => $a['amount']
+                    ];
+                }
+            }
+        }
 
         $total_deductions = 0;
         $deductions_log = [];
@@ -137,6 +157,7 @@ class PayrollItemController extends Controller
                  + $overtime_pay 
                  + $night_diff 
                  + $bonuses
+                 + $total_allowances
                  - $total_deductions;
 
         $payrollItem = PayrollItem::create([
@@ -149,6 +170,7 @@ class PayrollItemController extends Controller
             'night_diff' => $night_diff,
             'bonuses' => $bonuses,
             'net_pay' => $net_pay,
+            'allowances_json' => $allowances_log,
             'deductions_json' => $deductions_log,
         ]);
 

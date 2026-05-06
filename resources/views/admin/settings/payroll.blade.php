@@ -95,8 +95,22 @@
         </div>
 
         <div class="col-xl-4">
+            <!-- Allowance Library Shortcut -->
+            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-4 mb-4">
+                <div class="text-center py-4">
+                    <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <i class="bi bi-gift-fill fs-1 text-white"></i>
+                    </div>
+                    <h5 class="fw-bold text-white">Payroll Add-ons</h5>
+                    <p class="text-white-50 mb-4 px-3">Manage recurring allowances like Attendance Bonus, Food & Rice Allowance.</p>
+                    <a href="{{ route('admin.settings.allowances.index') }}" class="btn btn-outline-light rounded-pill px-4">
+                        Manage Add-ons Library <i class="bi bi-arrow-right-short ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
             <!-- Deduction Library Shortcut -->
-            <div class="card border-0 shadow-sm rounded-4 bg-dark text-white p-4 h-100">
+            <div class="card border-0 shadow-sm rounded-4 bg-dark text-white p-4">
                 <div class="text-center py-4">
                     <div class="bg-primary bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
                         <i class="bi bi-tags-fill fs-1 text-primary"></i>

@@ -118,9 +118,27 @@
                             <input type="number" step="0.01" name="overtime_pay" id="overtime_pay" class="form-control amount-field" placeholder="0.00">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold small">Bonuses</label>
+                            <label class="form-label fw-bold small">Adjustment/Other Bonuses</label>
                             <input type="number" step="0.01" name="bonuses" id="bonuses" class="form-control amount-field" placeholder="0.00">
                         </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mt-4 mb-3">
+                        <h6 class="text-success mb-0">Allowances (Add-ons)</h6>
+                        <div class="d-flex gap-2">
+                            @if($allowanceTypes->isEmpty())
+                                <a href="{{ route('admin.settings.allowances.index') }}" class="btn btn-sm btn-warning py-0">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Setup Allowance Types
+                                </a>
+                            @endif
+                            <button type="button" id="add-allowance-row" class="btn btn-sm btn-outline-success py-0" {{ $allowanceTypes->isEmpty() ? 'disabled' : '' }}>
+                                <i class="bi bi-plus-circle me-1"></i> Add Allowance
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="allowances-list" class="vstack gap-2 mb-4">
+                        <!-- Allowance Rows will be added here -->
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mt-4 mb-3">
@@ -139,10 +157,6 @@
 
                     <div id="deductions-list" class="vstack gap-2">
                         <!-- Initial Standard Deductions -->
-                        @php
-                            $standard = ['SSS', 'LOAN_SSS', 'PAGIBIG', 'LOAN_PAGIBIG', 'PHILHEALTH', 'HMO_DEP'];
-                        @endphp
-                        
                         <div class="row g-2 deduction-entry align-items-center">
                             <div class="col-md-7">
                                 <select name="deductions[0][type]" class="form-select status-select shadow-sm" style="height: auto !important; min-height: 38px;">
@@ -160,7 +174,7 @@
                                 </div>
                             </div>
                             <div class="col-md-1">
-                                <button type="button" class="btn btn-outline-secondary w-100 remove-row" disabled style="height: 38px;"><i class="bi bi-dash"></i></button>
+                                <button type="button" class="btn btn-outline-danger w-100 remove-row" style="height: 38px;"><i class="bi bi-trash"></i></button>
                             </div>
                         </div>
                     </div>
@@ -186,6 +200,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const allowanceTypes = @json($allowanceTypes);
+    const deductionTypes = @json($deductionTypes);
+
     const employeeSelect = document.getElementById('employee_id');
     const amountFields = document.querySelectorAll('.amount-field');
     const basisInfo = document.getElementById('basis-info');
@@ -254,6 +271,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 document.getElementById('bonuses').value = totalBonuses.toFixed(2);
 
+                // Auto-fill Allowances (Add-ons)
+                const allowancesList = document.getElementById('allowances-list');
+                allowancesList.innerHTML = '';
+                allowanceCount = 0; // Reset counter
+
+                if (allowanceTypes.length > 0) {
+                    allowanceTypes.forEach(type => {
+                        let amount = 0;
+                        if (type.type === 'fixed') {
+                            amount = type.default_amount;
+                        } else if (type.type === 'daily') {
+                            amount = type.default_amount * totalDays;
+                        }
+
+                        if (amount > 0) {
+                            addAllowanceRow(type.code, amount.toFixed(2));
+                        }
+                    });
+                }
+
                 // Auto-fill LATE and UT deductions
                 const list = document.getElementById('deductions-list');
                 list.innerHTML = '';
@@ -299,15 +336,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addDeductionRow(typeCode, amount, index) {
         const list = document.getElementById('deductions-list');
+        let options = '';
+        deductionTypes.forEach(t => {
+            options += `<option value="${t.code}" ${t.code === typeCode ? 'selected' : ''}>${t.name} (${t.code})</option>`;
+        });
+
         const template = `
             <div class="row g-2 deduction-entry align-items-center">
                 <div class="col-md-7">
                     <select name="deductions[${index}][type]" class="form-select status-select shadow-sm" style="height: auto !important; min-height: 38px;">
-                        @forelse($deductionTypes as $type)
-                            <option value="{{ $type->code }}" ${typeCode === '{{ $type->code }}' ? 'selected' : ''}>{{ $type->name }} ({{ $type->code }})</option>
-                        @empty
-                            <option value="">-- No Deduction Types Defined --</option>
-                        @endforelse
+                        ${options}
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -330,42 +368,104 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function calculateNetPay() {
-        let b = parseFloat(document.getElementById('basic_pay').value) || 0;
-        let ot = parseFloat(document.getElementById('overtime_pay').value) || 0;
-        let bo = parseFloat(document.getElementById('bonuses').value) || 0;
+    // New Allowance Logic
+    let allowanceCount = 0;
+    let deductionCount = 1; // Start from 1 because of initial row or handled by auto-fill
+    const allowancesList = document.getElementById('allowances-list');
+    const addAllowanceBtn = document.getElementById('add-allowance-row');
+    const addDeductionBtn = document.getElementById('add-deduction-row');
+
+    if (addAllowanceBtn) {
+        addAllowanceBtn.addEventListener('click', function() {
+            addAllowanceRow('', 0);
+        });
+    }
+
+    if (addDeductionBtn) {
+        addDeductionBtn.addEventListener('click', function() {
+            // Find highest index
+            const rows = document.querySelectorAll('.deduction-entry').length;
+            addDeductionRow('', 0, rows);
+        });
+    }
+
+    function addAllowanceRow(code = '', amount = 0) {
+        const index = allowanceCount++;
+        let options = '<option value="">-- Select --</option>';
+        allowanceTypes.forEach(t => {
+            options += `<option value="${t.code}" ${t.code === code ? 'selected' : ''}>${t.name}</option>`;
+        });
+
+        const row = `
+            <div class="row g-2 allowance-entry align-items-center">
+                <div class="col-md-7">
+                    <select name="allowances[${index}][type]" class="form-select shadow-sm" style="min-height: 38px;">
+                        ${options}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">₱</span>
+                        <input type="number" step="0.01" name="allowances[${index}][amount]" class="form-control amount-field allowance-amount border-start-0" value="${amount}" style="height: 38px;">
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-secondary w-100 remove-allowance" style="height: 38px;"><i class="bi bi-dash"></i></button>
+                </div>
+            </div>
+        `;
+        allowancesList.insertAdjacentHTML('beforeend', row);
         
-        let deductionsTotal = 0;
-        document.querySelectorAll('.deduction-amount').forEach(el => {
-            deductionsTotal += parseFloat(el.value) || 0;
+        const newRow = allowancesList.lastElementChild;
+        newRow.querySelector('.amount-field').addEventListener('input', calculateNetPay);
+        newRow.querySelector('.remove-allowance').addEventListener('click', function() {
+            newRow.remove();
+            calculateNetPay();
         });
         
-        let earnings = b + ot + bo;
-        let net = earnings - deductionsTotal;
+        calculateNetPay();
+    }
+
+    // Update calculateNetPay to include allowances
+    function calculateNetPay() {
+        let basic = parseFloat(document.getElementById('basic_pay').value) || 0;
+        let ot = parseFloat(document.getElementById('overtime_pay').value) || 0;
+        let bonuses = parseFloat(document.getElementById('bonuses').value) || 0;
+        
+        let allowances = 0;
+        document.querySelectorAll('.allowance-amount').forEach(input => {
+            allowances += parseFloat(input.value) || 0;
+        });
+
+        let deductions = 0;
+        document.querySelectorAll('.deduction-amount').forEach(input => {
+            deductions += parseFloat(input.value) || 0;
+        });
+
+        let net = (basic + ot + bonuses + allowances) - deductions;
         document.getElementById('net-pay-val').textContent = '₱' + net.toLocaleString(undefined, {minimumFractionDigits: 2});
     }
 
-    // Dynamic Row Adding
-    let rowIndex = 10; // Start high to avoid collision with auto-filled indices
-    document.getElementById('add-deduction-row').addEventListener('click', function() {
-        addDeductionRow('SSS', '0.00', rowIndex++);
+    // Add listeners to existing amount fields
+    document.querySelectorAll('.amount-field').forEach(field => {
+        field.addEventListener('input', calculateNetPay);
     });
 
-    employeeSelect.addEventListener('change', function(e) { fetchBasis(e.target.value); });
-    amountFields.forEach(function(f) { f.addEventListener('input', calculateNetPay); });
-    
-    // Initial Calc listener for first row
-    document.querySelector('.deduction-amount').addEventListener('input', calculateNetPay);
+    // Handle initial deduction row removal
+    document.querySelectorAll('.remove-row').forEach(btn => {
+        btn.addEventListener('click', function() {
+            btn.closest('.row').remove();
+            calculateNetPay();
+        });
+    });
 
-    if (employeeSelect.value) { 
-        setTimeout(function() { fetchBasis(employeeSelect.value); }, 100);
+    employeeSelect.addEventListener('change', function() {
+        fetchBasis(this.value);
+    });
+
+    if (employeeSelect.value) {
+        fetchBasis(employeeSelect.value);
     }
-
-    document.getElementById('payslip-form').addEventListener('submit', function(e) {
-        const btn = this.querySelector('button[type="submit"]');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
-    });
 });
 </script>
 @endsection

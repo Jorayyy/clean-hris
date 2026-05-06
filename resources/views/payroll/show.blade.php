@@ -128,6 +128,7 @@
                         <th rowspan="2">Employee</th>
                         <th colspan="2">Work Info</th>
                         <th colspan="3">Earnings</th>
+                        <th rowspan="2">Add-ons</th>
                         <th colspan="3">Deductions</th>
                         <th rowspan="2">Net Pay</th>
                         <th rowspan="2">Actions</th>
@@ -152,6 +153,15 @@
                         <td>{{ number_format($item->basic_pay, 2) }}</td>
                         <td>{{ number_format($item->overtime_pay, 2) }}</td>
                         <td>{{ number_format($item->bonuses, 2) }}</td>
+                        <td>
+                            @php
+                                $total_addons = 0;
+                                if($item->allowances_json) {
+                                    foreach($item->allowances_json as $a) $total_addons += $a['amount'];
+                                }
+                            @endphp
+                            <span class="text-success">+{{ number_format($total_addons, 2) }}</span>
+                        </td>
                         <td class="text-danger">-{{ number_format($item->deductions_sss, 2) }}</td>
                         <td class="text-danger">-{{ number_format($item->deductions_pagibig, 2) }}</td>
                         <td class="text-danger">-{{ number_format($item->deductions_philhealth, 2) }}</td>

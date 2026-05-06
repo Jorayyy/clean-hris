@@ -9,8 +9,13 @@ use App\Models\PayrollItem;
 use App\Models\SupportTicket;
 use App\Models\Holiday;
 use App\Models\PayrollGroup;
+use App\Models\Position;
+use App\Models\Classification;
+use App\Models\Level;
+use App\Models\Dtr;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
@@ -22,8 +27,36 @@ class AdminDashboardController extends Controller
         $pendingTickets = SupportTicket::whereIn('status', ['open', 'in_progress'])->count();
         $totalPayrollDisbursed = PayrollItem::sum('net_pay');
 
+        // Distribution Data for Charts
+        $classificationCounts = Employee::select(
+                DB::raw('COALESCE(classification, "Unassigned") as classification'), 
+                DB::raw('count(*) as total')
+            )
+            ->where('status', 'active')
+            ->groupBy('classification')
+            ->get();
+            
+        $positionCounts = Employee::select('position', DB::raw('count(*) as total'))
+            ->where('status', 'active')
+            ->groupBy('position')
+            ->get();
+
+        // High Overtime / Late Watchlist (Current Month)
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $watchlist = Dtr::with('employee')
+            ->where('start_date', '>=', $startOfMonth)
+            ->select('employee_id', 
+                DB::raw('SUM(total_late_minutes) as late_mins'),
+                DB::raw('SUM(total_overtime_hours) as ot_hours'))
+            ->groupBy('employee_id')
+            ->having('late_mins', '>', 0)
+            ->orHaving('ot_hours', '>', 0)
+            ->orderBy('late_mins', 'desc')
+            ->limit(5)
+            ->get();
+
         // Recent Activity / Critical Tasks
-        $pendingDtrs = \App\Models\Dtr::where('status', 'pending')->count();
+        $pendingDtrs = Dtr::where('status', 'pending')->count();
         $unprocessedPayrolls = Payroll::where('status', 'draft')->count();
 
         // Chart Data: Attendance & Payroll Trends
@@ -65,43 +98,22 @@ class AdminDashboardController extends Controller
 
         $groups = PayrollGroup::withCount('employees')->get();
 
-        if (auth()->user()->hasRole('Accounting Admin') || auth()->user()->role === 'admin') {
-            return view('admin.dashboard_accounting', compact(
-                'totalEmployees',
-                'totalAttendanceToday',
-                'pendingTickets',
-                'totalPayrollDisbursed',
-                'attendanceLabels',
-                'attendanceCounts',
-                'recentPayrolls',
-                'recentTickets',
-                'groups',
-                'upcomingHolidays',
-                'upcomingBirthdays',
-                'pendingDtrs',
-                'unprocessedPayrolls'
-            ));
-        }
+        // Site Distribution
+        $siteDistribution = Employee::select('sites.name as site_name', DB::raw('count(employees.id) as total'))
+            ->join('sites', 'employees.site_id', '=', 'sites.id')
+            ->where('employees.status', 'active')
+            ->groupBy('sites.name')
+            ->get();
 
-        if (auth()->user()->hasRole('HR Admin')) {
-            return view('admin.dashboard_hr', compact(
-                'totalEmployees',
-                'totalAttendanceToday',
-                'pendingTickets',
-                'totalPayrollDisbursed',
-                'attendanceLabels',
-                'attendanceCounts',
-                'recentPayrolls',
-                'recentTickets',
-                'groups',
-                'upcomingHolidays',
-                'upcomingBirthdays',
-                'pendingDtrs',
-                'unprocessedPayrolls'
-            ));
-        }
+        // Yield vs Overtime (Current Month)
+        $yieldMetrics = Dtr::where('start_date', '>=', $startOfMonth)
+            ->select(
+                DB::raw('SUM(total_regular_hours) as reg_hours'),
+                DB::raw('SUM(total_overtime_hours) as ot_hours')
+            )
+            ->first();
 
-        return view('admin.dashboard', compact(
+        $compactData = [
             'totalEmployees',
             'totalAttendanceToday',
             'pendingTickets',
@@ -114,7 +126,22 @@ class AdminDashboardController extends Controller
             'upcomingHolidays',
             'upcomingBirthdays',
             'pendingDtrs',
-            'unprocessedPayrolls'
-        ));
+            'unprocessedPayrolls',
+            'classificationCounts',
+            'positionCounts',
+            'watchlist',
+            'siteDistribution',
+            'yieldMetrics'
+        ];
+
+        if (auth()->user()->hasRole('Accounting Admin') || auth()->user()->role === 'admin') {
+            return view('admin.dashboard_accounting', compact(...$compactData));
+        }
+
+        if (auth()->user()->hasRole('HR Admin')) {
+            return view('admin.dashboard_hr', compact(...$compactData));
+        }
+
+        return view('admin.dashboard', compact(...$compactData));
     }
 }

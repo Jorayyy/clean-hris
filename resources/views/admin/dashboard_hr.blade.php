@@ -95,7 +95,19 @@
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-4 mb-4">
+    <!-- Workforce Distribution -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3 ps-4">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart-fill me-2 text-info"></i>BPO Pulse (Classification)</h6>
+            </div>
+            <div class="card-body px-4">
+                <div id="classChart" style="min-height: 250px;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Attendance Chart -->
     <div class="col-md-8">
         <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -103,36 +115,164 @@
                 <h6 class="mb-0 fw-bold border-start border-4 border-primary ps-2">Attendance Volume (Last 7 Days)</h6>
             </div>
             <div class="card-body">
-                <canvas id="attendanceChart" height="250"></canvas>
+                <div id="attendanceChart" style="min-height: 250px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4 d-flex align-items-stretch">
+    <!-- Workforce Insight Modules -->
+    <div class="col-lg-8">
+        <div class="row g-4 h-100">
+            <!-- Site Distribution -->
+            <div class="col-md-6 d-flex flex-column">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-header bg-white border-0 py-3 ps-4">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Site Distribution</h6>
+                    </div>
+                    <div class="card-body px-4 pt-0">
+                        <div class="list-group list-group-flush">
+                            @forelse($siteDistribution as $site)
+                                <div class="list-group-item px-0 border-0 py-2 d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted fw-medium">{{ $site->site_name }}</span>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-bold me-2">{{ $site->total }}</span>
+                                        <div class="progress" style="width: 60px; height: 6px;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ ($totalEmployees > 0) ? ($site->total / $totalEmployees * 100) : 0 }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-muted small py-3">No site data available</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yield vs Overtime -->
+            <div class="col-md-6 d-flex flex-column">
+                <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
+                    <div class="card-header bg-white border-0 py-3 ps-4">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Yield vs Overtime</h6>
+                    </div>
+                    <div class="card-body px-4 pt-0 d-flex flex-column justify-content-center">
+                        @php
+                            $totalHours = ($yieldMetrics->reg_hours ?? 0) + ($yieldMetrics->ot_hours ?? 0);
+                            $regPercent = $totalHours > 0 ? (($yieldMetrics->reg_hours ?? 0) / $totalHours * 100) : 0;
+                            $otPercent = $totalHours > 0 ? (($yieldMetrics->ot_hours ?? 0) / $totalHours * 100) : 0;
+                        @endphp
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small text-muted">Regular Hours</span>
+                                <span class="small fw-bold">{{ number_format($yieldMetrics->reg_hours ?? 0, 1) }}h</span>
+                            </div>
+                            <div class="progress rounded-pill" style="height: 12px;">
+                                <div class="progress-bar bg-success-subtle text-success progress-bar-striped" role="progressbar" style="width: {{ $regPercent }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small text-muted">Overtime Hours</span>
+                                <span class="small fw-bold text-danger">{{ number_format($yieldMetrics->ot_hours ?? 0, 1) }}h</span>
+                            </div>
+                            <div class="progress rounded-pill" style="height: 12px;">
+                                <div class="progress-bar bg-danger-subtle text-danger progress-bar-striped" role="progressbar" style="width: {{ $otPercent }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-auto p-3 bg-light rounded-4 border-dashed">
+                            <div class="text-center">
+                                <div class="small text-muted mb-1 text-uppercase tracking-wider" style="font-size: 0.65rem;">Efficiency Ratio</div>
+                                <h4 class="fw-800 mb-0">{{ $regPercent > 0 ? number_format($regPercent, 1) : 0 }}%</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Calendar Area -->
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-white py-3 border-0">
-                <h6 class="mb-0 fw-bold">Workforce Events</h6>
+    <!-- Sidebar Area -->
+    <div class="col-lg-4 d-flex flex-column">
+        <!-- Payroll Deadline / Runway -->
+        <div class="card shadow-sm border-0 border-start border-4 border-warning rounded-4 bg-primary-subtle mb-4 overflow-hidden">
+            <div class="card-body p-4">
+                <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-3">Payroll Runway</h6>
+                @php
+                    $activePayroll = \App\Models\Payroll::where('status', '!=', 'approved')->latest()->first();
+                @endphp
+                @if($activePayroll)
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold text-dark">{{ $activePayroll->payroll_code }}</span>
+                        <span class="badge bg-warning text-dark">{{ ucfirst($activePayroll->status) }}</span>
+                    </div>
+                    <div class="progress bg-white mb-3" style="height: 10px; border-radius: 10px;">
+                        @php
+                            $prog = $activePayroll->status == 'draft' ? 25 : ($activePayroll->status == 'processing' ? 60 : 90);
+                        @endphp
+                        <div class="progress-bar bg-warning" style="width: {{ $prog }}%"></div>
+                    </div>
+                    <p class="small text-muted mb-0">Target Disbursement: <strong class="text-dark">{{ $activePayroll->pay_date }}</strong></p>
+                @else
+                    @php
+                        $today = \Carbon\Carbon::now();
+                        $nextPayrollDate = $today->day <= 15 
+                            ? $today->copy()->day(15) 
+                            : $today->copy()->endOfMonth();
+                    @endphp
+                    <div class="d-flex flex-column align-items-center py-2 text-center">
+                        <i class="bi bi-calendar2-check mb-2 text-primary" style="font-size: 1.5rem;"></i>
+                        <p class="small text-dark fw-bold mb-1">Next Estimated Payroll</p>
+                        <p class="small text-muted mb-3">{{ $nextPayrollDate->format('M d, Y') }} ({{ $nextPayrollDate->format('l') }})</p>
+                        <a href="{{ route('payroll.create') }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                            <i class="bi bi-plus-circle me-1"></i> Create New Batch
+                        </a>
+                    </div>
+                @endif
             </div>
-            <div class="card-body overflow-auto" style="max-height: 300px;">
-                <p class="text-muted small fw-bold text-uppercase border-bottom pb-1">Upcoming Holidays</p>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3 ps-4">
+                <h6 class="mb-0 fw-bold">Workforce Calendar</h6>
+            </div>
+            <div class="card-body p-4 pt-0">
+                <h6 class="fw-bold small text-muted mb-3 tracking-wider text-uppercase font-monospace border-bottom pb-2 mt-2">Upcoming Holidays</h6>
                 @forelse($upcomingHolidays as $holiday)
-                    <div class="d-flex justify-content-between mb-2 small">
-                        <span>{{ $holiday->name }}</span>
-                        <span class="text-primary fw-bold">{{ $holiday->date?->format('M d') ?? 'N/A' }}</span>
+                    <div class="d-flex align-items-center p-2 mb-2 bg-light rounded-3">
+                        <div class="bg-primary text-white rounded-pill px-3 py-1 me-3 text-center" style="min-width: 60px;">
+                            <span class="fw-800 small d-block lh-1">{{ \Carbon\Carbon::parse($holiday->date)->format('d') }}</span>
+                            <span class="small opacity-75" style="font-size: 0.6rem;">{{ strtoupper(\Carbon\Carbon::parse($holiday->date)->format('M')) }}</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold small text-dark">{{ $holiday->name }}</h6>
+                            <span class="badge bg-primary-subtle text-primary border-primary-subtle py-0 small">{{ ucfirst($holiday->type) }}</span>
+                        </div>
                     </div>
                 @empty
-                    <p class="text-muted small text-center py-2">No upcoming holidays</p>
+                    <p class="text-muted small text-center py-2">No upcoming holidays recorded</p>
                 @endforelse
 
-                <p class="text-muted small fw-bold text-uppercase border-bottom pb-1 mt-3">Employee Birthdays</p>
+                <h6 class="fw-bold small text-muted mb-3 tracking-wider text-uppercase font-monospace border-bottom pb-2 mt-4">Employee Birthdays</h6>
                 @forelse($upcomingBirthdays as $emp)
-                    <div class="d-flex align-items-center mb-2 small">
-                        <div class="bg-info-subtle text-info rounded-circle me-2 p-1 px-2" style="font-size: 10px;">
-                            <i class="bi bi-cake2"></i>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            @if($emp->photo)
+                                <img src="{{ asset('storage/' . $emp->photo) }}" class="rounded-circle shadow-sm" width="35" height="35" style="object-fit: cover;">
+                            @else
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-person small"></i>
+                                </div>
+                            @endif
                         </div>
-                        <span class="flex-grow-1">{{ $emp->name }}</span>
-                        <span class="text-muted">{{ $emp->birthday ? Carbon\Carbon::parse($emp->birthday)->format('M d') : 'N/A' }}</span>
+                        <div class="ms-3 flex-grow-1">
+                            <h6 class="mb-0 fw-bold small text-dark">{{ $emp->full_name }}</h6>
+                            <span class="text-muted" style="font-size: 0.7rem;">{{ \Carbon\Carbon::parse($emp->birthday)->format('M d') }}</span>
+                        </div>
+                        <div class="bg-warning-subtle text-warning p-1 rounded-pill">
+                            <i class="bi bi-cake2-fill" style="font-size: 0.8rem;"></i>
+                        </div>
                     </div>
                 @empty
                     <p class="text-muted small text-center py-2">None this month</p>
@@ -140,10 +280,39 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="row g-4">
+    <!-- Active Payroll Groups -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-white py-3 border-0 ps-4">
+                <h6 class="mb-0 fw-bold">Distribution by Group</h6>
+            </div>
+            <div class="card-body p-4 pt-1">
+                @foreach($groups as $group)
+                    @php 
+                        $percentage = $totalEmployees > 0 ? ($group->employees_count / $totalEmployees) * 100 : 0;
+                        $colors = ['primary', 'info', 'success', 'warning', 'danger'];
+                        $clr = $colors[$loop->index % count($colors)];
+                    @endphp
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold small text-dark">{{ $group->name }}</span>
+                            <span class="text-muted fw-bold" style="font-size: 0.75rem;">{{ $group->employees_count }} Emps</span>
+                        </div>
+                        <div class="progress rounded-pill shadow-sm" style="height: 10px;">
+                            <div class="progress-bar bg-{{ $clr }} rounded-pill" role="progressbar" style="width: {{ $percentage }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
 
     <!-- Recent Tickets -->
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm rounded-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-white py-3 border-0">
                 <h6 class="mb-0 fw-bold">Recent Support Tickets</h6>
             </div>
@@ -201,37 +370,78 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('attendanceChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: {!! json_encode($attendanceLabels) !!},
-                datasets: [{
-                    label: 'Present Employees',
-                    data: {!! json_encode($attendanceCounts) !!},
-                    borderColor: '#0dcaf0',
-                    backgroundColor: 'rgba(13, 202, 240, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#0dcaf0',
-                    pointBorderWidth: 2
-                }]
+        var options = {
+            series: [{
+                name: 'Logs Today',
+                data: @json($attendanceCounts ?? [])
+            }],
+            chart: {
+                height: 250,
+                type: 'area',
+                toolbar: { show: false },
+                zoom: { enabled: false }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 1 } },
-                    x: { grid: { display: false } }
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 2 },
+            xaxis: {
+                categories: @json($attendanceLabels ?? []),
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: { show: false },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.45,
+                    opacityTo: 0.05,
+                    stops: [20, 100, 100, 100]
+                }
+            },
+            colors: ['#0d6efd'],
+            grid: { borderColor: '#f1f1f1', strokeDashArray: 4 }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#attendanceChart"), options);
+        chart.render();
+
+        // Classification Donut Chart
+        var classOptions = {
+            series: @json($classificationCounts->pluck('total')),
+            labels: @json($classificationCounts->pluck('classification')),
+            chart: {
+                height: 250,
+                type: 'donut',
+            },
+            dataLabels: { enabled: false },
+            legend: { position: 'bottom' },
+            colors: ['#0d6efd', '#0dcaf0', '#198754', '#ffc107', '#dc3545'],
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '65%'
+                    }
                 }
             }
-        });
+        };
+        var classChart = new ApexCharts(document.querySelector("#classChart"), classOptions);
+        classChart.render();
     });
 </script>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .tracking-tight { letter-spacing: -0.025em; }
+    .tracking-wider { letter-spacing: 0.1em; }
+    .rounded-4 { border-radius: 1rem !important; }
+    .bg-primary-subtle { background-color: #e0f2fe !important; }
+    .bg-danger-subtle { background-color: #fee2e2 !important; }
+    .bg-warning-subtle { background-color: #fef3c7 !important; }
+    .bg-info-subtle { background-color: #e0f2fe !important; }
+    .font-monospace { font-family: 'JetBrains Mono', 'Courier New', monospace !important; }
+    .progress-bar { transition: width 1s ease-in-out; }
+</style>
 @endsection

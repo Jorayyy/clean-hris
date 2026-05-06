@@ -109,8 +109,25 @@
                 <div class="data-row"><span>Overtime Pay:</span> <strong>P{{ number_format($item->overtime_pay, 2) }}</strong></div>
                 <div class="data-row"><span>Bonus / Incentives:</span> <strong>P{{ number_format($item->bonuses, 2) }}</strong></div>
                 <div class="data-row"><span>Night Differential:</span> <strong>P{{ number_format($item->night_diff, 2) }}</strong></div>
+                
+                @if($item->allowances_json && count($item->allowances_json) > 0)
+                    @php 
+                        $types_allow = \App\Models\AllowanceType::pluck('name', 'code')->toArray();
+                        $sum_allowances = 0;
+                    @endphp
+                    @foreach($item->allowances_json as $a)
+                        <div class="data-row">
+                            <span>{{ $types_allow[$a['type']] ?? $a['type'] }}:</span> 
+                            <strong>+P{{ number_format($a['amount'], 2) }}</strong>
+                        </div>
+                        @php $sum_allowances += $a['amount']; @endphp
+                    @endforeach
+                @else
+                    @php $sum_allowances = 0; @endphp
+                @endif
+
                 <hr>
-                <div class="data-row text-success"><span>GROSS PAY:</span> <strong>P{{ number_format($item->basic_pay + $item->overtime_pay + $item->bonuses + $item->night_diff, 2) }}</strong></div>
+                <div class="data-row text-success"><span>GROSS PAY:</span> <strong>P{{ number_format($item->basic_pay + $item->overtime_pay + $item->bonuses + $item->night_diff + $sum_allowances, 2) }}</strong></div>
             </div>
             <div class="col-md-6 text-center">
                 <span class="category-title text-danger">DEDUCTIONS (-)</span>

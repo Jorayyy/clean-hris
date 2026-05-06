@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\AuthorizedNetworkController;
 use App\Http\Controllers\Admin\AppSettingController;
 use App\Http\Controllers\Admin\PayrollSettingController;
 use App\Http\Controllers\Admin\DeductionTypeController;
+use App\Http\Controllers\Admin\AllowanceTypeController;
 use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\PayrollItemController;
 use App\Http\Controllers\Admin\AuditLogController;
@@ -66,6 +67,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::post('admin/payroll-settings', [PayrollSettingController::class, 'update'])->name('admin.payroll-settings.update');
 
         Route::resource('admin/settings/deductions', DeductionTypeController::class)->names('admin.settings.deductions');
+        Route::resource('admin/settings/allowances', AllowanceTypeController::class)->names('admin.settings.allowances');
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
 
         // BPO Designations
