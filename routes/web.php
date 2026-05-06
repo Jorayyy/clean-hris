@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\AuthorizedNetworkController;
 use App\Http\Controllers\Admin\AppSettingController;
 use App\Http\Controllers\Admin\PayrollSettingController;
 use App\Http\Controllers\Admin\DeductionTypeController;
+use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\PayrollItemController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\QueueMonitorController;
@@ -66,6 +67,20 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 
         Route::resource('admin/settings/deductions', DeductionTypeController::class)->names('admin.settings.deductions');
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
+
+        // BPO Designations
+        Route::prefix('admin/designations')->name('admin.designations.')->group(function () {
+            Route::get('/', [DesignationController::class, 'index'])->name('index');
+            
+            Route::post('/positions', [DesignationController::class, 'storePosition'])->name('position.store');
+            Route::delete('/positions/{position}', [DesignationController::class, 'destroyPosition'])->name('position.destroy');
+            
+            Route::post('/classifications', [DesignationController::class, 'storeClassification'])->name('classification.store');
+            Route::delete('/classifications/{classification}', [DesignationController::class, 'destroyClassification'])->name('classification.destroy');
+            
+            Route::post('/levels', [DesignationController::class, 'storeLevel'])->name('level.store');
+            Route::delete('/levels/{level}', [DesignationController::class, 'destroyLevel'])->name('level.destroy');
+        });
     });
 
     Route::resource('schedules', ScheduleController::class);

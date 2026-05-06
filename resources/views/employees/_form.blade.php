@@ -65,6 +65,34 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ isset($employee) ? 'Change Portal Password' : 'Portal Password' }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" 
+                                   placeholder="{{ isset($employee) ? 'Leave blank to keep current' : 'Initial Password' }}">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        @error('password')
+                            <div class="text-danger small">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Confirm Portal Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" name="password_confirmation" class="form-control" 
+                                   placeholder="Confirm Password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Row 1: Title -->
                 <div class="row mb-3">
                     <div class="col-md-4">
@@ -214,23 +242,25 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Classification</label>
-                            <select name="employment_type" class="form-select @error('employment_type') is-invalid @enderror">
+                            <select name="classification" class="form-select @error('classification') is-invalid @enderror">
                                 <option value="">Select</option>
-                                <option value="Probationary" {{ old('employment_type', $employee->employment_type ?? '') == 'Probationary' ? 'selected' : '' }}>Probationary</option>
-                                <option value="Regular" {{ old('employment_type', $employee->employment_type ?? '') == 'Regular' ? 'selected' : '' }}>Regular</option>
+                                @foreach($classifications as $item)
+                                    <option value="{{ $item->name }}" {{ old('classification', $employee->classification ?? '') == $item->name ? 'selected' : '' }}>{{ $item->name }}</option>
+                                @endforeach
                             </select>
-                            @error('employment_type')
+                            @error('classification')
                                 <div class="text-danger small mt-1">Classification is required</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Level</label>
-                            <select name="classification" class="form-select @error('classification') is-invalid @enderror">
-                                <option value="HR" {{ old('classification', $employee->classification ?? '') == 'HR' ? 'selected' : '' }}>HR</option>
-                                <option value="Accounting" {{ old('classification', $employee->classification ?? '') == 'Accounting' ? 'selected' : '' }}>Accounting</option>
-                                <option value="Marketing" {{ old('classification', $employee->classification ?? '') == 'Marketing' ? 'selected' : '' }}>Marketing</option>
+                            <select name="level" class="form-select @error('level') is-invalid @enderror">
+                                <option value="">Select</option>
+                                @foreach($levels as $item)
+                                    <option value="{{ $item->name }}" {{ old('level', $employee->level ?? '') == $item->name ? 'selected' : '' }}>{{ $item->name }}</option>
+                                @endforeach
                             </select>
-                            @error('classification')
+                            @error('level')
                                 <div class="text-danger small mt-1">Level is required</div>
                             @enderror
                         </div>
@@ -241,31 +271,29 @@
                             <label class="form-label fw-bold">Position</label>
                             <select name="position" class="form-select @error('position') is-invalid @enderror">
                                 <option value="">Select</option>
-                                <option value="Customer Service Representative (CSR)" {{ old('position', $employee->position ?? '') == 'Customer Service Representative (CSR)' ? 'selected' : '' }}>Customer Service Representative (CSR)</option>
-                                <option value="Technical Support Representative (TSR)" {{ old('position', $employee->position ?? '') == 'Technical Support Representative (TSR)' ? 'selected' : '' }}>Technical Support Representative (TSR)</option>
-                                <option value="Outbound Sales Agent" {{ old('position', $employee->position ?? '') == 'Outbound Sales Agent' ? 'selected' : '' }}>Outbound Sales Agent</option>
-                                <option value="Quality Assurance (QA) Specialist" {{ old('position', $employee->position ?? '') == 'Quality Assurance (QA) Specialist' ? 'selected' : '' }}>Quality Assurance (QA) Specialist</option>
-                                <option value="Team Leader (TL)" {{ old('position', $employee->position ?? '') == 'Team Leader (TL)' ? 'selected' : '' }}>Team Leader (TL)</option>
-                                <option value="Operations Manager (OM)" {{ old('position', $employee->position ?? '') == 'Operations Manager (OM)' ? 'selected' : '' }}>Operations Manager (OM)</option>
-                                <option value="Trainer" {{ old('position', $employee->position ?? '') == 'Trainer' ? 'selected' : '' }}>Trainer</option>
-                                <option value="Subject Matter Expert (SME)" {{ old('position', $employee->position ?? '') == 'Subject Matter Expert (SME)' ? 'selected' : '' }}>Subject Matter Expert (SME)</option>
-                                @if(isset($employee) && !in_array($employee->position, [
-                                    'Customer Service Representative (CSR)', 
-                                    'Technical Support Representative (TSR)', 
-                                    'Outbound Sales Agent', 
-                                    'Quality Assurance (QA) Specialist',
-                                    'Team Leader (TL)',
-                                    'Operations Manager (OM)',
-                                    'Trainer',
-                                    'Subject Matter Expert (SME)'
-                                ]))
-                                    <option value="{{ $employee->position }}" selected>{{ $employee->position }}</option>
-                                @endif
+                                @foreach($positions as $item)
+                                    <option value="{{ $item->name }}" {{ old('position', $employee->position ?? '') == $item->name ? 'selected' : '' }}>{{ $item->name }}</option>
+                                @endforeach
                             </select>
                             @error('position')
                                 <div class="text-danger small mt-1">Position is required</div>
                             @enderror
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Employment Type</label>
+                            <select name="employment_type" class="form-select @error('employment_type') is-invalid @enderror">
+                                <option value="">Select</option>
+                                <option value="Probationary" {{ old('employment_type', $employee->employment_type ?? '') == 'Probationary' ? 'selected' : '' }}>Probationary</option>
+                                <option value="Regular" {{ old('employment_type', $employee->employment_type ?? '') == 'Regular' ? 'selected' : '' }}>Regular</option>
+                                <option value="Project Based" {{ old('employment_type', $employee->employment_type ?? '') == 'Project Based' ? 'selected' : '' }}>Project Based</option>
+                            </select>
+                            @error('employment_type')
+                                <div class="text-danger small mt-1">Employment Type is required</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
                         <div class="col-md-6">
                             @php
                                 $user = auth()->user();
@@ -591,6 +619,50 @@
                     icon.classList.toggle('bi-eye');
                     icon.classList.toggle('bi-eye-slash');
                 }
+            });
+        }
+
+        // Toggle Password Visibility
+        function setupPasswordToggle(buttonId, inputId) {
+            const btn = document.getElementById(buttonId);
+            const input = document.getElementById(inputId);
+            if (btn && input) {
+                btn.addEventListener('click', function() {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('bi-eye');
+                        icon.classList.toggle('bi-eye-slash');
+                    }
+                });
+            }
+        }
+
+        // We need to add IDs to the password fields or use query selectors
+        // Since I didn't add IDs in the previous step, I'll use query selectors or target them after adding IDs
+        // Actually, let's just use the buttons we added
+        const togglePwdBtn = document.getElementById('togglePassword');
+        if(togglePwdBtn) {
+            togglePwdBtn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                const icon = this.querySelector('i');
+                icon.classList.toggle('bi-eye');
+                icon.classList.toggle('bi-eye-slash');
+            });
+        }
+        
+        const toggleConfirmPwdBtn = document.getElementById('toggleConfirmPassword');
+        if(toggleConfirmPwdBtn) {
+            toggleConfirmPwdBtn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                const icon = this.querySelector('i');
+                icon.classList.toggle('bi-eye');
+                icon.classList.toggle('bi-eye-slash');
             });
         }
     });

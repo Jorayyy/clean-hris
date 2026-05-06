@@ -103,6 +103,9 @@
                 <a href="{{ route('payroll-groups.index') }}" class="sidebar-link {{ request()->routeIs('payroll-groups.*') ? 'active' : '' }}">
                     <i class="bi bi-collection"></i> Payroll Groups
                 </a>
+                <a href="{{ route('admin.designations.index') }}" class="sidebar-link {{ request()->routeIs('admin.designations.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-badge"></i> BPO Designations
+                </a>
                 <a href="{{ route('authorized-networks.index') }}" class="sidebar-link {{ request()->routeIs('authorized-networks.*') ? 'active' : '' }}">
                     <i class="bi bi-shield-lock"></i> Authorized IP
                 </a>

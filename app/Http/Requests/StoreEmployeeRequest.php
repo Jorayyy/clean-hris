@@ -30,9 +30,13 @@ class StoreEmployeeRequest extends FormRequest
             'position' => 'required|string|max:255',
             'daily_rate' => 'required|numeric|min:0',
             'payroll_group_id' => 'required|exists:payroll_groups,id',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:active,inactive,resigned,terminated',
             'birthday' => 'nullable|date',
             'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'web_bundy_code' => 'required|string|min:4',
+            'classification' => 'required|string',
+            'level' => 'required|string',
         ];
     }
 }

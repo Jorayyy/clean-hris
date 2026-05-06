@@ -46,7 +46,10 @@
                                 <p class="small text-white-50 mb-0">Password required for sensitive payroll edits (DTR Overrides).</p>
                             </div>
                             <div class="col-md-4">
-                                <input type="password" name="dtr_edit_password" class="form-control bg-white bg-opacity-10 border-0 text-white placeholder-white-50" placeholder="Change password...">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white bg-opacity-10 border-0 text-white"><i class="bi bi-key"></i></span>
+                                    <input type="password" name="dtr_edit_password" class="form-control bg-white bg-opacity-25 border-0 text-white placeholder-white" placeholder="Change password...">
+                                </div>
                             </div>
                         </div>
                     </div>
