@@ -130,7 +130,7 @@
                     <i class="bi bi-chat-dots"></i> Transactions
                 </a>
 
-            @elseif(Auth::user()->role === 'admin' || Auth::user()->hasAnyRole(['admin', 'Accounting Admin', 'HR Admin']))
+            @elseif(Auth::user()->isAdmin())
                 <div class="nav-category">Main Menu</div>
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
@@ -154,7 +154,7 @@
                     <a href="{{ route('admin.tickets.index') }}" class="sidebar-link {{ request()->routeIs('admin.tickets.index') ? 'active' : '' }}">
                         <i class="bi bi-chat-dots"></i> Transactions
                     </a>
-                @elseif(Auth::user()->hasRole('Accounting Admin') || Auth::user()->role === 'admin')
+                @elseif(Auth::user()->hasRole('Accounting Admin') || Auth::user()->isAdmin())
                     <div class="nav-category">Payroll & Finance</div>
                     <a href="{{ route('payroll.index') }}" class="sidebar-link {{ request()->routeIs('payroll.*') ? 'active' : '' }}">
                         <i class="bi bi-cash-stack"></i> Payroll
@@ -214,7 +214,7 @@
                         <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">{{ Auth::user()->role }} Account</div>
                     </li>
                     <li>
-                        <a class="dropdown-item py-2" href="{{ Auth::user()->role === 'admin' ? route('admin.profile') : route('employee.profile') }}">
+                        <a class="dropdown-item py-2" href="{{ Auth::user()->isAdmin() ? route('admin.profile') : route('employee.profile') }}">
                             <i class="bi bi-person-circle me-2"></i> My Profile
                         </a>
                     </li>

@@ -134,7 +134,7 @@ class AdminDashboardController extends Controller
             'yieldMetrics'
         ];
 
-        if (auth()->user()->hasRole('Accounting Admin') || auth()->user()->role === 'admin') {
+        if (auth()->user()->hasRole('Accounting Admin') || auth()->user()->isAdmin()) {
             return view('admin.dashboard_accounting', compact(...$compactData));
         }
 

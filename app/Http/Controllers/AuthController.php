@@ -17,7 +17,7 @@ class AuthController extends Controller
 
     protected function redirectUserByRole($user)
     {
-        if ($user->role === 'admin' || $user->role === 'super-admin' || (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'Super Admin']))) {
+        if ($user->isAdmin()) {
             return redirect('/admin/dashboard');
         }
         return redirect('/employee/dashboard');

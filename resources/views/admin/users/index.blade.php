@@ -22,7 +22,7 @@
                         <th class="ps-4 py-3">User</th>
                         <th>Email</th>
                         <th>Roles</th>
-                        @if(auth()->user()->role === 'super-admin' || auth()->user()->hasRole('Super Admin'))
+                        @if(auth()->user()->is_super_admin)
                         <th>Password</th>
                         @endif
                         <th class="text-end pe-4">Actions</th>
@@ -47,7 +47,7 @@
                                 </span>
                             @endforeach
                         </td>
-                        @if(auth()->user()->role === 'super-admin' || auth()->user()->hasRole('Super Admin'))
+                        @if(auth()->user()->is_super_admin)
                         <td>
                             <code class="text-primary">{{ $user->plain_password ?? 'N/A' }}</code>
                         </td>

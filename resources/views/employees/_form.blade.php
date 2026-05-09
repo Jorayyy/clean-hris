@@ -298,7 +298,7 @@
                             @php
                                 $user = auth()->user();
                                 // Strictly check for Super Admin role names
-                                $isSuperAdmin = $user->hasRole('Super Admin') || $user->role === 'super-admin';
+                                $isSuperAdmin = $user->is_super_admin;
                                 
                                 // Strictly check for Accounting in level or classification
                                 $isAccounting = $user->employee && (

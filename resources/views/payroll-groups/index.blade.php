@@ -4,7 +4,7 @@
 <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Payroll Groups</h5>
-        @if(auth()->user()->role === 'super-admin')
+        @if(auth()->user()->is_super_admin)
             <a href="{{ route('payroll-groups.create') }}" class="btn btn-primary btn-sm">Add Group</a>
         @endif
     </div>
@@ -26,7 +26,7 @@
                         <td>{{ $group->description }}</td>
                         <td>{{ $group->employees_count }}</td>
                         <td>
-                            @if(auth()->user()->role === 'super-admin')
+                            @if(auth()->user()->is_super_admin)
                                 <a href="{{ route('payroll-groups.edit', $group->id) }}" class="btn btn-warning btn-sm">Edit</a>
                                 <form action="{{ route('payroll-groups.destroy', $group->id) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')

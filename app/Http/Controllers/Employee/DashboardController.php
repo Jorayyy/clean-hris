@@ -29,7 +29,7 @@ class DashboardController extends Controller
         $employee = \App\Models\Employee::where('id', $user->employee_id)->first();
         
         if (!$employee) {
-            if ($user->role === 'admin' || $user->role === 'super-admin') {
+            if ($user->isAdmin()) {
                 return redirect()->route('admin.dashboard')->with('info', 'You are on the employee dashboard but do not have an employee profile linked. Redirected to Admin Dashboard.');
             }
             return redirect('/login')->with('error', 'User not linked to an employee profile. Please contact human resources.');

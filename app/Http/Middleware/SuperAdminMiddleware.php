@@ -15,12 +15,7 @@ class SuperAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // NUCLEAR FIX: Wide open for anyone with 'admin' or 'super-admin' role string
-        // Bypassing Spatie permissions checks here to ensure immediate access
-        if ($request->user() && (
-            $request->user()->role === 'super-admin' || 
-            $request->user()->role === 'admin'
-        )) {
+        if ($request->user() && $request->user()->is_super_admin) {
             return $next($request);
         }
 
