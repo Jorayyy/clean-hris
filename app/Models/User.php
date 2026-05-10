@@ -48,4 +48,12 @@ class User extends Authenticatable
         return $this->is_super_admin || 
                $this->hasAnyRole(['HR Admin', 'Accounting Admin', 'admin', 'Admin']);
     }
+
+    /**
+     * Get the user's display name (email for clarity).
+     */
+    public function getDisplayNameAttribute()
+    {
+        return $this->email;
+    }
 }

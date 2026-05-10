@@ -8,7 +8,7 @@
             <div class="card-body p-4 position-relative d-flex flex-column justify-content-center">
                 <div class="position-relative z-1">
                     <h2 class="fw-800 mb-1 tracking-tight">Worker Dashboard</h2>
-                    <p class="mb-0 text-white-50 opacity-75">Welcome back, <strong>{{ Auth::user()->name }}</strong>. Track your progress below.</p>
+                    <p class="mb-0 text-white-50 opacity-75">Welcome back, <strong>{{ Auth::user()->email }}</strong>. Track your progress below.</p>
                 </div>
                 <div class="mt-4 d-flex gap-2">
                     <a href="{{ route('employee.profile') }}" class="btn btn-light btn-sm fw-bold px-3 rounded-pill">

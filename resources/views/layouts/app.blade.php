@@ -198,7 +198,7 @@
             </button>
             <div class="d-none d-lg-block">
                 <span class="text-muted small fw-medium text-uppercase">
-                    Welcome back, <span class="text-dark fw-bold">{{ Auth::user()->name }}</span>
+                    Welcome back, <span class="text-dark fw-bold">{{ Auth::user()->email }}</span>
                 </span>
             </div>
             <div class="dropdown">
@@ -206,12 +206,12 @@
                     <div class="bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                         {{ substr(Auth::user()->name, 0, 1) }}
                     </div>
-                    <span class="d-none d-sm-inline">{{ Auth::user()->name }}</span>
+                    <span class="d-none d-sm-inline">{{ Auth::user()->email }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userDropdown">
                     <li class="px-3 py-2 border-bottom">
                         <div class="fw-bold text-dark">{{ Auth::user()->name }}</div>
-                        <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">{{ Auth::user()->role }} Account</div>
+                        <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">{{ Auth::user()->email }}</div>
                     </li>
                     <li>
                         <a class="dropdown-item py-2" href="{{ Auth::user()->isAdmin() ? route('admin.profile') : route('employee.profile') }}">
