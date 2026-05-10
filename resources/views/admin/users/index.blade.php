@@ -36,7 +36,12 @@
                                 <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </div>
-                                <div class="fw-bold text-dark">{{ $user->name }}</div>
+                                <div class="fw-bold text-dark">
+                                    {{ $user->name }}
+                                    @if($user->email === auth()->user()->email)
+                                        <span class="badge bg-primary rounded-pill ms-1" style="font-size: 0.65rem;">YOU</span>
+                                    @endif
+                                </div>
                             </div>
                         </td>
                         <td>{{ $user->email }}</td>

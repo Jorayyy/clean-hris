@@ -29,6 +29,7 @@
                         <thead class="bg-light">
                             <tr>
                                 <th style="width: 200px;">Role Name</th>
+                                <th>Users</th>
                                 <th>Role Description</th>
                                 <th>Remarks</th>
                                 <th style="width: 150px;" class="text-center">Actions</th>
@@ -41,6 +42,17 @@
                                     <span class="fw-bold text-uppercase">{{ $role->name }}</span>
                                     @if($role->name === 'super-admin' || $role->name === 'admin')
                                         <i class="bi bi-patch-check-fill text-primary ms-1" title="System Role"></i>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($role->users->count() > 0)
+                                        @foreach($role->users as $u)
+                                            <span class="badge bg-light text-dark border rounded-pill mb-1">
+                                                {{ $u->email }}
+                                            </span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-muted small italic text-sm">No users assigned</span>
                                     @endif
                                 </td>
                                 <td>{{ $role->description ?? 'N/A' }}</td>

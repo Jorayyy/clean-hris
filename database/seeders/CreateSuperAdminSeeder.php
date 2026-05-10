@@ -22,17 +22,35 @@ class CreateSuperAdminSeeder extends Seeder
         // Sync all existing permissions to the Super Admin role
         $role->syncPermissions(Permission::all());
 
-        // Create or update the Super Admin user
-        $user = User::updateOrCreate(
-            ['email' => 'super.admin@example.com'],
+        // List of admin users to ensure exists and have Super Admin role
+        $admins = [
             [
+                'email' => 'super.admin@example.com',
                 'name' => 'Super Admin User',
                 'password' => Hash::make('password123'),
                 'role' => 'super-admin',
+            ],
+            [
+                'email' => 'admin@test.com',
+                'name' => 'Admin User',
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
             ]
-        );
+        ];
 
-        // Assign the role to the user
-        $user->assignRole($role);
+        foreach ($admins as $adminData) {
+            // Create or update the admin user
+            $user = User::updateOrCreate(
+                ['email' => $adminData['email']],
+                [
+                    'name' => $adminData['name'],
+                    'password' => $adminData['password'],
+                    'role' => $adminData['role'],
+                ]
+            );
+
+            // Assign the role to the user
+            $user->assignRole($role);
+        }
     }
 }

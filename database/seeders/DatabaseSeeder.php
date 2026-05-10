@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PayrollSeeder::class);
 
         // Admin User
-        User::updateOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@test.com'],
             [
                 'name' => 'HR Admin',
@@ -26,6 +26,10 @@ class DatabaseSeeder extends Seeder
                 'role' => 'super-admin',
             ]
         );
+
+        // Assign the Super Admin role specifically to admin@test.com
+        $superAdminRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'SUPER ADMIN']);
+        $admin->assignRole($superAdminRole);
 
         // Employee User (Linking to first employee from PayrollSeeder)
         $employee = \App\Models\Employee::first();
