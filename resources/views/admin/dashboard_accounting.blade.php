@@ -131,7 +131,7 @@
         <div class="row g-4 h-100">
             <!-- Site Distribution -->
             <div class="col-md-6 d-flex flex-column">
-                <div class="card shadow-sm border-0 rounded-4 h-100 border-start border-4 border-primary">
+                <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
                     <div class="card-header bg-white border-0 py-3 ps-4">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Site Distribution</h6>
                     </div>
@@ -157,7 +157,7 @@
 
             <!-- Yield vs Overtime -->
             <div class="col-md-6 d-flex flex-column">
-                <div class="card shadow-sm border-0 rounded-4 h-100 border-start border-4 border-success">
+                <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
                     <div class="card-header bg-white border-0 py-3 ps-4">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Yield vs Overtime</h6>
                     </div>
@@ -200,7 +200,7 @@
     <!-- Sidebar Area -->
     <div class="col-lg-4 d-flex flex-column">
         <!-- Payroll Deadline / Runway -->
-        <div class="card shadow-sm border-0 border-start border-4 border-warning rounded-4 bg-primary-subtle mb-4 overflow-hidden">
+        <div class="card shadow-sm border-0 rounded-4 bg-white mb-4 overflow-hidden">
             <div class="card-body p-4">
                 <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-3">Payroll Runway</h6>
                 @php

@@ -196,7 +196,7 @@
     <!-- Sidebar Area -->
     <div class="col-lg-4 d-flex flex-column">
         <!-- Payroll Deadline / Runway -->
-        <div class="card shadow-sm border-0 border-start border-4 border-warning rounded-4 bg-primary-subtle mb-4 overflow-hidden">
+        <div class="card shadow-sm border-0 rounded-4 bg-white mb-4 overflow-hidden">
             <div class="card-body p-4">
                 <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-3">Payroll Runway</h6>
                 @php

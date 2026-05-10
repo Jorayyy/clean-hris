@@ -134,24 +134,31 @@
         <div class="row g-4 h-100">
             <!-- Site Distribution -->
             <div class="col-md-6 d-flex flex-column">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-header bg-white border-0 py-3 ps-4">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Site Distribution</h6>
+                <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
+                    <div class="card-header bg-white border-0 py-3 ps-4 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt me-2 text-primary"></i>Site Distribution</h6>
                     </div>
                     <div class="card-body px-4 pt-0">
-                        <div class="list-group list-group-flush">
+                        <div class="list-group list-group-flush mt-2">
                             @forelse($siteDistribution as $site)
-                                <div class="list-group-item px-0 border-0 py-2 d-flex justify-content-between align-items-center">
-                                    <span class="small text-muted fw-medium">{{ $site->site_name }}</span>
+                                <div class="list-group-item px-0 border-0 py-3 d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
-                                        <span class="fw-bold me-2">{{ $site->total }}</span>
-                                        <div class="progress" style="width: 60px; height: 6px;">
-                                            <div class="progress-bar" role="progressbar" style="width: {{ ($totalEmployees > 0) ? ($site->total / $totalEmployees * 100) : 0 }}%"></div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold small text-dark">{{ $site->site_name }}</h6>
+                                            <span class="text-muted small" style="font-size: 0.7rem;">Active Workforce</span>
                                         </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold fs-5 d-block lh-1 text-dark">{{ $site->total }}</span>
+                                        <span class="text-muted" style="font-size: 0.65rem;">
+                                            {{ ($totalEmployees > 0) ? round($site->total / $totalEmployees * 100, 1) : 0 }}%
+                                        </span>
                                     </div>
                                 </div>
                             @empty
-                                <p class="text-muted small py-3">No site data available</p>
+                                <div class="text-center py-5">
+                                    <p class="text-muted small mb-0">No site data available</p>
+                                </div>
                             @endforelse
                         </div>
                     </div>
@@ -162,37 +169,36 @@
             <div class="col-md-6 d-flex flex-column">
                 <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
                     <div class="card-header bg-white border-0 py-3 ps-4">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Yield vs Overtime</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2"></i>Yield vs Overtime</h6>
                     </div>
-                    <div class="card-body px-4 pt-0 d-flex flex-column justify-content-center">
+                    <div class="card-body px-4 pt-0 d-flex flex-column">
                         @php
                             $totalHours = ($yieldMetrics->reg_hours ?? 0) + ($yieldMetrics->ot_hours ?? 0);
-                            $regPercent = $totalHours > 0 ? (($yieldMetrics->reg_hours ?? 0) / $totalHours * 100) : 0;
-                            $otPercent = $totalHours > 0 ? (($yieldMetrics->ot_hours ?? 0) / $totalHours * 100) : 0;
                         @endphp
+                        
+                        <div class="mb-4 mt-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small text-muted" style="font-weight: 500;">Regular Hours</span>
+                                <span class="small text-dark fw-bold">{{ number_format($yieldMetrics->reg_hours ?? 0, 1) }}h</span>
+                            </div>
+                            <div class="progress" style="height: 10px; background-color: #f1f1f1;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ $totalHours > 0 ? (($yieldMetrics->reg_hours ?? 0)/$totalHours * 100) : 0 }}%; background-color: #e9ecef;"></div>
+                            </div>
+                        </div>
+
                         <div class="mb-4">
                             <div class="d-flex justify-content-between mb-1">
-                                <span class="small text-muted">Regular Hours</span>
-                                <span class="small fw-bold">{{ number_format($yieldMetrics->reg_hours ?? 0, 1) }}h</span>
+                                <span class="small text-muted" style="font-weight: 500;">Overtime Hours</span>
+                                <span class="small text-danger fw-bold">{{ number_format($yieldMetrics->ot_hours ?? 0, 1) }}h</span>
                             </div>
-                            <div class="progress rounded-pill" style="height: 12px;">
-                                <div class="progress-bar bg-success-subtle text-success progress-bar-striped" role="progressbar" style="width: {{ $regPercent }}%"></div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="small text-muted">Overtime Hours</span>
-                                <span class="small fw-bold text-danger">{{ number_format($yieldMetrics->ot_hours ?? 0, 1) }}h</span>
-                            </div>
-                            <div class="progress rounded-pill" style="height: 12px;">
-                                <div class="progress-bar bg-danger-subtle text-danger progress-bar-striped" role="progressbar" style="width: {{ $otPercent }}%"></div>
+                            <div class="progress" style="height: 10px; background-color: #f1f1f1;">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $totalHours > 0 ? (($yieldMetrics->ot_hours ?? 0)/$totalHours * 100) : 0 }}%"></div>
                             </div>
                         </div>
-                        <div class="mt-auto p-3 bg-light rounded-4 border-dashed">
-                            <div class="text-center">
-                                <div class="small text-muted mb-1 text-uppercase tracking-wider" style="font-size: 0.65rem;">Efficiency Ratio</div>
-                                <h4 class="fw-800 mb-0">{{ $regPercent > 0 ? number_format($regPercent, 1) : 0 }}%</h4>
-                            </div>
+
+                        <div class="mt-auto mb-4 p-4 rounded-4 border-0 bg-light text-center">
+                            <div class="text-muted mb-2 text-uppercase tracking-wider" style="font-size: 0.6rem; font-weight: 600;">EFFICIENCY RATIO</div>
+                            <h2 class="fw-bold mb-0 text-dark" style="font-size: 2rem;">{{ ($totalHours > 0 && $yieldMetrics->reg_hours > 0) ? number_format(($yieldMetrics->reg_hours / $totalHours) * 100, 1) : 0 }}%</h2>
                         </div>
                     </div>
                 </div>
@@ -201,26 +207,39 @@
     </div>
 
     <!-- Sidebar Area -->
-    <div class="col-lg-4 d-flex flex-column">
+    <div class="col-lg-4 d-flex flex-column h-100">
         <!-- Payroll Deadline / Runway -->
-        <div class="card shadow-sm border-0 border-start border-4 border-warning rounded-4 bg-primary-subtle mb-4 overflow-hidden">
+        <div class="card shadow-sm border-0 rounded-4 mb-4 bg-white flex-grow-0">
             <div class="card-body p-4">
-                <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-3">Payroll Runway</h6>
+                <div class="d-flex align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-0" style="letter-spacing: 0.1rem;">PAYROLL RUNWAY</h6>
+                    </div>
+                </div>
+
                 @php
                     $activePayroll = \App\Models\Payroll::where('status', '!=', 'approved')->latest()->first();
                 @endphp
                 @if($activePayroll)
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold text-dark">{{ $activePayroll->payroll_code }}</span>
-                        <span class="badge bg-warning text-dark">{{ ucfirst($activePayroll->status) }}</span>
+                    <div class="p-0 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-dark">{{ $activePayroll->payroll_code }}</span>
+                            <span class="badge bg-warning text-dark rounded-pill px-2" style="font-size: 0.7rem; font-weight: 500;">{{ ucfirst($activePayroll->status) }}</span>
+                        </div>
+                        <div class="progress bg-light" style="height: 10px; border-radius: 5px;">
+                            @php
+                                $prog = match($activePayroll->status) {
+                                    'draft' => 25,
+                                    'processing' => 60,
+                                    'review' => 85,
+                                    default => 10
+                                };
+                            @endphp
+                            <div class="progress-bar bg-warning" 
+                                 role="progressbar" 
+                                 style="width: {{ $prog }}%"></div>
+                        </div>
                     </div>
-                    <div class="progress bg-white mb-3" style="height: 10px; border-radius: 10px;">
-                        @php
-                            $prog = $activePayroll->status == 'draft' ? 25 : ($activePayroll->status == 'processing' ? 60 : 90);
-                        @endphp
-                        <div class="progress-bar bg-warning" style="width: {{ $prog }}%"></div>
-                    </div>
-                    <p class="small text-muted mb-0">Target Disbursement: <strong class="text-dark">{{ $activePayroll->pay_date }}</strong></p>
                 @else
                     @php
                         $today = \Carbon\Carbon::now();
@@ -228,19 +247,15 @@
                             ? $today->copy()->day(15) 
                             : $today->copy()->endOfMonth();
                     @endphp
-                    <div class="d-flex flex-column align-items-center py-2 text-center">
-                        <i class="bi bi-calendar2-check mb-2 text-primary" style="font-size: 1.5rem;"></i>
+                    <div class="py-2">
                         <p class="small text-dark fw-bold mb-1">Next Estimated Payroll</p>
-                        <p class="small text-muted mb-3">{{ $nextPayrollDate->format('M d, Y') }} ({{ $nextPayrollDate->format('l') }})</p>
-                        <a href="{{ route('payroll.create') }}" class="btn btn-primary btn-sm rounded-pill px-4">
-                            <i class="bi bi-plus-circle me-1"></i> Create New Batch
-                        </a>
+                        <p class="small text-muted mb-0">{{ $nextPayrollDate->format('M d, Y') }}</p>
                     </div>
                 @endif
             </div>
         </div>
 
-        <div class="card shadow-sm border-0 rounded-4 h-100">
+        <div class="card shadow-sm border-0 rounded-4 flex-grow-1 bg-white">
             <div class="card-header bg-white border-0 py-3 ps-4">
                 <h6 class="mb-0 fw-bold">Workforce Calendar</h6>
             </div>
