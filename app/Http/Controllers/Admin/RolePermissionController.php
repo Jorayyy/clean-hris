@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Models\User;
 
 class RolePermissionController extends Controller
 {
@@ -13,7 +14,8 @@ class RolePermissionController extends Controller
     {
         $roles = Role::with(['permissions', 'users'])->get();
         $permissions = Permission::all();
-        return view('admin.roles.index', compact('roles', 'permissions'));
+        $users = User::all();
+        return view('admin.roles.index', compact('roles', 'permissions', 'users'));
     }
 
     public function store(Request $request)
@@ -32,6 +34,46 @@ class RolePermissionController extends Controller
         ]);
 
         return back()->with('success', 'Role created successfully.');
+    }
+
+    public function assignUsers(Request $request, Role $role)
+    {
+        $request->validate([
+            'users' => 'nullable|array',
+            'users.*' => 'exists:users,id'
+        ]);
+
+        // Get users currently in this role
+        $currentUsers = $role->users;
+        
+        // Remove role from all users currently in this role
+        foreach ($currentUsers as $user) {
+            $user->removeRole($role->name);
+        }
+
+        // Assign role to selected users
+        if ($request->has('users')) {
+            $users = User::whereIn('id', $request->users)->get();
+            foreach ($users as $user) {
+                $user->assignRole($role->name);
+            }
+        }
+
+        // After bulk assignment, we should sync the legacy 'role' column for all affected users
+        // This is optional but keeps the legacy logic consistent if the system still uses it
+        $allAffectedUsers = $currentUsers->merge(User::whereIn('id', $request->users ?? [])->get())->unique('id');
+        foreach ($allAffectedUsers as $user) {
+            if ($user->hasRole('Super Admin')) {
+                $user->role = 'super-admin';
+            } elseif ($user->hasAnyRole(['Accounting Admin', 'HR Admin'])) {
+                $user->role = 'admin';
+            } else {
+                $user->role = 'employee';
+            }
+            $user->save();
+        }
+
+        return back()->with('success', 'Users assigned to role ' . $role->name . ' successfully.');
     }
 
     public function update(Request $request, Role $role)

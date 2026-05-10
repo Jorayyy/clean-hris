@@ -4,7 +4,7 @@
 <div class="row align-items-center mb-4">
     <div class="col">
         <h4 class="fw-bold mb-0">User Management</h4>
-        <p class="text-muted small mb-0">Manage system users and their assigned roles</p>
+        <p class="text-muted small mb-0">Create/Delete system users and assign existing roles to them.</p>
     </div>
     <div class="col-auto">
         <a href="{{ route('users.create') }}" class="btn btn-primary shadow-sm rounded-pill px-4">

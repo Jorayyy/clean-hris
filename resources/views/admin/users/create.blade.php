@@ -9,7 +9,7 @@
             </a>
             <div>
                 <h4 class="fw-bold mb-0">Create User</h4>
-                <p class="text-muted small mb-0">Attach to an employee and assign roles</p>
+                <p class="text-muted small mb-0">Create a system account without assigning roles.</p>
             </div>
         </div>
 
@@ -34,22 +34,6 @@
                         <option value="{{ $emp->id }}">{{ $emp->full_name }} ({{ $emp->employee_id }})</option>
                     @endforeach
                 </select>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label fw-bold small text-muted">Assign System Roles</label>
-                <div class="row g-2">
-                    @foreach($roles as $role)
-                    <div class="col-6">
-                        <div class="form-check border rounded-3 px-3 py-2">
-                            <input class="form-check-input ms-0 me-2" type="checkbox" name="roles[]" value="{{ $role->name }}" id="role_{{ $role->id }}">
-                            <label class="form-check-label small fw-medium" style="cursor: pointer;" for="role_{{ $role->id }}">
-                                {{ $role->name }}
-                            </label>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
             </div>
 
             <div class="mb-4">

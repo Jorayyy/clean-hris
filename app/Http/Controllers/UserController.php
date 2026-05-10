@@ -21,9 +21,8 @@ class UserController extends Controller
 
     public function create()
     {
-        $roles = Role::all();
         $employees = Employee::whereNotIn('id', User::pluck('employee_id')->filter())->get();
-        return view('admin.users.create', compact('roles', 'employees'));
+        return view('admin.users.create', compact('employees'));
     }
 
     public function store(Request $request)
@@ -32,7 +31,6 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'roles' => 'required|array',
             'employee_id' => 'nullable|exists:employees,id'
         ]);
 
@@ -45,26 +43,12 @@ class UserController extends Controller
             'role' => 'employee', // Keep the legacy column updated for now
         ]);
 
-        $user->assignRole($request->roles);
-
-        // Sync legacy role column for sidebar compatibility
-        if ($user->hasRole('Super Admin')) {
-            $user->role = 'super-admin';
-        } elseif ($user->hasAnyRole(['Accounting Admin', 'HR Admin'])) {
-            $user->role = 'admin';
-        } else {
-            $user->role = 'employee';
-        }
-        $user->save();
-
-        return redirect()->route('users.index')->with('success', 'User created and roles assigned successfully.');
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 
     public function edit(User $user)
     {
-        $roles = Role::all();
-        $userRoles = $user->roles->pluck('name')->toArray();
-        return view('admin.users.edit', compact('user', 'roles', 'userRoles'));
+        return view('admin.users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
@@ -73,7 +57,6 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'roles' => 'required|array'
         ]);
 
         $data = [
@@ -87,17 +70,6 @@ class UserController extends Controller
         }
 
         $user->update($data);
-        $user->syncRoles($request->roles);
-
-        // Sync legacy role column for sidebar compatibility
-        if ($user->hasRole('Super Admin')) {
-            $user->role = 'super-admin';
-        } elseif ($user->hasAnyRole(['Accounting Admin', 'HR Admin'])) {
-            $user->role = 'admin';
-        } else {
-            $user->role = 'employee';
-        }
-        $user->save();
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

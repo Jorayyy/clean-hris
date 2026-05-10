@@ -5,7 +5,10 @@
     <div class="col-md-12">
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-shield-lock me-2 text-primary"></i>User Roles & Permissions</h5>
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-shield-lock me-2 text-primary"></i>Roles & Permissions</h5>
+                    <p class="text-muted small mb-0 mt-1">Define roles and assign specific permissions to each role.</p>
+                </div>
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addRoleModal">
                     <i class="bi bi-plus-lg me-1"></i> Add New Role
                 </button>
@@ -29,7 +32,7 @@
                         <thead class="bg-light">
                             <tr>
                                 <th style="width: 200px;">Role Name</th>
-                                <th>Users</th>
+                                <th>Active Users</th>
                                 <th>Role Description</th>
                                 <th>Remarks</th>
                                 <th style="width: 150px;" class="text-center">Actions</th>
@@ -59,6 +62,12 @@
                                 <td>{{ $role->remarks ?: '-' }}</td>
                                 <td class="text-center">
                                     <div class="btn-group">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#assignUsersModal{{ $role->id }}"
+                                                title="Assign Users">
+                                            <i class="bi bi-people"></i>
+                                        </button>
                                         <button type="button" class="btn btn-outline-info btn-sm" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#editPermissionsModal{{ $role->id }}"
@@ -80,6 +89,38 @@
                                             </button>
                                         </form>
                                         @endif
+                                    </div>
+
+                                    <!-- Assign Users Modal -->
+                                    <div class="modal fade" id="assignUsersModal{{ $role->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content text-start">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Assign Users to: {{ $role->name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form action="{{ route('admin.roles.assign-users', $role) }}" method="POST">
+                                                    @csrf
+                                                    <div class="modal-body">
+                                                        <p class="text-muted small mb-3">Select users to assign to this role. Unselected users currently in this role will be removed.</p>
+                                                        <div class="list-group" style="max-height: 300px; overflow-y: auto;">
+                                                            @foreach($users as $user)
+                                                            <label class="list-group-item">
+                                                                <input class="form-check-input me-1" type="checkbox" name="users[]" value="{{ $user->id }}" 
+                                                                    {{ $user->hasRole($role->name) ? 'checked' : '' }}>
+                                                                <span class="small fw-medium">{{ $user->name }}</span>
+                                                                <div class="text-muted" style="font-size: 0.75rem; margin-left: 1.5rem;">{{ $user->email }}</div>
+                                                            </label>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary btn-sm">Save Assignments</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- Edit Role Modal -->

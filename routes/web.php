@@ -129,6 +129,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::get('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'index'])->name('admin.roles.index');
         Route::post('admin/roles', [App\Http\Controllers\Admin\RolePermissionController::class, 'store'])->name('admin.roles.store');
         Route::put('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'update'])->name('admin.roles.update');
+        Route::post('admin/roles/{role}/assign-users', [App\Http\Controllers\Admin\RolePermissionController::class, 'assignUsers'])->name('admin.roles.assign-users');
         Route::delete('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'destroy'])->name('admin.roles.destroy');
     });
 

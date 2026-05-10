@@ -9,7 +9,7 @@
             </a>
             <div>
                 <h4 class="fw-bold mb-0">Edit User: {{ $user->name }}</h4>
-                <p class="text-muted small mb-0">Update permissions and roles for this account</p>
+                <p class="text-muted small mb-0">Manage account details.</p>
             </div>
         </div>
 
@@ -24,23 +24,6 @@
             <div class="mb-4">
                 <label class="form-label fw-bold small text-muted">Email Address</label>
                 <input type="email" name="email" value="{{ old('email', $user->email) }}" class="form-control border shadow-none rounded-3 px-3 py-2" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label fw-bold small text-muted">Assign System Roles</label>
-                <div class="row g-2">
-                    @foreach($roles as $role)
-                    <div class="col-6">
-                        <div class="form-check border rounded-3 px-3 py-2">
-                            <input class="form-check-input ms-0 me-2" type="checkbox" name="roles[]" value="{{ $role->name }}" 
-                                id="role_{{ $role->id }}" {{ in_array($role->name, $userRoles) ? 'checked' : '' }}>
-                            <label class="form-check-label small fw-medium" style="cursor: pointer;" for="role_{{ $role->id }}">
-                                {{ $role->name }}
-                            </label>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
             </div>
 
             <div class="mb-4">
