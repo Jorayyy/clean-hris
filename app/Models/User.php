@@ -40,13 +40,13 @@ class User extends Authenticatable
     {
         return $this->role === 'super-admin' || 
                $this->role === 'admin' || 
-               $this->hasAnyRole(['Super Admin', 'super-admin', 'admin', 'Admin']);
+               $this->hasAnyRole(['Super Admin', 'super-admin']);
     }
 
     public function isAdmin()
     {
         return $this->is_super_admin || 
-               $this->hasAnyRole(['HR Admin', 'Accounting Admin', 'admin', 'Admin']);
+               $this->hasAnyRole(['HR Admin', 'Accounting Admin', 'Admin', 'admin']);
     }
 
     /**

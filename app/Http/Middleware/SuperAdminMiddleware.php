@@ -15,8 +15,11 @@ class SuperAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && $request->user()->is_super_admin) {
-            return $next($request);
+        if ($request->user()) {
+            if ($request->user()->is_super_admin) {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized access.');
         }
 
         // Return a 403 response if not authorized
