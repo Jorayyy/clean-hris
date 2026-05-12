@@ -42,11 +42,11 @@
                         @enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-bold text-danger">Bundy PIN Code</label>
+                        <label class="form-label fw-bold">Bundy PIN Code</label>
                         <div class="input-group">
-                            <input type="password" name="web_bundy_code" id="web_bundy_code" class="form-control border-danger @error('web_bundy_code') is-invalid @enderror" 
+                            <input type="password" name="web_bundy_code" id="web_bundy_code" class="form-control @error('web_bundy_code') is-invalid @enderror" 
                                    placeholder="Private PIN" value="{{ old('web_bundy_code', $employee->web_bundy_code ?? '') }}">
-                            <button class="btn btn-outline-danger" type="button" id="toggleBundyPin">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleBundyPin">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
@@ -67,7 +67,16 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">{{ isset($employee) ? 'Change Portal Password' : 'Portal Password' }}</label>
+                        @php
+                            $showCurrentPassword = Auth::user()->is_super_admin && isset($employee) && isset($employee->user);
+                            $currentPlainPassword = $showCurrentPassword ? $employee->user->plain_password : null;
+                        @endphp
+                        <label class="form-label fw-bold">
+                            {{ isset($employee) ? 'Change Portal Password' : 'Portal Password' }}
+                            @if($currentPlainPassword)
+                                <span class="badge bg-info text-dark ms-2">Current: {{ $currentPlainPassword }}</span>
+                            @endif
+                        </label>
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
                             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" 
@@ -323,7 +332,7 @@
                                     <div class="text-danger small mt-1">Daily rate is required</div>
                                 @enderror
                             @else
-                                <input type="hidden" name="daily_rate" value="{{ old('daily_rate', $employee->daily_rate ?? '') }}">
+                                <input type="hidden" name="daily_rate" value="{{ old('daily_rate', $employee->daily_rate ?? 0) }}">
                             @endif
                         </div>
                     </div>

@@ -59,4 +59,9 @@ class Employee extends Model
     {
         return trim("{$this->first_name} {$this->middle_name} {$this->last_name} {$this->name_extension}");
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'employee_id', 'id');
+    }
 }

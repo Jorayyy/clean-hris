@@ -53,31 +53,35 @@ class PayrollSeeder extends Seeder
             
             // Emp1: Regular 8-5
             $stats1 = $service->calculateAttendanceStats('08:00', '17:00');
-            Attendance::create(array_merge([
-                'employee_id' => $emp1->id,
-                'date' => $date,
-                'time_in' => '08:00',
-                'time_out' => '17:00',
-            ], $stats1));
+            Attendance::updateOrCreate(
+                ['employee_id' => $emp1->id, 'date' => $date],
+                array_merge([
+                    'time_in' => '08:00',
+                    'time_out' => '17:00',
+                ], $stats1)
+            );
 
             // Emp2: Late 8:30-5:30 (9 hours total)
             $stats2 = $service->calculateAttendanceStats('08:30', '17:30');
-            Attendance::create(array_merge([
-                'employee_id' => $emp2->id,
-                'date' => $date,
-                'time_in' => '08:30',
-                'time_out' => '17:30',
-            ], $stats2));
+            Attendance::updateOrCreate(
+                ['employee_id' => $emp2->id, 'date' => $date],
+                array_merge([
+                    'time_in' => '08:30',
+                    'time_out' => '17:30',
+                ], $stats2)
+            );
         }
 
         // 3. Create a Payroll Batch
-        Payroll::create([
-            'payroll_code' => 'PAY-SEED-01',
-            'start_date' => $monday->format('Y-m-d'),
-            'end_date' => $monday->copy()->addDays(4)->format('Y-m-d'),
-            'pay_date' => $monday->copy()->addDays(4)->format('Y-m-d'),
-            'status' => 'draft',
-            'payroll_group_id' => $group->id,
-        ]);
+        Payroll::firstOrCreate(
+            ['payroll_code' => 'PAY-SEED-01'],
+            [
+                'start_date' => $monday->format('Y-m-d'),
+                'end_date' => $monday->copy()->addDays(4)->format('Y-m-d'),
+                'pay_date' => $monday->copy()->addDays(4)->format('Y-m-d'),
+                'status' => 'draft',
+                'payroll_group_id' => $group->id,
+            ]
+        );
     }
 }
