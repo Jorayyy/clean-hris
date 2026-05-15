@@ -526,6 +526,25 @@
                                        placeholder="@instagramsample" value="{{ old('instagram_url', $employee->instagram_url ?? '') }}">
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">RCBC account</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-primary"><i class="bi bi-bank"></i></span>
+                                <input type="text" name="rcbc_no" class="form-control" 
+                                       placeholder="RCBC Account No." value="{{ old('rcbc_no', $employee->rcbc_no ?? '') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Palawan Pay</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-warning"><i class="bi bi-wallet2"></i></span>
+                                <input type="text" name="palawan_pay_no" class="form-control" 
+                                       placeholder="Palawan Pay No." value="{{ old('palawan_pay_no', $employee->palawan_pay_no ?? '') }}">
+                            </div>
+                        </div>
                     </div>
                 </div>
 

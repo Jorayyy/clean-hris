@@ -13,7 +13,7 @@ class Employee extends Model
         'employee_id', 'site_id', 'web_bundy_code', 'registered_ip', 'first_name', 'last_name', 'email', 'position', 'daily_rate', 'status', 'payroll_group_id',
         'title', 'middle_name', 'name_extension', 'birthday', 'gender', 'civil_status', 'place_of_birth', 'blood_type', 'citizenship', 'religion', 'photo',
         'company', 'location', 'employment_type', 'classification', 'level', 'date_employed', 'tax_code', 'pay_type', 'report_to',
-        'bank_name', 'account_no', 'tin_no', 'sss_no', 'pagibig_no', 'philhealth_no',
+        'bank_name', 'account_no', 'rcbc_no', 'palawan_pay_no', 'tin_no', 'sss_no', 'pagibig_no', 'philhealth_no',
         'mobile_no_1', 'mobile_no_2', 'tel_no_1', 'tel_no_2', 'facebook_url', 'twitter_url', 'instagram_url',
         'permanent_address_brgy', 'permanent_address_province', 'present_address_brgy', 'present_address_province', 'other_information'
     ];

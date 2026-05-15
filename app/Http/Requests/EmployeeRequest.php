@@ -47,6 +47,8 @@ class EmployeeRequest extends FormRequest
             'payroll_group_id' => 'required|exists:payroll_groups,id',
             'bank_name' => 'nullable|string',
             'account_no' => 'nullable|string',
+            'rcbc_no' => 'nullable|string',
+            'palawan_pay_no' => 'nullable|string',
             'tin_no' => 'nullable|string',
             'sss_no' => 'nullable|string',
             'pagibig_no' => 'nullable|string',

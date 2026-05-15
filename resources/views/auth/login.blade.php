@@ -149,18 +149,45 @@
                 </div>
             </div>
         </div>
+
+        <!-- Minimal Signature -->
+        <div class="mt-4 text-center">
+            <a href="https://github.com/Jorayyy" target="_blank" class="text-decoration-none d-inline-flex align-items-center gap-2 opacity-25 hover-opacity-75 transition-all text-white" style="font-size: 0.65rem;">
+                <i class="bi bi-github"></i>
+                <span class="fw-700 tracking-widest text-uppercase">Jorayyy</span>
+            </a>
+        </div>
+
     </div>
 </div>
 
 @push('scripts')
 <style>
-    /* Card Transition Logic */
+    /* Professional Card Transition Logic */
+    .auth-card {
+        transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.4s ease;
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+    }
+
     .auth-card .card-body {
         max-height: 1000px;
         opacity: 1;
         overflow: visible;
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: max-height 0.4s ease-out, opacity 0.3s ease, padding 0.4s ease;
         padding: 1.5rem 3rem !important;
+    }
+
+    .auth-card.minimized {
+        cursor: pointer;
+        opacity: 0.7;
+        transform: scale(0.98);
+    }
+
+    .auth-card.minimized:hover {
+        opacity: 0.9;
+        transform: scale(0.99);
+        background: rgba(255, 255, 255, 0.05);
     }
 
     .auth-card.minimized .card-body {
@@ -172,35 +199,32 @@
         overflow: hidden !important;
         pointer-events: none;
         border: none !important;
+        transition: max-height 0.3s ease-in, opacity 0.2s ease, padding 0.3s ease;
     }
 
     .auth-card.minimized .card-header {
-        border-radius: 1rem !important; /* Fully rounded when closed */
+        border-radius: 1.25rem !important;
         margin-bottom: 0.5rem;
+    }
+
+    .auth-card.active-form {
+        z-index: 2;
+        transform: scale(1);
     }
 
     .auth-card.active-form .card-header {
         border-bottom-left-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
-    }
-
-    .auth-card.minimized {
-        cursor: pointer;
-        transform: scale(0.98);
-        opacity: 0.8;
-    }
-
-    .auth-card.minimized:hover {
-        opacity: 1;
-        transform: scale(1);
-        background: rgba(255, 255, 255, 0.15);
-    }
-
-    .auth-card {
-        transition: all 0.4s ease;
+        background: rgba(255, 255, 255, 0.15) !important;
     }
 
     .active-form .d-active { display: block !important; }
+
+    /* Container management */
+    .w-100[style*="max-width: 450px;"] {
+        display: flex;
+        flex-direction: column;
+    }
 </style>
 <script>
     function toggleCard(type) {
@@ -209,19 +233,22 @@
         const bundyCard = document.getElementById('bundyCard');
         const loginCard = document.getElementById('loginCard');
 
+        // Prevent redundant triggers
+        if (type === 'bundy' && bundyCard.classList.contains('active-form')) return;
+        if (type === 'login' && loginCard.classList.contains('active-form')) return;
+
+        // Perform visual switch immediately without artificial delays
         if (type === 'bundy') {
             bundyCard.classList.remove('minimized');
             bundyCard.classList.add('active-form');
             loginCard.classList.add('minimized');
             loginCard.classList.remove('active-form');
-            // Move Bundy top
             bundyCol.parentElement.prepend(bundyCol);
         } else {
             loginCard.classList.remove('minimized');
             loginCard.classList.add('active-form');
             bundyCard.classList.add('minimized');
             bundyCard.classList.remove('active-form');
-            // Move Login top
             loginCol.parentElement.prepend(loginCol);
         }
     }
