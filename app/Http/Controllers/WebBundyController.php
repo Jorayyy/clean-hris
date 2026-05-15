@@ -13,9 +13,7 @@ class WebBundyController extends Controller
     public function showBundy(Request $request)
     {
         // Global IP Lockdown: Only allow access to the Bundy page from authorized networks
-        $isAuthorized = AuthorizedNetwork::where('ip_address', $request->ip())
-            ->where('is_active', true)
-            ->exists();
+        $isAuthorized = AuthorizedNetwork::isAuthorized($request->ip());
 
         if (!$isAuthorized) {
             return view('auth.bundy')->with('unauthorized_ip', $request->ip());
@@ -27,9 +25,7 @@ class WebBundyController extends Controller
     public function punch(Request $request)
     {
         // Global IP Lockdown: Stop punches if not on an authorized network
-        $isAuthorized = AuthorizedNetwork::where('ip_address', $request->ip())
-            ->where('is_active', true)
-            ->exists();
+        $isAuthorized = AuthorizedNetwork::isAuthorized($request->ip());
 
         if (!$isAuthorized) {
             return back()->with('bundy_error', 'Access Denied: Your current network (IP: ' . $request->ip() . ') is not authorized for Web Bundy punches.');

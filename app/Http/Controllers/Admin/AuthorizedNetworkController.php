@@ -19,11 +19,13 @@ class AuthorizedNetworkController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'ip_address' => 'required|string|unique:authorized_networks,ip_address',
+        ], [
+            'ip_address.unique' => 'This IP or CIDR range is already in the list.'
         ]);
 
         AuthorizedNetwork::create($request->all());
 
-        return back()->with('success', 'Authorized IP added successfully.');
+        return back()->with('success', 'Authorized IP or CIDR range added successfully.');
     }
 
     public function update(Request $request, AuthorizedNetwork $authorizedNetwork)
