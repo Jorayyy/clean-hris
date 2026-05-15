@@ -49,11 +49,26 @@
                                 </td>
                                 <td>
                                     @if($role->users->count() > 0)
-                                        @foreach($role->users as $u)
-                                            <span class="badge bg-light text-dark border rounded-pill mb-1">
-                                                {{ $u->email }}
-                                            </span>
-                                        @endforeach
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light border rounded-pill px-3 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-person-circle me-1 text-primary"></i> 
+                                                <strong>{{ $role->users->count() }}</strong> {{ $role->users->count() > 1 ? 'Users' : 'User' }}
+                                            </button>
+                                            <ul class="dropdown-menu shadow border-0 py-2 mt-1" style="max-height: 250px; overflow-y: auto; min-width: 250px;">
+                                                <li class="dropdown-header text-uppercase pb-1" style="font-size: 0.7rem;">Assigned Emails</li>
+                                                <li><hr class="dropdown-divider mt-0"></li>
+                                                @foreach($role->users as $u)
+                                                    <li class="px-3 py-1">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 10px;">
+                                                                {{ strtoupper(substr($u->name ?? $u->email, 0, 1)) }}
+                                                            </div>
+                                                            <span class="small fw-medium">{{ $u->email }}</span>
+                                                        </div>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
                                     @else
                                         <span class="text-muted small italic text-sm">No users assigned</span>
                                     @endif

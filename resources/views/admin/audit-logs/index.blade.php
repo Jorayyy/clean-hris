@@ -96,25 +96,80 @@
                                 <span class="fw-medium">{{ str_replace('App\\Models\\', '', $log->model_type) ?: 'System' }}</span>
                             </div>
                         </td>
-                        <td class="text-wrap" style="max-width: 300px;">
-                            <div class="text-dark bg-light p-2 rounded border-start border-4 {{ str_contains(strtolower($log->action), 'delete') ? 'border-danger' : (str_contains(strtolower($log->action), 'approve') ? 'border-primary' : 'border-secondary') }}">
-                                @if(is_array($log->details))
-                                    @if(isset($log->details['description']))
-                                        {{ $log->details['description'] }}
-                                    @elseif($log->action == 'updated')
-                                        Updated {{ count($log->details['new'] ?? []) }} fields
-                                    @elseif($log->action == 'created')
-                                        Created new record
+                        <td class="text-wrap">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border-start border-4 {{ str_contains(strtolower($log->action), 'delete') ? 'border-danger' : (str_contains(strtolower($log->action), 'approve') ? 'border-primary' : 'border-secondary') }} w-100 text-start d-flex justify-content-between align-items-center shadow-sm py-2 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                    <span class="text-truncate me-2">
+                                        @if(is_array($log->details))
+                                            @if(isset($log->details['description']))
+                                                {{ $log->details['description'] }}
+                                            @elseif($log->action == 'updated')
+                                                <i class="bi bi-pencil-square me-1"></i> Updated {{ count($log->details['new'] ?? []) }} fields
+                                            @elseif($log->action == 'created')
+                                                <i class="bi bi-plus-circle me-1"></i> Created new record
+                                            @else
+                                                Action performed on {{ str_replace('App\\Models\\', '', $log->model_type) }}
+                                            @endif
+                                        @else
+                                            {{ $log->details }}
+                                        @endif
+                                        @if($log->model_id)
+                                            <span class="badge bg-white text-dark border ms-1" style="font-size: 9px;">ID: #{{ $log->model_id }}</span>
+                                        @endif
+                                    </span>
+                                    <i class="bi bi-chevron-down small text-muted"></i>
+                                </button>
+                                <div class="dropdown-menu shadow-lg border-0 p-3 mt-1" style="min-width: 400px; max-height: 400px; overflow-y: auto;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0 fw-bold small text-uppercase">Full Change Details</h6>
+                                        <span class="badge bg-light text-dark border small fw-normal">ID #{{ $log->model_id ?? 'N/A' }}</span>
+                                    </div>
+                                    <hr class="my-2 opacity-25">
+                                    
+                                    @if(is_array($log->details))
+                                        @if(isset($log->details['old']) || isset($log->details['new']))
+                                            @php
+                                                $newKeys = array_keys($log->details['new'] ?? []);
+                                                $oldKeys = array_keys($log->details['old'] ?? []);
+                                                $allKeys = array_unique(array_merge($newKeys, $oldKeys));
+                                            @endphp
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered mb-0" style="font-size: 11px;">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th>Field</th>
+                                                            <th class="text-danger">Old Value</th>
+                                                            <th class="text-success">New Value</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($allKeys as $key)
+                                                            @php
+                                                                $old = $log->details['old'][$key] ?? null;
+                                                                $new = $log->details['new'][$key] ?? null;
+                                                                // Skip sensitive fields like passwords if they exist in logs
+                                                                if(in_array($key, ['password', 'remember_token'])) continue;
+                                                            @endphp
+                                                            <tr>
+                                                                <td class="fw-bold bg-light py-1">{{ ucwords(str_replace('_', ' ', $key)) }}</td>
+                                                                <td class="text-muted py-1" style="word-break: break-all;">{{ is_array($old) ? json_encode($old) : ($old ?: '-') }}</td>
+                                                                <td class="fw-medium py-1" style="word-break: break-all;">{{ is_array($new) ? json_encode($new) : ($new ?: '-') }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @else
+                                            <pre class="bg-light p-2 rounded small mb-0" style="font-size: 10px; white-space: pre-wrap;">{{ json_encode($log->details, JSON_PRETTY_PRINT) }}</pre>
+                                        @endif
                                     @else
-                                        Action performed on {{ str_replace('App\\Models\\', '', $log->model_type) }}
+                                        <p class="small mb-0">{{ $log->details }}</p>
                                     @endif
-                                @else
-                                    {{ $log->details }}
-                                @endif
 
-                                @if($log->model_id)
-                                    <span class="badge bg-white text-dark border ms-1" style="font-size: 9px;">ID: #{{ $log->model_id }}</span>
-                                @endif
+                                    <div class="mt-3 text-end">
+                                        <small class="text-muted italic" style="font-size: 10px;">Log generated via {{ $log->ip_address }}</small>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                         <td class="text-end pe-3 monospace small text-muted">

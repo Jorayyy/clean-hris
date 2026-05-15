@@ -95,17 +95,48 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold small" style="width:32px; height:32px; font-size: 10px;">
+                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold small shadow-sm" style="width:32px; height:32px; font-size: 10px;">
                                             {{ substr($ticket->employee->first_name, 0, 1) }}{{ substr($ticket->employee->last_name, 0, 1) }}
                                         </div>
-                                        <div class="fw-bold text-dark small">{{ $ticket->employee->full_name }}</div>
+                                        <div>
+                                            <div class="fw-bold text-dark small">{{ $ticket->employee->full_name }}</div>
+                                            <div class="text-muted x-small">{{ $ticket->employee->position->name ?? 'Staff' }}</div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-dark small mb-0">{{ $ticket->subject }}</div>
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 x-small text-uppercase">
-                                        {{ $ticket->type }}
-                                    </span>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light border w-100 text-start d-flex justify-content-between align-items-center shadow-sm py-2 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                            <span class="text-truncate" style="max-width: 180px;">
+                                                <span class="fw-bold text-dark small mb-0">{{ $ticket->subject }}</span><br>
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 x-small text-uppercase mt-1">
+                                                    {{ $ticket->type }}
+                                                </span>
+                                            </span>
+                                            <i class="bi bi-chevron-down small text-muted ms-2"></i>
+                                        </button>
+                                        <div class="dropdown-menu shadow-lg border-0 p-3 mt-1" style="min-width: 320px;">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="mb-0 fw-bold small text-uppercase text-primary">Case Description</h6>
+                                                <span class="badge bg-light text-dark border small fw-normal">#{{ str_pad($ticket->id, 5, '0', STR_PAD_LEFT) }}</span>
+                                            </div>
+                                            <hr class="my-2 opacity-25">
+                                            <div class="text-dark small py-2" style="white-space: pre-wrap; font-style: italic;">
+                                                "{{ $ticket->description ?: 'No additional details provided.' }}"
+                                            </div>
+                                            @if($ticket->attachment)
+                                                <div class="mt-2 pt-2 border-top">
+                                                    <a href="{{ asset('storage/' . $ticket->attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary w-100 x-small">
+                                                        <i class="bi bi-paperclip me-1"></i> View Attachment
+                                                    </a>
+                                                </div>
+                                            @endif
+                                            <div class="mt-3 d-flex justify-content-between align-items-center">
+                                                <small class="text-muted x-small">Submitted: {{ $ticket->created_at->format('M d, h:i A') }}</small>
+                                                <a href="{{ route('admin.tickets.show', $ticket->id) }}" class="btn btn-xs btn-primary py-0 px-2 x-small">Open Case</a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     @if($ticket->priority == 'high') <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 x-small">HIGH</span>
