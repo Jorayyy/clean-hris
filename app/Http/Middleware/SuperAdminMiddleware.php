@@ -16,7 +16,10 @@ class SuperAdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->user()) {
-            if ($request->user()->is_super_admin) {
+            $user = $request->user();
+            $isAccounting = ($user->employee && ($user->employee->classification === 'Accounting' || $user->employee->level === 'Accounting')) || $user->hasRole('Accounting Admin');
+
+            if ($user->is_super_admin || $isAccounting) {
                 return $next($request);
             }
             abort(403, 'Unauthorized access.');

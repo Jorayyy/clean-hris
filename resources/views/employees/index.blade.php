@@ -14,8 +14,15 @@
                         <th>Employee ID</th>
                         <th>Name</th>
                         <th>Position</th>
+                        <th>Site</th>
                         <th>Group</th>
-                        <th>Daily Rate</th>
+                        @php
+                            $user = auth()->user();
+                            $isAccounting = ($user->employee && ($user->employee->classification === 'Accounting' || $user->employee->level === 'Accounting')) || $user->hasRole('Accounting Admin');
+                        @endphp
+                        @if($user->is_super_admin || $isAccounting)
+                            <th>Daily Rate</th>
+                        @endif
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -26,8 +33,15 @@
                         <td>{{ $employee->employee_id }}</td>
                         <td>{{ $employee->full_name }}</td>
                         <td>{{ $employee->position }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border shadow-xs">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $employee->site->name ?? 'Unassigned' }}
+                            </span>
+                        </td>
                         <td>{{ $employee->payrollGroup->name ?? 'None' }}</td>
-                        <td>{{ number_format($employee->daily_rate, 2) }}</td>
+                        @if($user->is_super_admin || $isAccounting)
+                            <td>{{ number_format($employee->daily_rate, 2) }}</td>
+                        @endif
                         <td>
                             <span class="badge {{ $employee->status == 'active' ? 'bg-success' : 'bg-danger' }}">
                                 {{ ucfirst($employee->status) }}

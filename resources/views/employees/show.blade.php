@@ -89,22 +89,13 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="small text-muted mb-0 d-block">Main Bank Account</label>
-                                        <span class="fw-bold">{{ $employee->bank_name ?? 'N/A' }}</span>
+                                        <span class="fw-bold text-primary">{{ $employee->bank_name ?? 'N/A' }}</span>
                                         @if($employee->account_no)
                                             <span class="d-block small text-muted">{{ $employee->account_no }}</span>
                                         @endif
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="small text-muted mb-0 d-block">Alternative Payments</label>
-                                        @if($employee->rcbc_no)
-                                            <span class="d-block small"><i class="bi bi-bank text-primary me-1"></i>RCBC: <strong>{{ $employee->rcbc_no }}</strong></span>
-                                        @endif
-                                        @if($employee->palawan_pay_no)
-                                            <span class="d-block small mt-1"><i class="bi bi-wallet2 text-warning me-1"></i>Palawan: <strong>{{ $employee->palawan_pay_no }}</strong></span>
-                                        @endif
-                                        @if(!$employee->rcbc_no && !$employee->palawan_pay_no)
-                                            <span class="text-muted italic small">None provided</span>
-                                        @endif
+                                        <!-- Other employment details could go here -->
                                     </div>
                                 </div>
                             </div>

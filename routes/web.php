@@ -85,20 +85,21 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         });
     });
 
-    Route::resource('schedules', ScheduleController::class);
-    Route::resource('sites', SiteController::class);
-    Route::resource('users', UserController::class);
-    
-    // Group Salaries under SuperAdminMiddleware for wide-open Admin/Super-Admin access
+    // Group Salaries, Sites, and User management for Super Admin and Accounting
     Route::middleware([SuperAdminMiddleware::class])->group(function () {
         Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
         Route::get('salaries/{salary}/edit', [SalaryController::class, 'edit'])->name('salaries.edit');
         Route::put('salaries/{salary}', [SalaryController::class, 'update'])->name('salaries.update');
         Route::delete('salaries/{salary}', [SalaryController::class, 'destroy'])->name('salaries.destroy');
+        
+        Route::resource('sites', SiteController::class);
+        Route::resource('users', UserController::class);
     });
 
     Route::post('/payroll/{payroll}/approve', [PayrollController::class, 'approve'])->name('payroll.approve');
     Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');
+
+    Route::resource('schedules', ScheduleController::class);
 
     // DTR Management
     Route::prefix('admin/dtrs')->name('admin.dtrs.')->group(function () {

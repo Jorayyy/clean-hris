@@ -305,20 +305,10 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             @php
-                                $user = auth()->user();
-                                // Strictly check for Super Admin role names
-                                $isSuperAdmin = $user->is_super_admin;
-                                
-                                // Strictly check for Accounting in level or classification
-                                $isAccounting = $user->employee && (
-                                    $user->employee->classification === 'Accounting' || 
-                                    $user->employee->level === 'Accounting'
-                                ) || $user->hasRole('Accounting Admin');
-
-                                // If user is HR, specifically block them regardless of other roles
-                                $isHR = ($user->employee && ($user->employee->classification === 'HR' || $user->employee->level === 'HR')) || $user->hasRole('HR Admin');
-                                
-                                $isAuthorized = ($isSuperAdmin || $isAccounting) && !$isHR;
+                                $user = Auth::user();
+                                // Super Admin and Accounting can see/edit the Daily Rate
+                                $isAccounting = ($user->employee && ($user->employee->classification === 'Accounting' || $user->employee->level === 'Accounting')) || $user->hasRole('Accounting Admin');
+                                $isAuthorized = $user->is_super_admin || $isAccounting;
                             @endphp
                             
                             @if($isAuthorized)
@@ -409,6 +399,8 @@
                                 <option value="BDO" {{ old('bank_name', $employee->bank_name ?? '') == 'BDO' ? 'selected' : '' }}>BDO</option>
                                 <option value="BPI" {{ old('bank_name', $employee->bank_name ?? '') == 'BPI' ? 'selected' : '' }}>BPI</option>
                                 <option value="Metrobank" {{ old('bank_name', $employee->bank_name ?? '') == 'Metrobank' ? 'selected' : '' }}>Metrobank</option>
+                                <option value="RCBC" {{ old('bank_name', $employee->bank_name ?? '') == 'RCBC' ? 'selected' : '' }}>RCBC</option>
+                                <option value="Palawan Pay" {{ old('bank_name', $employee->bank_name ?? '') == 'Palawan Pay' ? 'selected' : '' }}>Palawan Pay</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -524,25 +516,6 @@
                                 <span class="input-group-text bg-white text-danger"><i class="bi bi-instagram"></i></span>
                                 <input type="text" name="instagram_url" class="form-control" 
                                        placeholder="@instagramsample" value="{{ old('instagram_url', $employee->instagram_url ?? '') }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">RCBC account</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white text-primary"><i class="bi bi-bank"></i></span>
-                                <input type="text" name="rcbc_no" class="form-control" 
-                                       placeholder="RCBC Account No." value="{{ old('rcbc_no', $employee->rcbc_no ?? '') }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Palawan Pay</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white text-warning"><i class="bi bi-wallet2"></i></span>
-                                <input type="text" name="palawan_pay_no" class="form-control" 
-                                       placeholder="Palawan Pay No." value="{{ old('palawan_pay_no', $employee->palawan_pay_no ?? '') }}">
                             </div>
                         </div>
                     </div>

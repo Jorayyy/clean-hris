@@ -21,7 +21,24 @@ class EmployeeController extends Controller
 {
     public function index()
     {
-        $employees = Employee::with('payrollGroup')->get();
+        $user = auth()->user();
+        $query = Employee::with('payrollGroup', 'site');
+
+        // Site Filtering
+        if (!$user->is_super_admin) {
+            if (!$user->can_access_all_sites) {
+                $accessibleSites = $user->accessible_sites ?? [];
+                
+                // Also include their primary site if they are linked to an employee
+                if ($user->employee && $user->employee->site_id) {
+                    $accessibleSites[] = $user->employee->site_id;
+                }
+
+                $query->whereIn('site_id', array_unique($accessibleSites));
+            }
+        }
+
+        $employees = $query->get();
         return view('employees.index', compact('employees'));
     }
 

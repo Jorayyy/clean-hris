@@ -154,7 +154,7 @@
                     <a href="{{ route('admin.tickets.index') }}" class="sidebar-link {{ request()->routeIs('admin.tickets.index') ? 'active' : '' }}">
                         <i class="bi bi-chat-dots"></i> Transactions
                     </a>
-                @elseif(Auth::user()->hasRole('Accounting Admin') || Auth::user()->isAdmin())
+                @elseif(Auth::user()->hasRole('Accounting Admin'))
                     <div class="nav-category">Payroll & Finance</div>
                     <a href="{{ route('payroll.index') }}" class="sidebar-link {{ request()->routeIs('payroll.*') ? 'active' : '' }}">
                         <i class="bi bi-cash-stack"></i> Payroll
@@ -169,6 +169,11 @@
                     <div class="nav-category">Management</div>
                     <a href="{{ route('attendance.index') }}" class="sidebar-link {{ request()->routeIs('attendance.*') ? 'active' : '' }}">
                         <i class="bi bi-clock-history"></i> Attendance
+                    </a>
+
+                    <div class="nav-category">Support</div>
+                    <a href="{{ route('admin.tickets.index') }}" class="sidebar-link {{ request()->routeIs('admin.tickets.index') ? 'active' : '' }}">
+                        <i class="bi bi-chat-dots"></i> Transactions
                     </a>
                 @endif
             @else
