@@ -306,9 +306,8 @@
                         <div class="col-md-6">
                             @php
                                 $user = Auth::user();
-                                // Super Admin and Accounting can see/edit the Daily Rate
-                                $isAccounting = ($user->employee && ($user->employee->classification === 'Accounting' || $user->employee->level === 'Accounting')) || $user->hasRole('Accounting Admin');
-                                $isAuthorized = $user->is_super_admin || $isAccounting;
+                                // Strictly use Roles for salary visibility (ignoring employee classification text)
+                                $isAuthorized = $user->is_super_admin || $user->hasRole('Accounting Admin');
                             @endphp
                             
                             @if($isAuthorized)

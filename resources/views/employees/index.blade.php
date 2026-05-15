@@ -18,9 +18,9 @@
                         <th>Group</th>
                         @php
                             $user = auth()->user();
-                            $isAccounting = ($user->employee && ($user->employee->classification === 'Accounting' || $user->employee->level === 'Accounting')) || $user->hasRole('Accounting Admin');
+                            $isAuthorized = $user->is_super_admin || $user->hasRole('Accounting Admin');
                         @endphp
-                        @if($user->is_super_admin || $isAccounting)
+                        @if($isAuthorized)
                             <th>Daily Rate</th>
                         @endif
                         <th>Status</th>
@@ -39,7 +39,7 @@
                             </span>
                         </td>
                         <td>{{ $employee->payrollGroup->name ?? 'None' }}</td>
-                        @if($user->is_super_admin || $isAccounting)
+                        @if($isAuthorized)
                             <td>{{ number_format($employee->daily_rate, 2) }}</td>
                         @endif
                         <td>
