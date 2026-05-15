@@ -1,75 +1,122 @@
 @extends('layouts.app')
 
-@section('header')
-    <div class="flex justify-between items-center">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Employee Details') }}: {{ $employee->first_name }} {{ $employee->last_name }}
-        </h2>
-        <a href="{{ route('employees.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
-            Back to List
-        </a>
-    </div>
-@endsection
-
 @section('content')
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 text-gray-900">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Personal Information</h3>
-                        <div class="flex flex-col space-y-3">
-                            <div>
-                                <span class="font-bold text-gray-700">Employee ID:</span>
-                                <span class="text-gray-600">{{ $employee->employee_id }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-700">Full Name:</span>
-                                <span class="text-gray-600">{{ $employee->first_name }} {{ $employee->middle_name }} {{ $employee->last_name }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-700">Email:</span>
-                                <span class="text-gray-600">{{ $employee->email }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-700">Phone:</span>
-                                <span class="text-gray-600">{{ $employee->phone }}</span>
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 text-primary">
+                    <i class="bi bi-person-badge me-2"></i>Employee Details: {{ $employee->first_name }} {{ $employee->last_name }}
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('employees.edit', $employee) }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                        <i class="bi bi-pencil me-1"></i> Edit
+                    </a>
+                    <a href="{{ route('employees.index') }}" class="btn btn-secondary btn-sm rounded-pill px-3 shadow-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <!-- Profile Photo & Summary -->
+                    <div class="col-md-3 text-center border-end">
+                        <div class="mb-3 position-relative d-inline-block">
+                            @if($employee->photo)
+                                <img src="{{ asset('storage/' . $employee->photo) }}" class="rounded-circle img-thumbnail shadow-sm" style="width: 150px; height: 150px; object-fit: cover;">
+                            @else
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border shadow-sm mx-auto" style="width: 150px; height: 150px;">
+                                    <i class="bi bi-person text-secondary" style="font-size: 5rem;"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <h4 class="mb-1">{{ $employee->full_name }}</h4>
+                        <p class="text-muted small mb-3">{{ $employee->position ?? 'No Position' }}</p>
+                        <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} rounded-pill px-3">
+                            {{ ucfirst($employee->status) }}
+                        </span>
+                    </div>
+
+                    <!-- Details Tab Content -->
+                    <div class="col-md-9">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3" style="font-size: 0.8rem; letter-spacing: 0.05em;">Personal Information</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="small text-muted mb-0 d-block">Employee ID</label>
+                                        <span class="fw-bold">{{ $employee->employee_id }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small text-muted mb-0 d-block">Birth Date</label>
+                                        <span class="fw-bold">{{ $employee->birthday ? \Carbon\Carbon::parse($employee->birthday)->format('M d, Y') : 'N/A' }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small text-muted mb-0 d-block">Gender</label>
+                                        <span class="fw-bold text-capitalize">{{ $employee->gender }}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Employment Details</h3>
-                        <div class="flex flex-col space-y-3">
-                            <div>
-                                <span class="font-bold text-gray-700">Payroll Group:</span>
-                                <span class="text-gray-600">{{ $employee->payrollGroup->name ?? 'None' }}</span>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3" style="font-size: 0.8rem; letter-spacing: 0.05em;">Contact Information</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="small text-muted mb-0 d-block">Email Address</label>
+                                        <span class="fw-bold"><i class="bi bi-envelope me-1"></i>{{ $employee->email }}</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small text-muted mb-0 d-block">Mobile Numbers</label>
+                                        <span class="fw-bold d-block"><i class="bi bi-phone me-1"></i>+63 {{ $employee->mobile_no_1 }}</span>
+                                        @if($employee->mobile_no_2)
+                                            <span class="fw-bold d-block small mt-1"><i class="bi bi-phone me-1"></i>+63 {{ $employee->mobile_no_2 }}</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <span class="font-bold text-gray-700">Site:</span>
-                                <span class="text-gray-600">{{ $employee->site->name ?? 'None' }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-700">Status:</span>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $employee->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ ucfirst($employee->status) }}
-                                </span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-700">Date Joined:</span>
-                                <span class="text-gray-600">{{ $employee->hire_date ? $employee->hire_date->format('M d, Y') : 'N/A' }}</span>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3" style="font-size: 0.8rem; letter-spacing: 0.05em;">Employment & Payroll Details</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="small text-muted mb-0 d-block">Payroll Group</label>
+                                        <span class="fw-bold text-primary">{{ $employee->payrollGroup->name ?? 'None' }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small text-muted mb-0 d-block">Main Bank Account</label>
+                                        <span class="fw-bold">{{ $employee->bank_name ?? 'N/A' }}</span>
+                                        @if($employee->account_no)
+                                            <span class="d-block small text-muted">{{ $employee->account_no }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small text-muted mb-0 d-block">Alternative Payments</label>
+                                        @if($employee->rcbc_no)
+                                            <span class="d-block small"><i class="bi bi-bank text-primary me-1"></i>RCBC: <strong>{{ $employee->rcbc_no }}</strong></span>
+                                        @endif
+                                        @if($employee->palawan_pay_no)
+                                            <span class="d-block small mt-1"><i class="bi bi-wallet2 text-warning me-1"></i>Palawan: <strong>{{ $employee->palawan_pay_no }}</strong></span>
+                                        @endif
+                                        @if(!$employee->rcbc_no && !$employee->palawan_pay_no)
+                                            <span class="text-muted italic small">None provided</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="mt-8 flex space-x-4">
-                    <a href="{{ route('employees.edit', $employee) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        Edit Employee
-                    </a>
-                    <a href="{{ route('attendance.show', ['attendance' => $employee->id]) }}" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        View Attendance
+            </div>
+            
+            <div class="card-footer bg-light p-3">
+                <div class="d-flex justify-content-end">
+                    <a href="{{ route('attendance.show', ['attendance' => $employee->id]) }}" class="btn btn-outline-indigo btn-sm shadow-sm">
+                        <i class="bi bi-calendar-check me-1"></i> View Detailed Attendance History
                     </a>
                 </div>
             </div>

@@ -35,6 +35,9 @@
                         </td>
                         <td>
                             <div class="d-flex gap-2 justify-content-center">
+                                <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-sm btn-outline-info shadow-sm" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                                 <a href="{{ route('employees.edit', $employee->id) }}" class="btn btn-sm btn-outline-primary shadow-sm" title="Edit Employee">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
