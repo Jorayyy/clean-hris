@@ -138,19 +138,22 @@
                     <div class="card-header bg-white border-0 py-3 ps-4 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt me-2 text-primary"></i>Site Distribution</h6>
                     </div>
-                    <div class="card-body px-4 pt-0">
-                        <div class="list-group list-group-flush mt-2">
+                    <div class="card-body px-4 pt-1">
+                        <div class="list-group list-group-flush">
                             @forelse($siteDistribution as $site)
-                                <div class="list-group-item px-0 border-0 py-3 d-flex justify-content-between align-items-center">
+                                <div class="list-group-item px-0 border-0 py-2 d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3 shadow-none border-0" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-geo-alt-fill" style="font-size: 0.8rem;"></i>
+                                    </div>
                                         <div>
                                             <h6 class="mb-0 fw-bold small text-dark">{{ $site->site_name }}</h6>
-                                            <span class="text-muted small" style="font-size: 0.7rem;">Active Workforce</span>
+                                            <span class="text-muted" style="font-size: 0.65rem;">Active Workforce</span>
                                         </div>
                                     </div>
                                     <div class="text-end">
-                                        <span class="fw-bold fs-5 d-block lh-1 text-dark">{{ $site->total }}</span>
-                                        <span class="text-muted" style="font-size: 0.65rem;">
+                                        <span class="fw-bold d-block lh-1 text-dark">{{ $site->total }}</span>
+                                        <span class="text-muted" style="font-size: 0.6rem;">
                                             {{ ($totalEmployees > 0) ? round($site->total / $totalEmployees * 100, 1) : 0 }}%
                                         </span>
                                     </div>
@@ -169,20 +172,20 @@
             <div class="col-md-6 d-flex flex-column">
                 <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
                     <div class="card-header bg-white border-0 py-3 ps-4">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2"></i>Yield vs Overtime</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-clock me-2 text-danger"></i>Yield vs Overtime</h6>
                     </div>
-                    <div class="card-body px-4 pt-0 d-flex flex-column">
+                    <div class="card-body px-4 pt-1 d-flex flex-column">
                         @php
                             $totalHours = ($yieldMetrics->reg_hours ?? 0) + ($yieldMetrics->ot_hours ?? 0);
                         @endphp
                         
-                        <div class="mb-4 mt-3">
+                        <div class="mb-3 mt-1">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="small text-muted" style="font-weight: 500;">Regular Hours</span>
                                 <span class="small text-dark fw-bold">{{ number_format($yieldMetrics->reg_hours ?? 0, 1) }}h</span>
                             </div>
-                            <div class="progress" style="height: 10px; background-color: #f1f1f1;">
-                                <div class="progress-bar" role="progressbar" style="width: {{ $totalHours > 0 ? (($yieldMetrics->reg_hours ?? 0)/$totalHours * 100) : 0 }}%; background-color: #e9ecef;"></div>
+                            <div class="progress rounded-pill" style="height: 8px; background-color: #f1f1f1;">
+                                <div class="progress-bar rounded-pill" role="progressbar" style="width: {{ $totalHours > 0 ? (($yieldMetrics->reg_hours ?? 0)/$totalHours * 100) : 0 }}%; background-color: #0d6efd;"></div>
                             </div>
                         </div>
 
@@ -191,12 +194,12 @@
                                 <span class="small text-muted" style="font-weight: 500;">Overtime Hours</span>
                                 <span class="small text-danger fw-bold">{{ number_format($yieldMetrics->ot_hours ?? 0, 1) }}h</span>
                             </div>
-                            <div class="progress" style="height: 10px; background-color: #f1f1f1;">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $totalHours > 0 ? (($yieldMetrics->ot_hours ?? 0)/$totalHours * 100) : 0 }}%"></div>
+                            <div class="progress rounded-pill" style="height: 8px; background-color: #f1f1f1;">
+                                <div class="progress-bar bg-danger rounded-pill" role="progressbar" style="width: {{ $totalHours > 0 ? (($yieldMetrics->ot_hours ?? 0)/$totalHours * 100) : 0 }}%"></div>
                             </div>
                         </div>
 
-                        <div class="mt-auto mb-4 p-4 rounded-4 border-0 bg-light text-center">
+                        <div class="mt-auto mb-2 p-4 rounded-4 border-0 bg-light text-center">
                             <div class="text-muted mb-2 text-uppercase tracking-wider" style="font-size: 0.6rem; font-weight: 600;">EFFICIENCY RATIO</div>
                             <h2 class="fw-bold mb-0 text-dark" style="font-size: 2rem;">{{ ($totalHours > 0 && $yieldMetrics->reg_hours > 0) ? number_format(($yieldMetrics->reg_hours / $totalHours) * 100, 1) : 0 }}%</h2>
                         </div>
@@ -210,18 +213,16 @@
     <div class="col-lg-4 d-flex flex-column h-100">
         <!-- Payroll Deadline / Runway -->
         <div class="card shadow-sm border-0 rounded-4 mb-4 bg-white flex-grow-0">
-            <div class="card-body p-4">
+            <div class="card-body p-4 pt-4">
                 <div class="d-flex align-items-center mb-3">
-                    <div>
-                        <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-0" style="letter-spacing: 0.1rem;">PAYROLL RUNWAY</h6>
-                    </div>
+                    <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-0" style="letter-spacing: 0.1rem;">PAYROLL RUNWAY</h6>
                 </div>
 
                 @php
                     $activePayroll = \App\Models\Payroll::where('status', '!=', 'approved')->latest()->first();
                 @endphp
                 @if($activePayroll)
-                    <div class="p-0 mb-3">
+                    <div class="p-0 mb-1">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="small fw-bold text-dark">{{ $activePayroll->payroll_code }}</span>
                             <span class="badge bg-warning text-dark rounded-pill px-2" style="font-size: 0.7rem; font-weight: 500;">{{ ucfirst($activePayroll->status) }}</span>
@@ -247,9 +248,14 @@
                             ? $today->copy()->day(15) 
                             : $today->copy()->endOfMonth();
                     @endphp
-                    <div class="py-2">
-                        <p class="small text-dark fw-bold mb-1">Next Estimated Payroll</p>
-                        <p class="small text-muted mb-0">{{ $nextPayrollDate->format('M d, Y') }}</p>
+                    <div class="d-flex align-items-center bg-light p-3 rounded-4">
+                        <div class="bg-white rounded-circle p-2 me-3 shadow-sm">
+                            <i class="bi bi-calendar-check text-primary fs-5"></i>
+                        </div>
+                        <div>
+                            <p class="small text-dark fw-bold mb-0">Next Estimated Payroll</p>
+                            <p class="small text-muted mb-0">{{ $nextPayrollDate->format('M d, Y') }} ({{ $nextPayrollDate->format('l') }})</p>
+                        </div>
                     </div>
                 @endif
             </div>
@@ -260,25 +266,25 @@
                 <h6 class="mb-0 fw-bold">Workforce Calendar</h6>
             </div>
             <div class="card-body p-4 pt-0">
-                <h6 class="fw-bold small text-muted mb-3 tracking-wider text-uppercase font-monospace border-bottom pb-2 mt-2">Upcoming Holidays</h6>
+                <h6 class="fw-bold small text-muted mb-2 tracking-wider text-uppercase font-monospace border-bottom pb-2 mt-2">Upcoming Holidays</h6>
                 @forelse($upcomingHolidays as $holiday)
                     <div class="d-flex align-items-center p-2 mb-2 bg-light rounded-3">
-                        <div class="bg-primary text-white rounded-pill px-3 py-1 me-3 text-center" style="min-width: 60px;">
+                        <div class="bg-primary text-white rounded-pill px-2 py-1 me-3 text-center" style="min-width: 50px;">
                             <span class="fw-800 small d-block lh-1">{{ \Carbon\Carbon::parse($holiday->date)->format('d') }}</span>
-                            <span class="small opacity-75" style="font-size: 0.6rem;">{{ strtoupper(\Carbon\Carbon::parse($holiday->date)->format('M')) }}</span>
+                            <span class="small opacity-75" style="font-size: 0.55rem;">{{ strtoupper(\Carbon\Carbon::parse($holiday->date)->format('M')) }}</span>
                         </div>
-                        <div>
-                            <h6 class="mb-0 fw-bold small text-dark">{{ $holiday->name }}</h6>
-                            <span class="badge bg-primary-subtle text-primary border-primary-subtle py-0 small">{{ ucfirst($holiday->type) }}</span>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <h6 class="mb-0 fw-bold small text-dark text-truncate">{{ $holiday->name }}</h6>
+                            <span class="badge bg-primary-subtle text-primary border-primary-subtle py-0" style="font-size: 0.6rem;">{{ ucfirst($holiday->type) }}</span>
                         </div>
                     </div>
                 @empty
                     <p class="text-muted small text-center py-2">No upcoming holidays recorded</p>
                 @endforelse
 
-                <h6 class="fw-bold small text-muted mb-3 tracking-wider text-uppercase font-monospace border-bottom pb-2 mt-4">Employee Birthdays</h6>
+                <h6 class="fw-bold small text-muted mb-2 tracking-wider text-uppercase font-monospace border-bottom pb-2 mt-3">Employee Birthdays</h6>
                 @forelse($upcomingBirthdays as $emp)
-                    <div class="d-flex align-items-center mb-3">
+                    <div class="d-flex align-items-center mb-2">
                         <div class="flex-shrink-0">
                             @if($emp->photo)
                                 <img src="{{ asset('storage/' . $emp->photo) }}" class="rounded-circle shadow-sm" width="35" height="35" style="object-fit: cover;">
@@ -325,25 +331,23 @@
                         </thead>
                         <tbody>
                             @foreach($recentPayrolls as $p)
-                            <tr>
-                                <td class="ps-4 fw-bold text-primary font-monospace small">{{ $p->payroll_code }}</td>
-                                <td>
-                                    @if($p->employee_id)
-                                        <span class="text-info"><i class="bi bi-person me-1"></i>{{ $p->employee->full_name ?? 'Individual' }}</span>
-                                    @else
-                                        {{ $p->payrollGroup->name ?? 'All Groups' }}
-                                    @endif
-                                </td>
-                                <td><small class="text-muted">{{ $p->start_date }} to {{ $p->end_date }}</small></td>
-                                <td>
-                                    <span class="badge border {{ $p->status == 'processed' ? 'bg-success-subtle text-success border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border-warning-subtle' }} rounded-pill px-3 py-1">
-                                        {{ ucfirst($p->status) }}
-                                    </span>
-                                </td>
-                                <td class="text-end pe-4">
-                                    <a href="{{ route('payroll.show', $p->id) }}" class="btn btn-sm btn-link font-monospace text-decoration-none fw-bold">REVIEW</a>
-                                </td>
-                            </tr>
+                        <td class="ps-4 fw-bold text-primary font-monospace" style="font-size: 0.75rem;">{{ $p->payroll_code }}</td>
+                        <td style="font-size: 0.8rem;">
+                            @if($p->employee_id)
+                                <span class="text-info"><i class="bi bi-person me-1"></i>{{ $p->employee->full_name ?? 'Individual' }}</span>
+                            @else
+                                {{ $p->payrollGroup->name ?? 'All Groups' }}
+                            @endif
+                        </td>
+                        <td style="font-size: 0.75rem;"><span class="text-muted">{{ $p->start_date }} to {{ $p->end_date }}</span></td>
+                        <td>
+                            <span class="badge border {{ $p->status == 'processed' ? 'bg-success-subtle text-success border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border-warning-subtle' }} rounded-pill px-3 py-1" style="font-size: 0.65rem;">
+                                {{ ucfirst($p->status) }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{{ route('payroll.show', $p->id) }}" class="btn btn-sm btn-link font-monospace text-decoration-none fw-bold" style="font-size: 0.7rem;">REVIEW</a>
+                        </td>
                             @endforeach
                         </tbody>
                     </table>
