@@ -164,14 +164,51 @@ class PayrollService
         $scheduleOutTime = '17:00:00';
 
         $dateStr = $date ?? $in->toDateString();
+        $dayName = Carbon::parse($dateStr)->format('l');
 
         // Try to get actual schedule if employee provided
         if ($employeeId) {
             $employee = \App\Models\Employee::find($employeeId);
+            
+            // PRIORITY 1: Check Site/Account-based Fixed Schedule
+            if ($employee->site_id) {
+                $site = \App\Models\Site::find($employee->site_id);
+                if ($site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
+                    $config = $site->schedule_config[$dayName];
+                    if ($config === 'OFF') {
+                        return [
+                            'total_hours' => abs(round($totalHours, 2)),
+                            'late_minutes' => 0,
+                            'undertime_minutes' => 0,
+                            'overtime_hours' => round($totalHours, 2), // All hours are OT on rest day
+                        ];
+                    }
+                    $siteSchedule = \App\Models\Schedule::find($config);
+                    if ($siteSchedule) {
+                        $scheduleInTime = $siteSchedule->time_in;
+                        $scheduleOutTime = $siteSchedule->time_out;
+
+                        // Special Policy: 1 Hour Schedule Only
+                        if ($site->is_special_1_hour) {
+                            $renderedMinutes = $out->diffInMinutes($in);
+                            if ($renderedMinutes < 60) {
+                                return [ 'total_hours' => 0, 'late_minutes' => 0, 'undertime_minutes' => 480, 'overtime_hours' => 0 ]; // Marked as absent/undertime
+                            }
+                            return [ 'total_hours' => 8, 'late_minutes' => 0, 'undertime_minutes' => 0, 'overtime_hours' => 0 ];
+                        }
+
+                        // Special Policy: Present Policy (Just need In/Out)
+                        if ($site->is_present_policy) {
+                            return [ 'total_hours' => 8, 'late_minutes' => 0, 'undertime_minutes' => 0, 'overtime_hours' => 0 ];
+                        }
+                    }
+                }
+            }
+
+            // PRIORITY 2: Fallback to existing manual/group schedule logic
             $schedule = $employee?->active_schedule;
             if ($schedule) {
                 // If specific date provided, check if scheduled for that day
-                $dayName = Carbon::parse($dateStr)->format('l');
                 if (!$dayName || (is_array($schedule->days) && in_array($dayName, $schedule->days))) {
                     $scheduleInTime = $schedule->time_in;
                     $scheduleOutTime = $schedule->time_out;

@@ -6,7 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Site extends Model
 {
-    protected $fillable = ['name', 'location'];
+    protected $fillable = [
+        'name', 
+        'location', 
+        'schedule_config', 
+        'is_special_1_hour', 
+        'is_present_policy'
+    ];
+
+    protected $casts = [
+        'schedule_config' => 'array',
+        'is_special_1_hour' => 'boolean',
+        'is_present_policy' => 'boolean',
+    ];
 
     public function employees()
     {

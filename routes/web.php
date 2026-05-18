@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\PayrollSettingController;
 use App\Http\Controllers\Admin\DeductionTypeController;
 use App\Http\Controllers\Admin\AllowanceTypeController;
 use App\Http\Controllers\Admin\OtherAdditionEnrollmentController;
+use App\Http\Controllers\Admin\SiteAccountController;
 use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\PayrollItemController;
 use App\Http\Controllers\Admin\AuditLogController;
@@ -74,6 +75,11 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::get('admin/payroll/other-addition-enrollment', [OtherAdditionEnrollmentController::class, 'index'])->name('admin.payroll.other-addition-enrollment.index');
         Route::post('admin/payroll/other-addition-enrollment/import', [OtherAdditionEnrollmentController::class, 'import'])->name('admin.payroll.other-addition-enrollment.import');
         Route::get('admin/payroll/other-addition-enrollment/download-template', [OtherAdditionEnrollmentController::class, 'downloadTemplate'])->name('admin.payroll.other-addition-enrollment.download-template');
+        
+        // Site/Account Management & Fixed Schedules
+        Route::get('admin/settings/sites-accounts', [SiteAccountController::class, 'index'])->name('admin.settings.sites.index');
+        Route::get('admin/settings/sites-accounts/{site}', [SiteAccountController::class, 'show'])->name('admin.settings.sites.show');
+        Route::post('admin/settings/sites-accounts/{site}/schedule', [SiteAccountController::class, 'updateSchedule'])->name('admin.settings.sites.update-schedule');
 
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
 

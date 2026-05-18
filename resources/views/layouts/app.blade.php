@@ -97,6 +97,9 @@
                 </a>
                 
                 <div class="nav-category">Structure & Settings</div>
+                <a href="{{ route('admin.settings.sites.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.sites.*') ? 'active' : '' }}">
+                    <i class="bi bi-grid-3x3-gap"></i> Sections/Accounts
+                </a>
                 <a href="{{ route('sites.index') }}" class="sidebar-link {{ request()->routeIs('sites.*') ? 'active' : '' }}">
                     <i class="bi bi-geo-alt"></i> Sites
                 </a>
