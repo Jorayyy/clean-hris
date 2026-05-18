@@ -263,8 +263,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 right: 'dayGridMonth,dayGridWeek'
             },
             events: async function(info, successCallback, failureCallback) {
+                // Use a wider range to avoid edge cases
+                const startStr = info.start.toISOString().split('T')[0];
+                const endStr = info.end.toISOString().split('T')[0];
                 const midDate = new Date((info.start.getTime() + info.end.getTime()) / 2);
+                
                 try {
+                    console.log("Fetching attendance for:", midDate.getFullYear(), midDate.getMonth() + 1);
                     const response = await fetch(`{{ url("attendance") }}/{{ $employee->id }}/monthly?year=${midDate.getFullYear()}&month=${midDate.getMonth() + 1}`);
                     const data = await response.json();
                     
@@ -272,6 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const showAttendance = document.getElementById('toggle-attendance').checked;
                     
                     let events = [];
+                    const todayStr = new Date().toISOString().split('T')[0];
                     
                     Object.entries(data).forEach(([date, dayData]) => {
                         // Add Schedule Event
@@ -286,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 backgroundColor: color,
                                 borderColor: color,
                                 textColor: '#ffffff',
+                                allDay: true,
                                 extendedProps: { type: 'schedule', ...dayData.schedule }
                             });
                         }
@@ -298,7 +305,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             events.push({
                                 title: `IN: ${mainLog.time_in}`,
                                 start: date,
-                                className: 'event-present',
+                                backgroundColor: '#198754',
+                                borderColor: '#198754',
+                                textColor: '#ffffff',
+                                allDay: true,
                                 extendedProps: { type: 'attendance', ...dayData.attendance }
                             });
 
@@ -310,23 +320,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                     backgroundColor: '#dc3545',
                                     borderColor: '#dc3545',
                                     textColor: '#ffffff',
+                                    allDay: true,
                                     extendedProps: { type: 'attendance', ...dayData.attendance }
                                 });
                             }
-                        } else if (showAttendance && !dayData.attendance && dayData.schedule && date < new Date().toISOString().split('T')[0]) {
+                        } else if (showAttendance && !dayData.attendance && dayData.schedule && date < todayStr) {
                             // Only show ABSENT for past dates that had a schedule
                             events.push({
                                 title: 'ABSENT',
                                 start: date,
-                                className: 'event-absent',
+                                backgroundColor: '#dc3545',
+                                borderColor: '#dc3545',
+                                textColor: '#ffffff',
+                                allDay: true,
                                 extendedProps: { type: 'absent' }
                             });
                         }
                     });
                     
+                    console.log("Events to render:", events.length);
                     successCallback(events);
                 } catch (e) { 
-                    console.error(e);
+                    console.error("Calendar Fetch Error:", e);
                     failureCallback(e); 
                 }
             },
