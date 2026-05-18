@@ -21,8 +21,12 @@
                         <label class="form-label fw-semibold">Target Type</label>
                         <div class="d-flex gap-4 p-3 bg-light rounded shadow-sm">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="target_type" id="typeGroup" value="group" {{ $schedule->payroll_group_id ? 'checked' : '' }} onclick="toggleFields()">
-                                <label class="form-check-label" for="typeGroup">Payroll Group</label>
+                                <input class="form-check-input" type="radio" name="target_type" id="typeGroup" value="group" {{ $schedule->schedule_group_id ? 'checked' : '' }} onclick="toggleFields()">
+                                <label class="form-check-label" for="typeGroup">Schedule Group</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="target_type" id="typePayroll" value="payroll" {{ $schedule->payroll_group_id ? 'checked' : '' }} onclick="toggleFields()">
+                                <label class="form-check-label" for="typePayroll">Payroll Group</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="target_type" id="typeIndividual" value="individual" {{ $schedule->employee_id ? 'checked' : '' }} onclick="toggleFields()">
@@ -31,18 +35,30 @@
                         </div>
                     </div>
 
-                    <div class="mb-3 {{ $schedule->employee_id ? 'd-none' : '' }}" id="groupField">
+                    <div class="mb-3 {{ $schedule->schedule_group_id ? '' : 'd-none' }}" id="groupField">
+                        <label class="form-label fw-semibold">Select Schedule Group</label>
+                        <select name="schedule_group_id" class="form-select">
+                            <option value="">-- Select Group --</option>
+                            @foreach($scheduleGroups as $g)
+                                <option value="{{ $g->id }}" {{ $schedule->schedule_group_id == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3 {{ $schedule->payroll_group_id ? '' : 'd-none' }}" id="payrollField">
                         <label class="form-label fw-semibold">Select Payroll Group</label>
                         <select name="payroll_group_id" class="form-select">
-                            @foreach($groups as $g)
+                            <option value="">-- Select Group --</option>
+                            @foreach($payrollGroups as $g)
                                 <option value="{{ $g->id }}" {{ $schedule->payroll_group_id == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div class="mb-3 {{ $schedule->payroll_group_id ? 'd-none' : '' }}" id="individualField">
+                    <div class="mb-3 {{ $schedule->employee_id ? '' : 'd-none' }}" id="individualField">
                         <label class="form-label fw-semibold">Select Employee</label>
                         <select name="employee_id" class="form-select">
+                            <option value="">-- Select Employee --</option>
                             @foreach($employees as $e)
                                 <option value="{{ $e->id }}" {{ $schedule->employee_id == $e->id ? 'selected' : '' }}>{{ $e->full_name }} ({{ $e->employee_id }})</option>
                             @endforeach
@@ -87,8 +103,12 @@
 <script>
 function toggleFields() {
     const isGroup = document.getElementById('typeGroup').checked;
+    const isPayroll = document.getElementById('typePayroll').checked;
+    const isIndividual = document.getElementById('typeIndividual').checked;
+
     document.getElementById('groupField').classList.toggle('d-none', !isGroup);
-    document.getElementById('individualField').classList.toggle('d-none', isGroup);
+    document.getElementById('payrollField').classList.toggle('d-none', !isPayroll);
+    document.getElementById('individualField').classList.toggle('d-none', !isIndividual);
 }
 </script>
 @endsection

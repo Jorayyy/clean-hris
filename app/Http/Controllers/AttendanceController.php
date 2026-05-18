@@ -71,42 +71,82 @@ class AttendanceController extends Controller
             ->get()
             ->groupBy('date');
 
-        $schedule = $employee->active_schedule;
-        $workDays = $schedule ? (is_array($schedule->days) ? $schedule->days : []) : [];
-        
+        // Get Direct Individual Schedules
+        $individualSchedules = \App\Models\Schedule::where('employee_id', $employee->id)
+            ->where('is_template', false)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->get()
+            ->groupBy('date');
+
+        $site = $employee->site ? $employee->site->load('scheduleGroup') : null;
+        $siteConfig = null;
+
+        if ($site) {
+            $siteConfig = ($site->scheduleGroup) ? $site->scheduleGroup->schedule_config : $site->schedule_config;
+        }
+
         $daysInMonth = \Carbon\Carbon::createFromDate($year, $month, 1)->daysInMonth;
         $formatted = [];
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dateString = sprintf('%04d-%02d-%02d', $year, $month, $day);
             $dayName = \Carbon\Carbon::parse($dateString)->format('l');
+            $data = [
+                'attendance' => null,
+                'schedule' => null
+            ];
             
+            // 1. Check Attendance
             $logs = $attendances->get($dateString);
-            $hasAttendance = $logs && $logs->count() > 0;
-            $isWorkDay = in_array($dayName, $workDays);
-
-            $status = 'rest-day';
-            if ($hasAttendance) {
-                $status = 'present';
-            } elseif ($isWorkDay && strtotime($dateString) <= time()) {
-                $status = 'absent';
+            if ($logs && $logs->count() > 0) {
+                $data['attendance'] = [
+                    'status' => 'present',
+                    'logs' => $logs->map(function($log) {
+                        return [
+                            'time_in' => $log->time_in ? date('h:i A', strtotime($log->time_in)) : '--:--',
+                            'time_out' => $log->time_out ? date('h:i A', strtotime($log->time_out)) : '--:--',
+                        ];
+                    })
+                ];
             }
 
-            $formatted[$dateString] = [
-                'status' => $status,
-                'count' => $hasAttendance ? $logs->count() : 0,
-                'total_hours' => $hasAttendance ? $logs->sum('total_hours') : 0,
-                'is_late' => $hasAttendance ? $logs->sum('late_minutes') > 0 : false,
-                'is_undertime' => $hasAttendance ? $logs->sum('undertime_minutes') > 0 : false,
-                'logs' => $hasAttendance ? $logs->map(function($log) {
-                    return [
-                        'time_in' => ($log->time_in && $log->time_in != '00:00:00') ? date('h:i A', strtotime($log->time_in)) : '--:--',
-                        'lunch_out' => ($log->break1_out && $log->break1_out != '00:00:00') ? date('h:i A', strtotime($log->break1_out)) : '--:--',
-                        'lunch_in' => ($log->break1_in && $log->break1_in != '00:00:00') ? date('h:i A', strtotime($log->break1_in)) : '--:--',
-                        'time_out' => ($log->time_out && $log->time_out != '00:00:00') ? date('h:i A', strtotime($log->time_out)) : '--:--',
-                    ];
-                }) : []
-            ];
+            // 2. Check Schedule (Individual Priority -> Group -> Site)
+            $sched = null;
+            $schedSource = null;
+
+            // Direct plotting
+            if ($individualSchedules->has($dateString)) {
+                $s = $individualSchedules->get($dateString)->first();
+                $sched = [
+                    'title' => $s->title ?? 'Shift',
+                    'time_in' => $s->time_in,
+                    'time_out' => $s->time_out,
+                ];
+                $schedSource = 'individual';
+            } 
+            // Group/Site plotting
+            elseif ($siteConfig && isset($siteConfig[$dayName])) {
+                $dayConfig = $siteConfig[$dayName];
+                if ($dayConfig !== 'OFF' && (!is_array($dayConfig) || !($dayConfig['is_rest_day'] ?? false))) {
+                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
+                    $s = \App\Models\Schedule::find($schedId);
+                    if ($s) {
+                        $sched = [
+                            'title' => $s->title,
+                            'time_in' => $s->time_in,
+                            'time_out' => $s->time_out,
+                        ];
+                        $schedSource = ($site->scheduleGroup) ? 'group' : 'fixed';
+                    }
+                }
+            }
+
+            if ($sched) {
+                $data['schedule'] = array_merge($sched, ['source' => $schedSource]);
+            }
+
+            $formatted[$dateString] = $data;
         }
 
         return response()->json($formatted);

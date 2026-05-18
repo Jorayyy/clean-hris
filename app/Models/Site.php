@@ -20,6 +20,11 @@ class Site extends Model
         'is_present_policy' => 'boolean',
     ];
 
+    public function scheduleGroup()
+    {
+        return $this->belongsTo(ScheduleGroup::class);
+    }
+
     public function employees()
     {
         return $this->hasMany(Employee::class);

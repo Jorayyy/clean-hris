@@ -81,8 +81,8 @@
                 <a href="{{ route('attendance.index') }}" class="sidebar-link {{ request()->routeIs('attendance.*') ? 'active' : '' }}">
                     <i class="bi bi-clock-history"></i> Attendance
                 </a>
-                <a href="{{ route('schedules.index') }}" class="sidebar-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
-                    <i class="bi bi-calendar-event"></i> Schedules
+                <a href="{{ route('schedules.index') }}" class="sidebar-link {{ request()->routeIs('schedules.*') || request()->routeIs('admin.settings.sites.*') || request()->routeIs('admin.settings.schedule-groups.*') ? 'active' : '' }}">
+                    <i class="bi bi-calendar-event"></i> Schedules & Plotting
                 </a>
 
                 <div class="nav-category">Payroll & Finance</div>
@@ -97,10 +97,7 @@
                 </a>
                 
                 <div class="nav-category">Structure & Settings</div>
-                <a href="{{ route('admin.settings.sites.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.sites.*') ? 'active' : '' }}">
-                    <i class="bi bi-grid-3x3-gap"></i> Sections/Accounts
-                </a>
-                <a href="{{ route('sites.index') }}" class="sidebar-link {{ request()->routeIs('sites.*') ? 'active' : '' }}">
+                <a href="{{ route('sites.index') }}" class="sidebar-link {{ request()->routeIs('sites.index') || (request()->routeIs('sites.*') && !request()->routeIs('admin.settings.sites.*') && !request()->routeIs('admin.settings.schedule-groups.*')) ? 'active' : '' }}">
                     <i class="bi bi-geo-alt"></i> Sites
                 </a>
                 <a href="{{ route('payroll-groups.index') }}" class="sidebar-link {{ request()->routeIs('payroll-groups.*') ? 'active' : '' }}">
@@ -112,7 +109,7 @@
                 <a href="{{ route('authorized-networks.index') }}" class="sidebar-link {{ request()->routeIs('authorized-networks.*') ? 'active' : '' }}">
                     <i class="bi bi-shield-lock"></i> Authorized IP
                 </a>
-                <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.index') ? 'active' : '' }}">
                     <i class="bi bi-gear"></i> System Settings
                 </a>
                 

@@ -50,91 +50,157 @@
         </div>
     </div>
 
-    <!-- List View -->
-    <div id="list-view-container">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-3">
-                <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-center">
-                    <div class="col-auto">
-                        <label class="form-label mb-0 fw-bold">Filter Month/Year:</label>
+    <!-- Attendance Dashboard Layout -->
+    <div class="row">
+        <!-- Sidebar Options (Left) -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 fw-bold fw-bold text-center">Viewing Options</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush border-bottom">
+                        <label class="list-group-item d-flex align-items-center py-3 border-0">
+                            <input class="form-check-input me-3 event-toggle" type="checkbox" value="view-schedule" id="toggle-schedule" checked>
+                            <span class="small fw-semibold">View Schedules</span>
+                        </label>
+                        <label class="list-group-item d-flex align-items-center py-3 border-0">
+                            <input class="form-check-input me-3 event-toggle" type="checkbox" value="view-attendance" id="toggle-attendance" checked>
+                            <span class="small fw-semibold">View Attendance</span>
+                        </label>
+                        <label class="list-group-item d-flex align-items-center py-3 border-0">
+                            <input class="form-check-input me-3 event-toggle" type="checkbox" value="view-approved" id="toggle-approved">
+                            <span class="small fw-semibold">View Approved Forms</span>
+                        </label>
+                        <label class="list-group-item d-flex align-items-center py-3 border-0">
+                            <input class="form-check-input me-3 event-toggle" type="checkbox" value="view-breaks" id="toggle-breaks">
+                            <span class="small fw-semibold">View Breaks</span>
+                        </label>
                     </div>
-                    <div class="col-md-2">
-                        <select name="month" class="form-select">
-                            @foreach(range(1, 12) as $m)
-                                <option value="{{ $m }}" {{ request('month', date('n')) == $m ? 'selected' : '' }}>
-                                    {{ date('F', mktime(0, 0, 0, $m, 1)) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="year" class="form-select">
-                            @foreach(range(date('Y') - 2, date('Y') + 1) as $y)
-                                <option value="{{ $y }}" {{ request('year', date('Y')) == $y ? 'selected' : '' }}>
-                                    {{ $y }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                    </div>
-                    <div class="col-auto">
-                        <a href="{{ url()->current() }}" class="btn btn-outline-secondary">Reset</a>
-                    </div>
-                </form>
-            </div>
-        </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th class="ps-4">Date</th>
-                                <th>Time In</th>
-                                <th>Time Out</th>
-                                <th>Total Hours</th>
-                                <th class="text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($attendances as $row)
-                            <tr>
-                                <td class="ps-4 fw-medium">{{ \Carbon\Carbon::parse($row->date)->format('M d, Y') }}</td>
-                                <td>
-                                    <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ \Carbon\Carbon::parse($row->time_in)->format('h:i A') }}</span>
-                                </td>
-                                <td>
-                                    <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('h:i A') : '---' }}</span>
-                                </td>
-                                <td>{{ number_format($row->total_hours, 2) }} hrs</td>
-                                <td class="text-end pe-4">
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ url('attendance/' . $row->id . '/edit') }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                                        <form action="{{ url('attendance/' . $row->id) }}" method="POST" class="d-inline">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="5" class="text-center py-5 text-muted">No records found for this period.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    <div class="p-3">
+                        <table class="table table-sm table-borderless mb-0">
+                            <thead>
+                                <tr class="bg-success bg-opacity-10">
+                                    <th class="small fw-bold text-center">Legend</th>
+                                    <th class="small fw-bold text-center">Color Code</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                <tr>
+                                    <td class="text-muted">Individually Plotted</td>
+                                    <td class="text-center"><div class="rounded mx-auto shadow-sm" style="width: 40px; height: 18px; background-color: #800040;"></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Group Plotted</td>
+                                    <td class="text-center"><div class="rounded mx-auto shadow-sm" style="width: 40px; height: 18px; background-color: #ff0000;"></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Fixed Schedule</td>
+                                    <td class="text-center"><div class="rounded mx-auto shadow-sm" style="width: 40px; height: 18px; background-color: #808080;"></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Attendance (Punch)</td>
+                                    <td class="text-center"><div class="rounded mx-auto shadow-sm" style="width: 40px; height: 18px; background-color: #198754;"></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Absent</td>
+                                    <td class="text-center"><div class="rounded mx-auto shadow-sm" style="width: 40px; height: 18px; background-color: #dc3545;"></div></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Calendar View -->
-    <div id="calendar-view-container" class="d-none">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <div id="full-calendar"></div>
+        <!-- Main Calendar Area (Right) -->
+        <div class="col-md-9">
+            <!-- List View -->
+            <div id="list-view-container">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-3">
+                        <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label class="form-label mb-0 fw-bold">Filter Month/Year:</label>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <select name="month" class="form-select border-0 bg-light">
+                                        @foreach(range(1, 12) as $m)
+                                            <option value="{{ $m }}" {{ request('month', date('n')) == $m ? 'selected' : '' }}>
+                                                {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <select name="year" class="form-select border-0 bg-light border-start">
+                                        @foreach(range(date('Y') - 2, date('Y') + 1) as $y)
+                                            <option value="{{ $y }}" {{ request('year', date('Y')) == $y ? 'selected' : '' }}>
+                                                {{ $y }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit" class="btn btn-primary px-4">Filter</button>
+                                </div>
+                            </div>
+                            <div class="col-auto ms-auto">
+                                <a href="{{ url()->current() }}" class="btn btn-light rounded-pill px-4">Reset</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th class="ps-4">Date</th>
+                                        <th>Time In</th>
+                                        <th>Time Out</th>
+                                        <th>Total Hours</th>
+                                        <th class="text-end pe-4">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($attendances as $row)
+                                    <tr>
+                                        <td class="ps-4 fw-medium">{{ \Carbon\Carbon::parse($row->date)->format('M d, Y') }}</td>
+                                        <td>
+                                            <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ \Carbon\Carbon::parse($row->time_in)->format('h:i A') }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('h:i A') : '---' }}</span>
+                                        </td>
+                                        <td>{{ number_format($row->total_hours, 2) }} hrs</td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url('attendance/' . $row->id . '/edit') }}" class="btn btn-outline-primary border-0"><i class="bi bi-pencil"></i></a>
+                                                <form action="{{ url('attendance/' . $row->id) }}" method="POST" class="d-inline">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-outline-danger border-0" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr><td colspan="5" class="text-center py-5 text-muted">No records found for this period.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendar-view-container" class="d-none">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-body p-4">
+                        <div id="full-calendar"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -164,8 +230,13 @@
     .event-present { background-color: #198754 !important; color: #ffffff !important; border: none !important; }
     .event-absent { background-color: #dc3545 !important; color: #ffffff !important; border: none !important; }
     .event-rest { background-color: #6c757d !important; color: #ffffff !important; border: none !important; }
+    .event-scheduled { background-color: #f8fafc !important; color: #64748b !important; border: 1px solid #e2e8f0 !important; }
     
     .fc-daygrid-day-number { font-weight: bold; padding: 10px !important; text-decoration: none !important; color: #1e293b; }
+    
+    .list-group-item:hover { background-color: #f8fafc; transition: 0.2s; cursor: pointer; }
+    .form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
+    .card-header { border-bottom: 1px solid rgba(0,0,0,.08); }
 </style>
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
@@ -182,18 +253,73 @@ document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('full-calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,dayGridWeek'
+            },
             events: async function(info, successCallback, failureCallback) {
                 const midDate = new Date((info.start.getTime() + info.end.getTime()) / 2);
                 try {
                     const response = await fetch(`{{ url("attendance") }}/{{ $employee->id }}/monthly?year=${midDate.getFullYear()}&month=${midDate.getMonth() + 1}`);
                     const data = await response.json();
-                    const events = Object.entries(data).map(([date, info]) => ({
-                        title: info.status === 'present' ? `${info.logs[0].time_in}` : info.status.toUpperCase(),
-                        start: date,
-                        allDay: true,
-                        extendedProps: info,
-                        className: info.status === 'present' ? 'event-present' : (info.status === 'absent' ? 'event-absent' : 'event-rest')
-                    }));
+                    
+                    const showSchedule = document.getElementById('toggle-schedule').checked;
+                    const showAttendance = document.getElementById('toggle-attendance').checked;
+                    
+                    let events = [];
+                    
+                    Object.entries(data).forEach(([date, dayData]) => {
+                        // Add Schedule Event
+                        if (showSchedule && dayData.schedule) {
+                            let color = '#808080'; // Default fixed
+                            if (dayData.schedule.source === 'individual') color = '#800040';
+                            if (dayData.schedule.source === 'group') color = '#ff0000';
+
+                            events.push({
+                                title: `SHIFT: ${dayData.schedule.time_in}-${dayData.schedule.time_out}`,
+                                start: date,
+                                backgroundColor: color,
+                                borderColor: color,
+                                textColor: '#ffffff',
+                                extendedProps: { type: 'schedule', ...dayData.schedule }
+                            });
+                        }
+
+                        // Add Attendance Event
+                        if (showAttendance && dayData.attendance) {
+                            const mainLog = dayData.attendance.logs[0];
+                            
+                            // IN Event
+                            events.push({
+                                title: `IN: ${mainLog.time_in}`,
+                                start: date,
+                                className: 'event-present',
+                                extendedProps: { type: 'attendance', ...dayData.attendance }
+                            });
+
+                            // OUT Event (if exists)
+                            if (mainLog.time_out && mainLog.time_out !== '--:--') {
+                                events.push({
+                                    title: `OUT: ${mainLog.time_out}`,
+                                    start: date,
+                                    backgroundColor: '#dc3545',
+                                    borderColor: '#dc3545',
+                                    textColor: '#ffffff',
+                                    extendedProps: { type: 'attendance', ...dayData.attendance }
+                                });
+                            }
+                        } else if (showAttendance && !dayData.attendance && dayData.schedule && date < new Date().toISOString().split('T')[0]) {
+                            // Only show ABSENT for past dates that had a schedule
+                            events.push({
+                                title: 'ABSENT',
+                                start: date,
+                                className: 'event-absent',
+                                extendedProps: { type: 'absent' }
+                            });
+                        }
+                    });
+                    
                     successCallback(events);
                 } catch (e) { 
                     console.error(e);
@@ -205,25 +331,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 const modal = new bootstrap.Modal(document.getElementById('eventModal'));
                 document.getElementById('modalDate').innerText = info.event.start.toDateString();
                 
-                let html = `<h4 class="fw-bold mb-3 ${props.status === 'present' ? 'text-success' : 'text-danger'}">${props.status.toUpperCase()}</h4>`;
-                
-                if (props.status === 'present') {
-                    html += `<div class="p-3 bg-light rounded-3 mb-3">
-                                <div class="small text-muted">Total Hours</div>
-                                <div class="fs-3 fw-bold">${props.total_hours.toFixed(2)}</div>
-                             </div>`;
+                let html = '';
+                if (props.type === 'attendance') {
+                    html = `<h4 class="fw-bold mb-3 text-success">PRESENT</h4>`;
                     props.logs.forEach(log => {
                         html += `<div class="d-flex justify-content-between border-bottom py-2">
                                     <span>In: <strong>${log.time_in}</strong></span>
                                     <span>Out: <strong>${log.time_out || '---'}</strong></span>
-                                 </div>
-                                 <div class="d-flex justify-content-between border-bottom py-2 bg-light px-2 rounded-2 mt-1">
-                                    <span class="small text-muted">Lunch:</span>
-                                    <span class="small"><strong>${log.lunch_out}</strong> to <strong>${log.lunch_in}</strong></span>
                                  </div>`;
                     });
+                } else if (props.type === 'schedule') {
+                    html = `<h4 class="fw-bold mb-3 text-primary">SCHEDULED SHIFT</h4>
+                            <div class="p-3 bg-light rounded-3">
+                                <p class="mb-1 text-muted small">Source: <span class="text-dark fw-bold">${props.source.toUpperCase()}</span></p>
+                                <p class="mb-0 fs-5 fw-bold">${props.time_in} - ${props.time_out}</p>
+                            </div>`;
                 } else {
-                    html += `<p class="text-muted">No attendance activity recorded.</p>`;
+                    html = `<h4 class="fw-bold mb-3 text-danger">ABSENT</h4><p class="text-muted">No attendance activity recorded.</p>`;
                 }
                 
                 document.getElementById('modalBody').innerHTML = html;
@@ -231,6 +355,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         calendar.render();
+
+        // Add refresh listeners to checkboxes
+        document.querySelectorAll('.event-toggle').forEach(el => {
+            el.addEventListener('change', () => calendar.refetchEvents());
+        });
     }
 
     viewListBtn.addEventListener('click', () => {

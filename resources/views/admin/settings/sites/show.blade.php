@@ -27,13 +27,54 @@
         <div class="card-body p-4">
             <form action="{{ route('admin.settings.sites.update-schedule', $site->id) }}" method="POST">
                 @csrf
-                <div class="row g-4 mb-5">
+                
+                <div class="row mb-5">
+                    <div class="col-md-12">
+                        <div class="bg-light p-4 rounded-4 border">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-calendar-week me-2"></i> Use Schedule Group</h5>
+                            <p class="text-muted small">Select a pre-defined schedule group for this account. If you select a group, the manual plotting below will be ignored.</p>
+                            <select name="schedule_group_id" class="form-select form-select-lg rounded-pill border-0 shadow-sm px-4">
+                                <option value="">-- No Group (Use Manual Plotting Below) --</option>
+                                @foreach($scheduleGroups as $group)
+                                    <option value="{{ $group->id }}" {{ $site->schedule_group_id == $group->id ? 'selected' : '' }}>
+                                        {{ $group->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if($site->scheduleGroup)
+                                <div class="mt-3 p-3 bg-white rounded-3 shadow-sm border-start border-primary border-4">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold text-primary">Active Group Schedule:</span>
+                                        <a href="{{ route('admin.settings.schedule-groups.edit', $site->scheduleGroup->id) }}" class="small text-decoration-none">View/Edit Group</a>
+                                    </div>
+                                    <div class="mt-2 row">
+                                        @foreach($site->scheduleGroup->schedule_config as $day => $config)
+                                            <div class="col-md-3 small">
+                                                <strong>{{ substr($day, 0, 3) }}:</strong> 
+                                                @if(isset($config['is_rest_day']))
+                                                    <span class="text-danger">REST</span>
+                                                @else
+                                                    {{ \Carbon\Carbon::parse($config['start'])->format('h:i A') }} - {{ \Carbon\Carbon::parse($config['end'])->format('h:i A') }}
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5" id="manual-plotting-section" style="{{ $site->schedule_group_id ? 'opacity: 0.5; pointer-events: none;' : '' }}">
+                    <div class="col-12">
+                        <h5 class="fw-bold"><i class="bi bi-clock me-2"></i> Manual Schedule Plotting (Per Day)</h5>
+                    </div>
                     @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
                     <div class="col-md-4">
                         <label class="form-label fw-bold">{{ $day }}</label>
                         <select name="schedule[{{ $day }}]" class="form-select bg-light border-0 py-2">
                             <option value="">Select Schedule</option>
-                            @foreach($schedules as $sched)
+                            @foreach($templates as $sched)
                                 <option value="{{ $sched->id }}" {{ (isset($site->schedule_config[$day]) && $site->schedule_config[$day] == $sched->id) ? 'selected' : '' }}>
                                     {{ $sched->name }} ({{ \Carbon\Carbon::parse($sched->time_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($sched->time_out)->format('h:i A') }})
                                 </option>
@@ -83,3 +124,18 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.querySelector('select[name="schedule_group_id"]').addEventListener('change', function() {
+    const section = document.getElementById('manual-plotting-section');
+    if (this.value) {
+        section.style.opacity = '0.5';
+        section.style.pointerEvents = 'none';
+    } else {
+        section.style.opacity = '1';
+        section.style.pointerEvents = 'auto';
+    }
+});
+</script>
+@endpush

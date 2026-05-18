@@ -172,8 +172,32 @@ class PayrollService
             
             // PRIORITY 1: Check Site/Account-based Fixed Schedule
             if ($employee->site_id) {
-                $site = \App\Models\Site::find($employee->site_id);
-                if ($site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
+                $site = \App\Models\Site::with('scheduleGroup')->find($employee->site_id);
+                
+                // A: Use Group Schedule if assigned
+                if ($site && $site->schedule_group_id && $site->scheduleGroup) {
+                    $dayConfig = $site->scheduleGroup->schedule_config[$dayName] ?? null;
+                    if ($dayConfig) {
+                        if (isset($dayConfig['is_rest_day']) || $dayConfig === 'OFF') {
+                            return [
+                                'total_hours' => abs(round($totalHours, 2)),
+                                'late_minutes' => 0,
+                                'undertime_minutes' => 0,
+                                'overtime_hours' => round($totalHours, 2),
+                            ];
+                        }
+
+                        $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
+                        $siteSchedule = \App\Models\Schedule::find($schedId);
+                        
+                        if ($siteSchedule) {
+                            $scheduleInTime = $siteSchedule->time_in;
+                            $scheduleOutTime = $siteSchedule->time_out;
+                        }
+                    }
+                } 
+                // B: Fallback to Manual Site Schedule Plotting
+                elseif ($site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
                     $config = $site->schedule_config[$dayName];
                     if ($config === 'OFF') {
                         return [

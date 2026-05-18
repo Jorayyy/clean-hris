@@ -5,22 +5,31 @@
     <div class="col-md-6">
         <div class="card shadow rounded border-0">
             <div class="card-header bg-white py-3 border-0">
-                <h5 class="mb-0 fw-bold">Create New Schedule</h5>
+                <h5 class="mb-0 fw-bold">{{ $isTemplate ? 'Create Shift Template' : 'Assign New Schedule' }}</h5>
             </div>
             <div class="card-body">
                 <form action="{{ route('schedules.store') }}" method="POST">
                     @csrf
+                    @if($isTemplate)
+                        <input type="hidden" name="is_template" value="1">
+                    @endif
+
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Schedule Name (Optional)</label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g. Morning Shift">
+                        <label class="form-label fw-semibold">{{ $isTemplate ? 'Template Name' : 'Schedule Name (Optional)' }}</label>
+                        <input type="text" name="name" class="form-control" placeholder="{{ $isTemplate ? 'e.g. Standard Graveyard' : 'e.g. Morning Shift' }}" required>
                     </div>
 
+                    @if(!$isTemplate)
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Target Type</label>
                         <div class="d-flex gap-4 p-3 bg-light rounded shadow-sm">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="target_type" id="typeGroup" value="group" checked onclick="toggleFields()">
-                                <label class="form-check-label" for="typeGroup">Payroll Group</label>
+                                <label class="form-check-label" for="typeGroup">Schedule Group</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="target_type" id="typePayroll" value="payroll" onclick="toggleFields()">
+                                <label class="form-check-label" for="typePayroll">Payroll Group</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="target_type" id="typeIndividual" value="individual" onclick="toggleFields()">
@@ -30,9 +39,20 @@
                     </div>
 
                     <div class="mb-3" id="groupField">
+                        <label class="form-label fw-semibold">Select Schedule Group</label>
+                        <select name="schedule_group_id" class="form-select">
+                            <option value="">-- Select Group --</option>
+                            @foreach($scheduleGroups as $g)
+                                <option value="{{ $g->id }}">{{ $g->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="payrollField">
                         <label class="form-label fw-semibold">Select Payroll Group</label>
                         <select name="payroll_group_id" class="form-select">
-                            @foreach($groups as $g)
+                            <option value="">-- Select Group --</option>
+                            @foreach($payrollGroups as $g)
                                 <option value="{{ $g->id }}">{{ $g->name }}</option>
                             @endforeach
                         </select>
@@ -41,11 +61,13 @@
                     <div class="mb-3 d-none" id="individualField">
                         <label class="form-label fw-semibold">Select Employee</label>
                         <select name="employee_id" class="form-select">
+                            <option value="">-- Select Employee --</option>
                             @foreach($employees as $e)
                                 <option value="{{ $e->id }}">{{ $e->full_name }} ({{ $e->employee_id }})</option>
                             @endforeach
                         </select>
                     </div>
+                    @endif
 
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -58,6 +80,7 @@
                         </div>
                     </div>
 
+                    @if(!$isTemplate)
                     <div class="mb-4">
                         <label class="form-label fw-semibold d-block">Schedule Days</label>
                         <div class="d-flex flex-wrap gap-3">
@@ -69,9 +92,10 @@
                         @endforeach
                         </div>
                     </div>
+                    @endif
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary px-4">Save Schedule</button>
+                        <button type="submit" class="btn btn-primary px-4">{{ $isTemplate ? 'Save Template' : 'Save Schedule' }}</button>
                         <a href="{{ route('schedules.index') }}" class="btn btn-light px-4">Cancel</a>
                     </div>
                 </form>
@@ -83,8 +107,12 @@
 <script>
 function toggleFields() {
     const isGroup = document.getElementById('typeGroup').checked;
+    const isPayroll = document.getElementById('typePayroll').checked;
+    const isIndividual = document.getElementById('typeIndividual').checked;
+
     document.getElementById('groupField').classList.toggle('d-none', !isGroup);
-    document.getElementById('individualField').classList.toggle('d-none', isGroup);
+    document.getElementById('payrollField').classList.toggle('d-none', !isPayroll);
+    document.getElementById('individualField').classList.toggle('d-none', !isIndividual);
 }
 </script>
 @endsection
