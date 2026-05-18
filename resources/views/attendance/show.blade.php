@@ -216,6 +216,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         html += `<div class="d-flex justify-content-between border-bottom py-2">
                                     <span>In: <strong>${log.time_in}</strong></span>
                                     <span>Out: <strong>${log.time_out || '---'}</strong></span>
+                                 </div>
+                                 <div class="d-flex justify-content-between border-bottom py-2 bg-light px-2 rounded-2 mt-1">
+                                    <span class="small text-muted">Lunch:</span>
+                                    <span class="small"><strong>${log.lunch_out}</strong> to <strong>${log.lunch_in}</strong></span>
                                  </div>`;
                     });
                 } else {

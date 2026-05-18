@@ -101,6 +101,8 @@ class AttendanceController extends Controller
                 'logs' => $hasAttendance ? $logs->map(function($log) {
                     return [
                         'time_in' => ($log->time_in && $log->time_in != '00:00:00') ? date('h:i A', strtotime($log->time_in)) : '--:--',
+                        'lunch_out' => ($log->break1_out && $log->break1_out != '00:00:00') ? date('h:i A', strtotime($log->break1_out)) : '--:--',
+                        'lunch_in' => ($log->break1_in && $log->break1_in != '00:00:00') ? date('h:i A', strtotime($log->break1_in)) : '--:--',
                         'time_out' => ($log->time_out && $log->time_out != '00:00:00') ? date('h:i A', strtotime($log->time_out)) : '--:--',
                     ];
                 }) : []
