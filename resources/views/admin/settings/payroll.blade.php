@@ -95,6 +95,18 @@
         </div>
 
         <div class="col-xl-4">
+            <!-- Other Addition Enrollment Shortcut -->
+            <div class="card border-0 shadow-sm rounded-4 bg-success text-white p-4 mb-4">
+                <div class="text-center py-4">
+                    <i class="bi bi-file-earmark-arrow-up fs-1 mb-3"></i>
+                    <h5 class="fw-bold">Bulk Addition Enrollment</h5>
+                    <p class="opacity-75 small">Mass upload other additions for employees via template.</p>
+                    <a href="{{ route('admin.payroll.other-addition-enrollment.index') }}" class="btn btn-light rounded-pill px-4 fw-bold">
+                         Go to Enrollment
+                    </a>
+                </div>
+            </div>
+
             <!-- Allowance Library Shortcut -->
             <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-4 mb-4">
                 <div class="text-center py-4">

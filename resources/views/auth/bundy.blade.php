@@ -54,18 +54,18 @@
 
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="am_in" class="btn btn-success w-100 btn-punch shadow-sm">AM IN</button>
+                        <button type="submit" name="punch_type" value="am_in" class="btn btn-success w-100 btn-punch shadow-sm">START SHIFT</button>
                     </div>
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="am_out" class="btn btn-outline-success w-100 btn-punch">Break Out</button>
+                        <button type="submit" name="punch_type" value="am_out" class="btn btn-outline-success w-100 btn-punch text-nowrap">LUNCH OUT</button>
                     </div>
                 </div>
                 <div class="row g-2">
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="pm_in" class="btn btn-outline-primary w-100 btn-punch">Break In</button>
+                        <button type="submit" name="punch_type" value="pm_in" class="btn btn-outline-primary w-100 btn-punch text-nowrap">LUNCH IN</button>
                     </div>
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="pm_out" class="btn btn-primary w-100 btn-punch shadow-sm">PM OUT</button>
+                        <button type="submit" name="punch_type" value="pm_out" class="btn btn-primary w-100 btn-punch shadow-sm">END SHIFT</button>
                     </div>
                 </div>
 

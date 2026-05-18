@@ -59,14 +59,18 @@ class WebBundyController extends Controller
         $now = Carbon::now();
 
         // NIGHT SHIFT LOGIC: Determine if we should look for yesterday's record
-        // If current time is early morning (e.g., 00:00 to 10:00 AM) and they are punching OUT or BREAK IN
+        // If current time is early morning (e.g., 00:00 to 12:00 PM) and they are punching OUT or BREAKS
         // we check if they have an active session from yesterday.
         $targetDate = $today;
-        if ($now->hour < 10 && in_array($request->punch_type, ['pm_out', 'pm_in', 'break2_in'])) {
+        $isEarlyMorning = $now->hour < 12;
+
+        if ($isEarlyMorning && in_array($request->punch_type, ['am_out', 'pm_in', 'pm_out'])) {
             $yesterday = Carbon::yesterday()->toDateString();
             $yesterdayAttendance = Attendance::where('employee_id', $employee->id)
                 ->where('date', $yesterday)
-                ->where('time_in', '!=', '00:00:00')
+                ->where(function($q) {
+                    $q->where('time_in', '!=', '00:00:00')->whereNotNull('time_in');
+                })
                 ->where(function($q) {
                     $q->where('time_out', '00:00:00')->orWhereNull('time_out');
                 })
@@ -77,20 +81,32 @@ class WebBundyController extends Controller
             }
         }
 
-        $attendance = Attendance::firstOrCreate(
-            ['employee_id' => $employee->id, 'date' => $targetDate],
-            [
-                'time_in' => '00:00:00',
-                'time_out' => '00:00:00',
-                'break1_out' => '00:00:00',
-                'break1_in' => '00:00:00',
-                'break2_out' => '00:00:00',
-                'break2_in' => '00:00:00',
-                'total_hours' => 0,
-                'late_minutes' => 0,
-                'undertime_minutes' => 0,
-            ]
-        );
+        $attendance = Attendance::where('employee_id', $employee->id)
+            ->where('date', $targetDate)
+            ->first();
+
+        // If no attendance for that date, and it's NOT a start shift, don't auto-create one with 00:00:00
+        // unless it's a START SHIFT (am_in)
+        if (!$attendance) {
+            if ($request->punch_type === 'am_in') {
+                $attendance = Attendance::create([
+                    'employee_id' => $employee->id,
+                    'date' => $targetDate,
+                    'time_in' => '00:00:00',
+                    'time_out' => '00:00:00',
+                    'break1_out' => '00:00:00',
+                    'break1_in' => '00:00:00',
+                    'break2_out' => '00:00:00',
+                    'break2_in' => '00:00:00',
+                    'total_hours' => 0,
+                    'late_minutes' => 0,
+                    'undertime_minutes' => 0,
+                ]);
+            } else {
+                // If they are trying to punch lunch/out but no start shift exists for targetDate
+                return back()->with('bundy_error', 'SEQUENCE ERROR: No "Start Shift" record found for ' . ($targetDate === $today ? 'today' : 'yesterday') . '. Please punch START SHIFT first.');
+            }
+        }
 
         // Map punch types to database columns
         $typeMap = [
@@ -105,24 +121,20 @@ class WebBundyController extends Controller
         // Check if already punched
         if ($attendance->{$column} !== null && $attendance->{$column} !== '00:00:00') {
             $formattedTime = Carbon::parse($attendance->{$column})->format('h:i A');
-            return back()->with('bundy_error', 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' today.');
+            return back()->with('bundy_error', 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' for shift starting ' . Carbon::parse($attendance->date)->format('M d') . '.');
         }
 
         // Sequence Validations
         if ($request->punch_type == 'pm_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch OUT (End Shift) because you haven\'t punched IN (Start Shift) today.');
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch END SHIFT because you haven\'t punched START SHIFT for this session.');
         }
 
-        if ($request->punch_type == 'pm_out' && ($attendance->break1_in === null || $attendance->break1_in === '00:00:00')) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch OUT (End Shift) because you are still on LUNCH. Please punch LUNCH IN first to resume your shift.');
-        }
-        
         if ($request->punch_type == 'am_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH OUT because you haven\'t punched IN (Start Shift) today.');
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH OUT because you haven\'t punched START SHIFT for this session.');
         }
 
         if ($request->punch_type == 'pm_in' && ($attendance->break1_out === null || $attendance->break1_out === '00:00:00')) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH IN (Return) because you haven\'t recorded a LUNCH OUT yet.');
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH IN because you haven\'t recorded a LUNCH OUT for this session.');
         }
 
         // Update the specific punch column

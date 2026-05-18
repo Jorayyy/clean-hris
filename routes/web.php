@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\AppSettingController;
 use App\Http\Controllers\Admin\PayrollSettingController;
 use App\Http\Controllers\Admin\DeductionTypeController;
 use App\Http\Controllers\Admin\AllowanceTypeController;
+use App\Http\Controllers\Admin\OtherAdditionEnrollmentController;
 use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\PayrollItemController;
 use App\Http\Controllers\Admin\AuditLogController;
@@ -68,6 +69,12 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 
         Route::resource('admin/settings/deductions', DeductionTypeController::class)->names('admin.settings.deductions');
         Route::resource('admin/settings/allowances', AllowanceTypeController::class)->names('admin.settings.allowances');
+        
+        // Other Addition Employee Enrollment
+        Route::get('admin/payroll/other-addition-enrollment', [OtherAdditionEnrollmentController::class, 'index'])->name('admin.payroll.other-addition-enrollment.index');
+        Route::post('admin/payroll/other-addition-enrollment/import', [OtherAdditionEnrollmentController::class, 'import'])->name('admin.payroll.other-addition-enrollment.import');
+        Route::get('admin/payroll/other-addition-enrollment/download-template', [OtherAdditionEnrollmentController::class, 'downloadTemplate'])->name('admin.payroll.other-addition-enrollment.download-template');
+
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
 
         // BPO Designations
