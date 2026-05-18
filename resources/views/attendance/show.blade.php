@@ -232,6 +232,10 @@
     .event-rest { background-color: #6c757d !important; color: #ffffff !important; border: none !important; }
     .event-scheduled { background-color: #f8fafc !important; color: #64748b !important; border: 1px solid #e2e8f0 !important; }
     
+    /* Force FullCalendar Override */
+    .fc-daygrid-event { border-radius: 4px !important; margin-top: 2px !important; }
+    .fc-event-title { font-weight: 700 !important; }
+    
     .fc-daygrid-day-number { font-weight: bold; padding: 10px !important; text-decoration: none !important; color: #1e293b; }
     
     .list-group-item:hover { background-color: #f8fafc; transition: 0.2s; cursor: pointer; }
