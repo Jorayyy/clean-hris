@@ -95,16 +95,6 @@
                                             Out: {{ date('h:i A', strtotime($record->time_out)) }}
                                         </span>
                                     @endif
-
-                                    @if($record->late_minutes > 0)
-                                        <span class="badge bg-danger badge-time">Late: {{ $record->late_minutes }}m</span>
-                                    @endif
-                                    @if($record->undertime_minutes > 0)
-                                        <span class="badge bg-warning text-dark badge-time">UT: {{ $record->undertime_minutes }}m</span>
-                                    @endif
-                                    @if(isset($record->overtime_hours) && $record->overtime_hours > 0)
-                                        <span class="badge bg-info text-dark badge-time">OT: {{ $record->overtime_hours }}h</span>
-                                    @endif
                                 </div>
                             @else
                                 @php

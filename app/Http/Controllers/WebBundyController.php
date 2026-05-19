@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\WebBundyPunchRequest;
 use Illuminate\Http\Request;
 use App\Models\Employee;
 use App\Models\Attendance;
@@ -22,7 +23,7 @@ class WebBundyController extends Controller
         return view('auth.bundy');
     }
 
-    public function punch(Request $request)
+    public function punch(WebBundyPunchRequest $request)
     {
         // Global IP Lockdown: Stop punches if not on an authorized network
         $isAuthorized = AuthorizedNetwork::isAuthorized($request->ip());
@@ -30,12 +31,6 @@ class WebBundyController extends Controller
         if (!$isAuthorized) {
             return back()->with('bundy_error', 'Access Denied: Your current network (IP: ' . $request->ip() . ') is not authorized for Web Bundy punches.');
         }
-
-        $request->validate([
-            'employee_id_string' => 'required',
-            'web_bundy_code' => 'required',
-            'punch_type' => 'required|in:am_in,am_out,pm_in,pm_out,break1_out,break1_in,break2_out,break2_in'
-        ]);
 
         $employee = Employee::where('employee_id', $request->employee_id_string)->first();
 
@@ -55,14 +50,70 @@ class WebBundyController extends Controller
         if ($employee->registered_ip && $request->ip() !== $employee->registered_ip) {
             return back()->with('bundy_error', 'Access Denied: Please use your registered internet connection to punch. (Your IP: ' . $request->ip() . ')');
         }
+
         $today = Carbon::today()->toDateString();
         $now = Carbon::now();
 
+        // Check if employee has a schedule for today
+        $dayName = $now->format('l');
+        $schedule = $employee->active_schedule;
+        
+        // Priority 1: Use Site-based schedule config if it exists (mirroring PayrollService logic)
+        $scheduleInTime = null;
+        $scheduleOutTime = null;
+        $isRestDay = false;
+
+        if ($employee->site_id) {
+            $site = \App\Models\Site::with('scheduleGroup')->find($employee->site_id);
+            if ($site && $site->schedule_group_id && $site->scheduleGroup) {
+                $dayConfig = $site->scheduleGroup->schedule_config[$dayName] ?? null;
+                if ($dayConfig === 'OFF' || (isset($dayConfig['is_rest_day']) && $dayConfig['is_rest_day'])) {
+                    $isRestDay = true;
+                } else {
+                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
+                    $siteSchedule = \App\Models\Schedule::find($schedId);
+                    if ($siteSchedule) {
+                        $scheduleInTime = $siteSchedule->time_in;
+                        $scheduleOutTime = $siteSchedule->time_out;
+                    }
+                }
+            } elseif ($site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
+                $config = $site->schedule_config[$dayName];
+                if ($config === 'OFF') {
+                    $isRestDay = true;
+                } else {
+                    $siteSchedule = \App\Models\Schedule::find($config);
+                    if ($siteSchedule) {
+                        $scheduleInTime = $siteSchedule->time_in;
+                        $scheduleOutTime = $siteSchedule->time_out;
+                    }
+                }
+            }
+        }
+
+        // Priority 2: Fallback to direct active_schedule
+        if (!$scheduleInTime && !$isRestDay && $schedule) {
+            if (is_array($schedule->days) && in_array($dayName, $schedule->days)) {
+                $scheduleInTime = $schedule->time_in;
+                $scheduleOutTime = $schedule->time_out;
+            } else {
+                $isRestDay = true;
+            }
+        }
+
+        // BLOCK PUNCH IF NO SCHEDULE EXISTS (Not even as a Rest Day/Manual Plot)
+        if (!$scheduleInTime && !$isRestDay && !$schedule) {
+            return back()->with('bundy_error', 'NO SCHEDULE FOUND: Please contact administrator to assign you a schedule before you can punch!');
+        }
+
+        if ($isRestDay && !in_array($request->punch_type, ['am_in', 'pm_out'])) {
+            // Optional: You might want to allow punches on rest days, but maybe with a warning or as OT.
+            // For now, let's just proceed but log it.
+        }
+
         // NIGHT SHIFT LOGIC: Determine if we should look for yesterday's record
-        // If current time is early morning (e.g., 00:00 to 12:00 PM) and they are punching OUT or BREAKS
-        // we check if they have an active session from yesterday.
         $targetDate = $today;
-        $isEarlyMorning = $now->hour < 12;
+        $isEarlyMorning = $now->hour < 10; // Assuming night shifts end before 10 AM
 
         if ($isEarlyMorning && in_array($request->punch_type, ['am_out', 'pm_in', 'pm_out'])) {
             $yesterday = Carbon::yesterday()->toDateString();
@@ -85,8 +136,6 @@ class WebBundyController extends Controller
             ->where('date', $targetDate)
             ->first();
 
-        // If no attendance for that date, and it's NOT a start shift, don't auto-create one with 00:00:00
-        // unless it's a START SHIFT (am_in)
         if (!$attendance) {
             if ($request->punch_type === 'am_in') {
                 $attendance = Attendance::create([
@@ -103,7 +152,6 @@ class WebBundyController extends Controller
                     'undertime_minutes' => 0,
                 ]);
             } else {
-                // If they are trying to punch lunch/out but no start shift exists for targetDate
                 return back()->with('bundy_error', 'SEQUENCE ERROR: No "Start Shift" record found for ' . ($targetDate === $today ? 'today' : 'yesterday') . '. Please punch START SHIFT first.');
             }
         }
@@ -124,17 +172,17 @@ class WebBundyController extends Controller
             return back()->with('bundy_error', 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' for shift starting ' . Carbon::parse($attendance->date)->format('M d') . '.');
         }
 
-        // Sequence Validations
-        if ($request->punch_type == 'pm_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch END SHIFT because you haven\'t punched START SHIFT for this session.');
+        // Strict Sequence Validations
+        if ($request->punch_type == 'am_out' && ($attendance->time_in === '00:00:00' || !$attendance->time_in)) {
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH OUT because you haven\'t punched START SHIFT.');
         }
 
-        if ($request->punch_type == 'am_out' && ($attendance->time_in === null || $attendance->time_in === '00:00:00')) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH OUT because you haven\'t punched START SHIFT for this session.');
+        if ($request->punch_type == 'pm_in' && ($attendance->break1_out === '00:00:00' || !$attendance->break1_out)) {
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH IN because you haven\'t punched LUNCH OUT.');
         }
 
-        if ($request->punch_type == 'pm_in' && ($attendance->break1_out === null || $attendance->break1_out === '00:00:00')) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH IN because you haven\'t recorded a LUNCH OUT for this session.');
+        if ($request->punch_type == 'pm_out' && ($attendance->time_in === '00:00:00' || !$attendance->time_in)) {
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch END SHIFT because you haven\'t punched START SHIFT.');
         }
 
         // Update the specific punch column
@@ -142,21 +190,21 @@ class WebBundyController extends Controller
             $column => $now->toTimeString()
         ]);
 
-        // Recalculate stats based on current punches
+        // Recalculate stats
         $payrollService = app(\App\Services\PayrollService::class);
-        $timeOut = ($attendance->time_out && $attendance->time_out !== '00:00:00') 
-            ? $attendance->time_out 
-            : $now->toTimeString();
+        $timeIn = ($attendance->time_in && $attendance->time_in !== '00:00:00') ? $attendance->time_in : null;
+        $timeOut = ($attendance->time_out && $attendance->time_out !== '00:00:00') ? $attendance->time_out : null;
 
-        $stats = $payrollService->calculateAttendanceStats(
-            $attendance->time_in, 
-            $timeOut, 
-            $employee->id, 
-            $attendance->date
-        );
-        
-        $attendance->update($stats);
+        if ($timeIn) {
+            $stats = $payrollService->calculateAttendanceStats(
+                $timeIn, 
+                $timeOut ?? $now->toTimeString(), 
+                $employee->id, 
+                $attendance->date
+            );
+            $attendance->update($stats);
+        }
 
-        return back()->with('bundy_success', 'SUCCESS: ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' recorded at ' . date('h:i A') . ' for ' . $employee->full_name);
+        return back()->with('bundy_success', 'SUCCESS: ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' recorded at ' . $now->format('h:i A') . ' for ' . $employee->full_name);
     }
 }

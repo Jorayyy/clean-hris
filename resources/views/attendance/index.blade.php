@@ -113,10 +113,23 @@
                                 </div>
                             </td>
                             <td>
-                                @if($employee->attendances_count > 0)
-                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-25">
-                                        <i class="bi bi-dot fs-4 align-middle"></i> LOGGED IN
-                                    </span>
+                                @php
+                                    $todayLog = $employee->attendances->first();
+                                @endphp
+                                @if($todayLog)
+                                    @if($todayLog->time_in && !$todayLog->time_out)
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-25">
+                                            <i class="bi bi-dot fs-4 align-middle"></i> ON DUTY
+                                        </span>
+                                    @elseif($todayLog->time_in && $todayLog->time_out)
+                                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 border border-info border-opacity-25">
+                                            <i class="bi bi-check-circle small align-middle me-1"></i> SHIFT ENDED
+                                        </span>
+                                    @else
+                                        <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-3 border border-secondary border-opacity-10 fw-normal">
+                                            NO LOGS
+                                        </span>
+                                    @endif
                                 @else
                                     <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-3 border border-secondary border-opacity-10 fw-normal">
                                         NO LOGS

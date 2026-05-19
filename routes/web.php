@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\QueueMonitorController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Employee\AttendanceCalendarController;
+use App\Http\Controllers\Employee\ScheduleCalendarController;
 use App\Http\Controllers\WebBundyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -163,6 +164,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 Route::middleware(['auth', EmployeeMiddleware::class])->prefix('employee')->group(function () {
     Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])->name('employee.dashboard');
     Route::get('/attendance', [AttendanceCalendarController::class, 'index'])->name('employee.attendance');
+    Route::get('/schedule', [ScheduleCalendarController::class, 'index'])->name('employee.schedule');
     Route::get('/payslip/{id}', [EmployeeDashboardController::class, 'showPayslip'])->name('employee.payslip');
     
     // Employee Tickets

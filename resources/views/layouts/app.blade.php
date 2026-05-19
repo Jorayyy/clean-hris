@@ -187,6 +187,9 @@
                 <a href="{{ route('employee.attendance') }}" class="sidebar-link {{ request()->routeIs('employee.attendance') ? 'active' : '' }}">
                     <i class="bi bi-calendar-check"></i> Attendance Calendar
                 </a>
+                <a href="{{ route('employee.schedule') }}" class="sidebar-link {{ request()->routeIs('employee.schedule') ? 'active' : '' }}">
+                    <i class="bi bi-calendar-event"></i> Duty Schedule
+                </a>
                 <a href="{{ route('employee.tickets.index') }}" class="sidebar-link {{ request()->routeIs('employee.tickets.*') ? 'active' : '' }}">
                     <i class="bi bi-chat-dots"></i> Transactions
                 </a>

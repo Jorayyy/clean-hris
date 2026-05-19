@@ -29,7 +29,7 @@ class AttendanceController extends Controller
                       ->orWhere('last_name', 'like', "%{$search}%")
                       ->orWhere('employee_id', 'like', "%{$search}%");
             })
-            ->withCount(['attendances' => function($query) {
+            ->with(['attendances' => function($query) {
                 $query->whereDate('date', today());
             }])
             ->get();

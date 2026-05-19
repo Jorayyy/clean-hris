@@ -97,13 +97,14 @@ class DashboardController extends Controller
         return view('employee.dashboard', compact(
             'salaries', 
             'totalHoursThisMonth', 
-            'pendingTickets', 
-            'latestSalary', 
-            'payrollPeriods',
+            'pendingTickets',
+            'latestSalary',
             'todayAttendance',
             'recentAttendance',
             'announcements',
-            'leaveBalance'
+            'leaveBalance',
+            'payrollPeriods',
+            'employee'
         ));
     }
 

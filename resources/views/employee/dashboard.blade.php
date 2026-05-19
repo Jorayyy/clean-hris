@@ -146,30 +146,61 @@
         <!-- Today's Shift Status -->
         <div class="card shadow-sm border-0 rounded-4 mb-4 bg-primary text-white p-2">
             <div class="card-body p-3">
-                <h6 class="fw-bold small text-white-50 mb-3 tracking-wider">CURRENT SHIFT STATUS</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold small text-white-50 mb-0 tracking-wider">CURRENT SHIFT STATUS</h6>
+                    <a href="{{ route('employee.schedule') }}" class="btn btn-xs btn-light py-0 px-2 rounded-pill fw-bold" style="font-size: 0.65rem;">VIEW FULL</a>
+                </div>
                 <div class="d-flex align-items-center mb-3">
                     <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 50px; height: 50px;">
-                        <i class="bi bi-stopwatch-fill fs-3"></i>
+                        <i class="bi bi-clock-fill fs-3"></i>
                     </div>
+                    @php
+                        // Reuse the schedule logic from controller (or simply fetch today's active schedule for visual)
+                        $todayObj = \Carbon\Carbon::today();
+                        $site = $employee->site_id ? \App\Models\Site::with('scheduleGroup')->find($employee->site_id) : null;
+                        $activeSched = $employee->active_schedule;
+                        $todayName = $todayObj->format('l');
+                        $todaySchedStr = 'Rest Day';
+                        $showSched = null;
+
+                        if ($site && $site->schedule_group_id && $site->scheduleGroup) {
+                            $dayCfg = $site->scheduleGroup->schedule_config[$todayName] ?? null;
+                            if ($dayCfg !== 'OFF' && !isset($dayCfg['is_rest_day'])) {
+                                $sid = is_array($dayCfg) ? ($dayCfg['id'] ?? null) : $dayCfg;
+                                $showSched = \App\Models\Schedule::find($sid);
+                            }
+                        } elseif ($site && $site->schedule_config && isset($site->schedule_config[$todayName])) {
+                            $cfg = $site->schedule_config[$todayName];
+                            if ($cfg !== 'OFF') {
+                                $showSched = \App\Models\Schedule::find($cfg);
+                            }
+                        }
+
+                        if (!$showSched && $activeSched && is_array($activeSched->days) && in_array($todayName, $activeSched->days)) {
+                             $showSched = $activeSched;
+                        }
+
+                        if ($showSched) {
+                            $todaySchedStr = date('h:i A', strtotime($showSched->time_in)) . ' - ' . date('h:i A', strtotime($showSched->time_out));
+                        }
+                    @endphp
                     <div class="ms-3">
-                        <h4 class="fw-800 mb-0 font-monospace">
-                            {{ $todayAttendance && $todayAttendance->time_in ? $todayAttendance->time_in : '--:--' }}
-                        </h4>
-                        <span class="small opacity-75">Clock In Time Today</span>
+                        <h5 class="fw-800 mb-0 font-monospace">
+                            {{ $todaySchedStr }}
+                        </h5>
+                        <span class="small opacity-75">Your rostered shift today</span>
                     </div>
                 </div>
                 <div class="alert bg-white bg-opacity-10 border-0 text-white mb-0 p-3 rounded-4">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="small fw-bold">Daily Progress</span>
-                        @php
-                            $progHours = ($todayAttendance && $todayAttendance->time_in && $todayAttendance->time_out) 
-                                ? (float)$todayAttendance->total_hours 
-                                : 0;
-                        @endphp
-                        <span class="small fw-bold">{{ number_format($progHours, 1) }} / 8.0h</span>
+                        <span class="small fw-bold">Actual Punch In</span>
+                        <span class="small fw-bold">{{ $todayAttendance && $todayAttendance->time_in ? date('h:i A', strtotime($todayAttendance->time_in)) : 'NOT YET' }}</span>
                     </div>
                     <div class="progress bg-dark bg-opacity-25" style="height: 8px;">
-                        <div class="progress-bar bg-white border-0" role="progressbar" style="width: {{ min(($progHours/8)*100, 100) }}%"></div>
+                        @php
+                            $progVal = ($todayAttendance && $todayAttendance->time_in) ? 100 : 0;
+                        @endphp
+                        <div class="progress-bar bg-white border-0" role="progressbar" style="width: {{ $progVal }}%"></div>
                     </div>
                 </div>
             </div>
