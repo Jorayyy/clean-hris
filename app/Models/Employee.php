@@ -35,6 +35,11 @@ class Employee extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function lastAttendance()
+    {
+        return $this->hasOne(Attendance::class)->latestOfMany('date');
+    }
+
     public function payrollItems()
     {
         return $this->hasMany(PayrollItem::class);

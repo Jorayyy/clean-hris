@@ -32,6 +32,9 @@ class AttendanceController extends Controller
             ->with(['attendances' => function($query) {
                 $query->whereDate('date', today());
             }])
+            ->with(['lastAttendance' => function($query) {
+                $query->orderBy('date', 'desc')->orderBy('time_in', 'desc');
+            }])
             ->get();
 
         return view('attendance.index', compact('employees'));

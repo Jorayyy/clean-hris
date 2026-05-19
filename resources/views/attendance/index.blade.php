@@ -93,7 +93,7 @@
                     <thead class="bg-light text-muted small text-uppercase fw-bold">
                         <tr>
                             <th class="ps-4 py-3">Employee Details</th>
-                            <th>Status (Today)</th>
+                            <th>Status</th>
                             <th>Info</th>
                             <th class="text-end pe-4">Action</th>
                         </tr>
@@ -115,6 +115,7 @@
                             <td>
                                 @php
                                     $todayLog = $employee->attendances->first();
+                                    $lastLog = $employee->lastAttendance;
                                 @endphp
                                 @if($todayLog)
                                     @if($todayLog->time_in && !$todayLog->time_out)
@@ -125,11 +126,14 @@
                                         <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 border border-info border-opacity-25">
                                             <i class="bi bi-check-circle small align-middle me-1"></i> SHIFT ENDED
                                         </span>
-                                    @else
-                                        <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-3 border border-secondary border-opacity-10 fw-normal">
-                                            NO LOGS
-                                        </span>
                                     @endif
+                                @elseif($lastLog)
+                                    <div class="d-flex flex-column">
+                                        <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-3 border border-secondary border-opacity-10 fw-normal">
+                                            INACTIVE
+                                        </span>
+                                        <span class="text-muted x-small mt-1" style="font-size: 0.65rem;">Last: {{ \Carbon\Carbon::parse($lastLog->date)->format('M d') }}</span>
+                                    </div>
                                 @else
                                     <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-3 border border-secondary border-opacity-10 fw-normal">
                                         NO LOGS
