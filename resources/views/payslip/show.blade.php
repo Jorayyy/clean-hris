@@ -70,7 +70,12 @@
         <div class="row align-items-center mb-4">
             <div class="col-md-3">
                 @if($systemSettings->app_logo)
-                    <img src="{{ asset('storage/' . $systemSettings->app_logo) }}" alt="Logo" class="logo-box">
+                    @php 
+                        $logoPath = str_starts_with($systemSettings->app_logo, 'logos/') 
+                                    ? $systemSettings->app_logo 
+                                    : 'logos/' . $systemSettings->app_logo;
+                    @endphp
+                    <img src="/{{ $logoPath }}" alt="Logo" class="logo-box">
                 @endif
             </div>
             <div class="col-md-9 text-end">

@@ -177,7 +177,12 @@
             <div class="animation-side d-flex flex-column align-items-center justify-content-center text-center p-5">
                 <div class="animate-bounce">
                     @if($systemSettings->app_logo)
-                        <img src="{{ asset('storage/' . $systemSettings->app_logo) }}" alt="Logo" style="height: 120px; width: auto; max-width: 280px; object-fit: contain; filter: drop-shadow(0 0 30px rgba(255,255,255,0.5));" class="mb-4">
+                        @php 
+                            $logoPath = str_starts_with($systemSettings->app_logo, 'logos/') 
+                                        ? $systemSettings->app_logo 
+                                        : 'logos/' . $systemSettings->app_logo;
+                        @endphp
+                        <img src="/{{ $logoPath }}" alt="Logo" style="height: 120px; width: auto; max-width: 280px; object-fit: contain; filter: drop-shadow(0 0 30px rgba(255,255,255,0.5));" class="mb-4">
                     @endif
                     <h1 class="fw-900 tracking-tighter text-white mb-0" style="font-size: 3.5rem; letter-spacing: -3px; line-height: 1;">MEBS HIYAS</h1>
                 </div>

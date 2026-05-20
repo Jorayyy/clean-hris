@@ -62,7 +62,12 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header d-flex align-items-center">
             @if($systemSettings->app_logo)
-                <img src="/logos/{{ $systemSettings->app_logo }}" alt="Logo" class="logo-img me-2">
+                @php 
+                    $logoPath = str_starts_with($systemSettings->app_logo, 'logos/') 
+                                ? $systemSettings->app_logo 
+                                : 'logos/' . $systemSettings->app_logo;
+                @endphp
+                <img src="/{{ $logoPath }}" alt="Logo" class="logo-img me-2">
             @endif
             <span class="fw-bold text-white text-truncate">{{ $systemSettings->app_name }}</span>
         </div>

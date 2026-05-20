@@ -14,9 +14,14 @@
                     <div class="row align-items-center mb-4 p-4 bg-light rounded-4 mx-0">
                         <div class="col-md-4 text-center border-end border-2">
                             <label class="form-label d-block fw-bold text-muted small text-uppercase mb-3">Company Logo</label>
-                            @php $logo = is_array($settings) ? ($settings['app_logo'] ?? null) : ($settings->app_logo ?? null); @endphp
+                            @php 
+                                $logo = is_array($settings) ? ($settings['app_logo'] ?? null) : ($settings->app_logo ?? null);
+                                if ($logo) {
+                                    $logo = str_starts_with($logo, 'logos/') ? $logo : 'logos/' . $logo;
+                                }
+                            @endphp
                             @if($logo)
-                                <img src="/logos/{{ $logo }}" alt="App Logo" class="img-fluid rounded shadow-sm mb-3" style="max-height: 120px; object-fit: contain;">
+                                <img src="/{{ $logo }}" alt="App Logo" class="img-fluid rounded shadow-sm mb-3" style="max-height: 120px; object-fit: contain;">
                             @else
                                 <div class="bg-white rounded shadow-sm p-4 mb-3 text-muted">
                                     <i class="bi bi-image h1"></i><br>

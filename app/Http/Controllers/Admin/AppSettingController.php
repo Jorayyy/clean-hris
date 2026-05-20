@@ -55,6 +55,28 @@ class AppSettingController extends Controller
             }
             $logoPath = $request->file('app_logo')->store('logos', 'public');
             $data['app_logo'] = $logoPath;
+
+            // Ensure the logo is copied to web-accessible folders for both Local and Hostinger
+            try {
+                $sourcePath = storage_path('app/public/' . $logoPath);
+                $filename = basename($logoPath);
+                
+                // 1. Copy to root logos/ (for Hostinger)
+                $rootLogos = base_path('logos');
+                if (!file_exists($rootLogos)) mkdir($rootLogos, 0755, true);
+                copy($sourcePath, $rootLogos . '/' . $filename);
+                chmod($rootLogos . '/' . $filename, 0644);
+
+                // 2. Copy to public/logos/ (for Local)
+                $publicLogos = public_path('logos');
+                if (!file_exists($publicLogos)) mkdir($publicLogos, 0755, true);
+                copy($sourcePath, $publicLogos . '/' . $filename);
+                chmod($publicLogos . '/' . $filename, 0644);
+                
+            } catch (\Exception $e) {
+                // Log error or ignore if copying fails
+                \Log::error("Failed to copy logo to root: " . $e->getMessage());
+            }
         }
 
         $settings->update($data);
