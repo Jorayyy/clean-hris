@@ -35,11 +35,10 @@
 
                     <label class="form-label small fw-bold text-muted">EXISTING POSITIONS</label>
                     <div class="dropdown">
-                        <button class="btn btn-light w-100 d-flex justify-content-between align-items-center border shadow-sm rounded-3 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-list-task me-2 text-primary"></i> View All ({{ count($positions) }})</span>
-                            <i class="bi bi-chevron-down small text-muted"></i>
+                        <button class="btn btn-sm btn-light border w-100 d-flex justify-content-between align-items-center dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span><i class="bi bi-list-task me-2 text-primary"></i> <strong>{{ count($positions) }}</strong> Positions</span>
                         </button>
-                        <ul class="dropdown-menu w-100 shadow border-0 mt-2 py-2" style="max-height: 300px; overflow-y: auto;">
+                        <ul class="dropdown-menu w-100 shadow border-0 py-2" style="max-height: 300px; overflow-y: auto;">
                             @forelse($positions as $item)
                                 <li class="px-3 py-2 d-flex justify-content-between align-items-center">
                                     <span class="small fw-medium text-dark">{{ $item->name }}</span>
@@ -77,11 +76,10 @@
 
                     <label class="form-label small fw-bold text-muted">EXISTING CLASSIFICATIONS</label>
                     <div class="dropdown">
-                        <button class="btn btn-light w-100 d-flex justify-content-between align-items-center border shadow-sm rounded-3 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-tags me-2 text-primary"></i> View All ({{ count($classifications) }})</span>
-                            <i class="bi bi-chevron-down small text-muted"></i>
+                        <button class="btn btn-sm btn-light border w-100 d-flex justify-content-between align-items-center dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span><i class="bi bi-tags me-2 text-primary"></i> <strong>{{ count($classifications) }}</strong> Classifications</span>
                         </button>
-                        <ul class="dropdown-menu w-100 shadow border-0 mt-2 py-2" style="max-height: 300px; overflow-y: auto;">
+                        <ul class="dropdown-menu w-100 shadow border-0 py-2" style="max-height: 300px; overflow-y: auto;">
                             @forelse($classifications as $item)
                                 <li class="px-3 py-2 d-flex justify-content-between align-items-center">
                                     <span class="small fw-medium text-dark">{{ $item->name }}</span>
@@ -119,11 +117,10 @@
 
                     <label class="form-label small fw-bold text-muted">EXISTING LEVELS</label>
                     <div class="dropdown">
-                        <button class="btn btn-light w-100 d-flex justify-content-between align-items-center border shadow-sm rounded-3 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-bar-chart me-2 text-primary"></i> View All ({{ count($levels) }})</span>
-                            <i class="bi bi-chevron-down small text-muted"></i>
+                        <button class="btn btn-sm btn-light border w-100 d-flex justify-content-between align-items-center dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span><i class="bi bi-bar-chart me-2 text-primary"></i> <strong>{{ count($levels) }}</strong> Levels</span>
                         </button>
-                        <ul class="dropdown-menu w-100 shadow border-0 mt-2 py-2" style="max-height: 300px; overflow-y: auto;">
+                        <ul class="dropdown-menu w-100 shadow border-0 py-2" style="max-height: 300px; overflow-y: auto;">
                             @forelse($levels as $item)
                                 <li class="px-3 py-2 d-flex justify-content-between align-items-center">
                                     <span class="small fw-medium text-dark">{{ $item->name }}</span>
