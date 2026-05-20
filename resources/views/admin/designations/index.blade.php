@@ -34,13 +34,10 @@
                     </form>
 
                     <label class="form-label small fw-bold text-muted">EXISTING POSITIONS</label>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light border w-100 d-flex justify-content-between align-items-center dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-list-task me-2 text-primary"></i> <strong>{{ count($positions) }}</strong> Positions</span>
-                        </button>
-                        <ul class="dropdown-menu w-100 shadow border-0 py-2" style="max-height: 300px; overflow-y: auto;">
+                    <div class="border rounded-3 bg-white shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                        <ul class="list-group list-group-flush">
                             @forelse($positions as $item)
-                                <li class="px-3 py-2 d-flex justify-content-between align-items-center">
+                                <li class="list-group-item px-3 py-2 d-flex justify-content-between align-items-center border-0 border-bottom">
                                     <span class="small fw-medium text-dark">{{ $item->name }}</span>
                                     <form action="{{ route('admin.designations.position.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Remove this position?')">
                                         @csrf @method('DELETE')
@@ -50,7 +47,7 @@
                                     </form>
                                 </li>
                             @empty
-                                <li class="dropdown-item small text-muted text-center py-3">No positions found.</li>
+                                <li class="list-group-item small text-muted text-center py-3">No positions found.</li>
                             @endforelse
                         </ul>
                     </div>
@@ -75,13 +72,10 @@
                     </form>
 
                     <label class="form-label small fw-bold text-muted">EXISTING CLASSIFICATIONS</label>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light border w-100 d-flex justify-content-between align-items-center dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-tags me-2 text-primary"></i> <strong>{{ count($classifications) }}</strong> Classifications</span>
-                        </button>
-                        <ul class="dropdown-menu w-100 shadow border-0 py-2" style="max-height: 300px; overflow-y: auto;">
+                    <div class="border rounded-3 bg-white shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                        <ul class="list-group list-group-flush">
                             @forelse($classifications as $item)
-                                <li class="px-3 py-2 d-flex justify-content-between align-items-center">
+                                <li class="list-group-item px-3 py-2 d-flex justify-content-between align-items-center border-0 border-bottom">
                                     <span class="small fw-medium text-dark">{{ $item->name }}</span>
                                     <form action="{{ route('admin.designations.classification.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Remove this classification?')">
                                         @csrf @method('DELETE')
@@ -91,7 +85,7 @@
                                     </form>
                                 </li>
                             @empty
-                                <li class="dropdown-item small text-muted text-center py-3">No classifications found.</li>
+                                <li class="list-group-item small text-muted text-center py-3">No classifications found.</li>
                             @endforelse
                         </ul>
                     </div>
@@ -116,13 +110,10 @@
                     </form>
 
                     <label class="form-label small fw-bold text-muted">EXISTING LEVELS</label>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light border w-100 d-flex justify-content-between align-items-center dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-bar-chart me-2 text-primary"></i> <strong>{{ count($levels) }}</strong> Levels</span>
-                        </button>
-                        <ul class="dropdown-menu w-100 shadow border-0 py-2" style="max-height: 300px; overflow-y: auto;">
+                    <div class="border rounded-3 bg-white shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                        <ul class="list-group list-group-flush">
                             @forelse($levels as $item)
-                                <li class="px-3 py-2 d-flex justify-content-between align-items-center">
+                                <li class="list-group-item px-3 py-2 d-flex justify-content-between align-items-center border-0 border-bottom">
                                     <span class="small fw-medium text-dark">{{ $item->name }}</span>
                                     <form action="{{ route('admin.designations.level.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Remove this level?')">
                                         @csrf @method('DELETE')
@@ -132,7 +123,7 @@
                                     </form>
                                 </li>
                             @empty
-                                <li class="dropdown-item small text-muted text-center py-3">No levels found.</li>
+                                <li class="list-group-item small text-muted text-center py-3">No levels found.</li>
                             @endforelse
                         </ul>
                     </div>
