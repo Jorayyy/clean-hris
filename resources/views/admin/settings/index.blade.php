@@ -16,7 +16,7 @@
                             <label class="form-label d-block fw-bold text-muted small text-uppercase mb-3">Company Logo</label>
                             @php $logo = is_array($settings) ? ($settings['app_logo'] ?? null) : ($settings->app_logo ?? null); @endphp
                             @if($logo)
-                                <img src="{{ asset('storage/' . $logo) }}" alt="App Logo" class="img-fluid rounded shadow-sm mb-3" style="max-height: 120px; object-fit: contain;">
+                                <img src="{{ file_exists(base_path('logos/' . $logo)) ? asset('logos/' . $logo) : asset('storage/' . $logo) }}" alt="App Logo" class="img-fluid rounded shadow-sm mb-3" style="max-height: 120px; object-fit: contain;">
                             @else
                                 <div class="bg-white rounded shadow-sm p-4 mb-3 text-muted">
                                     <i class="bi bi-image h1"></i><br>
