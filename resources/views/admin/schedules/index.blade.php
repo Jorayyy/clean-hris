@@ -107,13 +107,13 @@
                     <p class="text-muted small mb-4">Manually assign shifts to specific people. These assignments will replace the site schedule for the chosen dates.</p>
 
                     <div class="mb-4 bg-light p-3 rounded-4" style="min-height: 180px;">
-                        <label class="small fw-bold text-muted text-uppercase mb-3 d-block" style="font-size: 0.65rem;">MANUAL ASSIGNMENTS</label>
+                        <label class="small fw-bold text-muted text-uppercase mb-3 d-block" style="font-size: 0.65rem;">MANUAL OVERRIDES</label>
                         <div class="d-flex justify-content-between align-items-center mb-3 px-3 py-2 bg-white rounded-3 shadow-sm">
                             <span class="small text-muted">Total Manpower</span>
                             <span class="small fw-bold text-dark">{{ $employeeCount }}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-3 px-3 py-2 bg-white rounded-3 shadow-sm border-start border-info border-4">
-                            <span class="small text-muted">Manual Plotting</span>
+                            <span class="small text-muted">Active Overrides</span>
                             <span class="small fw-bold text-info">{{ $directAssignmentCount }}</span>
                         </div>
                         <div class="small text-muted px-2 italic mt-auto" style="font-size: 0.7rem;">
@@ -121,9 +121,164 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('schedules.create') }}" class="btn btn-info text-white w-100 py-2 rounded-3 fw-bold shadow-sm">
-                        <i class="bi bi-person-fill-add me-2"></i> Plot Individual Sched
+                    <a href="{{ route('admin.settings.individual-schedules.index') }}" class="btn btn-info text-white w-100 py-2 rounded-3 fw-bold shadow-sm">
+                        <i class="bi bi-person-gear me-2"></i> Manage Individual Scheds
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staffing Overview Table -->
+    <div class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+            <div>
+                <h5 class="fw-bold text-dark mb-0">Active Staffing Overview</h5>
+                <p class="text-muted small mb-0">Quick look at how sites and accounts are currently scheduled.</p>
+            </div>
+            <div class="small fw-bold text-muted text-uppercase">
+                System Status: <span class="text-success"><i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> Live</span>
+            </div>
+        </div>
+
+        <ul class="nav nav-pills mb-4 gap-2 px-2" id="summaryTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-4 fw-bold small uppercase" id="sites-tab" data-bs-toggle="pill" data-bs-target="#sites-pane" type="button" role="tab">Site Blueprints</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4 fw-bold small uppercase" id="overrides-tab" data-bs-toggle="pill" data-bs-target="#overrides-pane" type="button" role="tab">Active Overrides</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="summaryTabsContent">
+            <!-- Sites Pane -->
+            <div class="tab-pane fade show active" id="sites-pane" role="tabpanel" tabindex="0">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-dark fw-bold small uppercase">
+                                    <tr>
+                                        <th class="ps-4 py-3">Site / Account</th>
+                                        <th class="py-3">Assigned Blueprint</th>
+                                        <th class="py-3 text-center">Status</th>
+                                        <th class="py-3 text-center">Staff Count</th>
+                                        <th class="py-3 text-end pe-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($sites as $site)
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success bg-opacity-10 text-success p-2 rounded-3 me-3">
+                                                    <i class="bi bi-building"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="d-block fw-bold text-dark">{{ $site->name }}</span>
+                                                    <span class="very-small text-muted">{{ $site->location ?? 'Headquarters' }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if($site->scheduleGroup)
+                                                <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">
+                                                    <i class="bi bi-file-earmark-text me-1"></i> {{ $site->scheduleGroup->name }}
+                                                </span>
+                                            @else
+                                                <span class="badge bg-light text-muted border fw-normal">No Blueprint</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                @php $days = ['M', 'T', 'W', 'Th', 'F', 'S', 'Su']; @endphp
+                                                @foreach($days as $day)
+                                                    <div class="rounded-circle {{ $site->scheduleGroup ? 'bg-success' : 'bg-secondary bg-opacity-20' }}" 
+                                                         style="width: 8px; height: 8px;" 
+                                                         title="{{ $site->scheduleGroup ? 'Pattern Active' : 'No Pattern' }}"></div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-bold text-dark">{{ $site->employees()->count() }}</span>
+                                            <span class="small text-muted">Staff</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a href="{{ $site->scheduleGroup ? route('admin.settings.schedule-groups.members', $site->scheduleGroup->id) : route('admin.settings.schedule-groups.index') }}" 
+                                               class="btn btn-sm btn-light border text-primary rounded-pill px-3">
+                                                View Setup
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="5" class="py-5 text-center text-muted italic">
+                                            No sites or accounts found to display.
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overrides Pane -->
+            <div class="tab-pane fade" id="overrides-pane" role="tabpanel" tabindex="0">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-dark fw-bold small uppercase">
+                                    <tr>
+                                        <th class="ps-4 py-3">Employee</th>
+                                        <th class="py-3">Account</th>
+                                        <th class="py-3">Override Type</th>
+                                        <th class="py-3 text-end pe-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php
+                                        // Fetch employees with individual overrides for the summary
+                                        $overriddenEmployees = \App\Models\Employee::whereHas('schedules')->with('site')->get();
+                                    @endphp
+                                    @forelse($overriddenEmployees as $emp)
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">
+                                                    {{ substr($emp->first_name, 0, 1) }}{{ substr($emp->last_name, 0, 1) }}
+                                                </div>
+                                                <div>
+                                                    <span class="d-block fw-bold text-dark">{{ $emp->full_name }}</span>
+                                                    <span class="very-small text-muted">{{ $emp->employee_id }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="small text-dark">{{ $emp->site->name ?? 'Unassigned' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning fw-normal">Individual Sched</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a href="{{ route('admin.settings.individual-schedules.index') }}" class="btn btn-sm btn-light border text-info rounded-pill px-3">
+                                                Manage
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="4" class="py-5 text-center text-muted italic">
+                                            No individual overrides are currently active.
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
