@@ -11,7 +11,7 @@ class ScheduleGroupController extends Controller
 {
     public function index()
     {
-        $groups = ScheduleGroup::withCount('sites')->get();
+        $groups = ScheduleGroup::with(['creator'])->withCount('sites')->get();
         return view('admin.settings.schedule-groups.index', compact('groups'));
     }
 
@@ -26,18 +26,16 @@ class ScheduleGroupController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'schedule' => 'required|array'
         ]);
 
-        ScheduleGroup::create([
+        $group = ScheduleGroup::create([
             'name' => $validated['name'],
-            'description' => $validated['description'],
-            'schedule_config' => $validated['schedule']
+            'created_by' => auth()->id(),
+            'schedule_config' => [] // Initialize empty
         ]);
 
-        return redirect()->route('admin.settings.sites.index')
-            ->with('success', 'Schedule Group created successfully.');
+        return redirect()->route('admin.settings.schedule-groups.index')
+            ->with('success', 'Master Blueprint created successfully.');
     }
 
     public function edit(ScheduleGroup $scheduleGroup)
@@ -51,18 +49,44 @@ class ScheduleGroupController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'schedule' => 'required|array'
         ]);
 
         $scheduleGroup->update([
             'name' => $validated['name'],
-            'description' => $validated['description'],
+        ]);
+
+        return redirect()->route('admin.settings.schedule-groups.index')
+            ->with('success', 'Master Blueprint name updated successfully.');
+    }
+
+    public function plot(ScheduleGroup $scheduleGroup)
+    {
+        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $schedules = \App\Models\Schedule::where('is_template', true)->get();
+        return view('admin.settings.schedule-groups.plot', compact('scheduleGroup', 'days', 'schedules'));
+    }
+
+    public function updatePlot(Request $request, ScheduleGroup $scheduleGroup)
+    {
+        $validated = $request->validate([
+            'schedule' => 'required|array'
+        ]);
+
+        $scheduleGroup->update([
             'schedule_config' => $validated['schedule']
         ]);
 
-        return redirect()->route('admin.settings.sites.index')
-            ->with('success', 'Schedule Group updated successfully.');
+        return redirect()->route('admin.settings.schedule-groups.index')
+            ->with('success', 'Schedule pattern updated successfully.');
+    }
+
+    public function toggleStatus(ScheduleGroup $scheduleGroup)
+    {
+        $scheduleGroup->update([
+            'status' => $scheduleGroup->status === 'Active' ? 'Inactive' : 'Active'
+        ]);
+
+        return back()->with('success', 'Status updated.');
     }
 
     public function destroy(ScheduleGroup $scheduleGroup)

@@ -81,7 +81,10 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::get('admin/settings/sites-accounts', [SiteAccountController::class, 'index'])->name('admin.settings.sites.index');
         Route::get('admin/settings/sites-accounts/{site}', [SiteAccountController::class, 'show'])->name('admin.settings.sites.show');
         Route::post('admin/settings/sites-accounts/{site}/schedule', [SiteAccountController::class, 'updateSchedule'])->name('admin.settings.sites.update-schedule');
-        Route::resource('admin/settings/schedule-groups', App\Http\Controllers\Admin\ScheduleGroupController::class)->names('admin.settings.schedule-groups');
+        Route::patch('admin/settings/schedule-groups/{schedule_group}/toggle-status', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'toggleStatus'])->name('admin.settings.schedule-groups.toggle-status');
+    Route::get('admin/settings/schedule-groups/{schedule_group}/plot', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'plot'])->name('admin.settings.schedule-groups.plot');
+    Route::put('admin/settings/schedule-groups/{schedule_group}/plot', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'updatePlot'])->name('admin.settings.schedule-groups.update-plot');
+    Route::resource('admin/settings/schedule-groups', App\Http\Controllers\Admin\ScheduleGroupController::class)->names('admin.settings.schedule-groups');
 
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
 

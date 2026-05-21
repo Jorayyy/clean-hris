@@ -50,17 +50,17 @@
             </div>
         </div>
 
-        <!-- Step 2: Plot by Account -->
+        <!-- Step 2: Site/Account Schedules (Blueprints) -->
         <div class="col-12 col-lg-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift transition-all overflow-hidden">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex align-items-center">
                         <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">2</div>
-                        <h5 class="fw-bold mb-0">Master Blueprints</h5>
+                        <h5 class="fw-bold mb-0">Site Schedules</h5>
                     </div>
                 </div>
                 <div class="card-body px-4 pb-4 pt-0">
-                    <p class="text-muted small mb-4">Assign standard weekly patterns to whole Sites. This becomes the "Auto-Schedule" for everyone in that group.</p>
+                    <p class="text-muted small mb-4">Set standard weekly patterns for whole sites or accounts. Every employee at the site follows this automatically.</p>
 
                     <div class="mb-4 bg-light p-3 rounded-4" style="min-height: 180px;">
                         @if($sites->count() > 0)
@@ -88,23 +88,23 @@
                     </div>
 
                     <a href="{{ route('admin.settings.schedule-groups.index') }}" class="btn btn-outline-success w-100 py-2 rounded-3 fw-bold">
-                        <i class="bi bi-calendar-range me-2"></i> Manage Blueprints
+                        <i class="bi bi-calendar-range me-2"></i> Manage Site Schedules
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Step 3: Direct Assignments -->
+        <!-- Step 3: Individual Schedules (Overrides) -->
         <div class="col-12 col-lg-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift transition-all overflow-hidden">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex align-items-center">
                         <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">3</div>
-                        <h5 class="fw-bold mb-0">Staffing Overrides</h5>
+                        <h5 class="fw-bold mb-0">Individual Schedules</h5>
                     </div>
                 </div>
                 <div class="card-body px-4 pb-4 pt-0">
-                    <p class="text-muted small mb-4">Manually assign shifts to specific people. Use this for duty rotations or temporary schedule changes.</p>
+                    <p class="text-muted small mb-4">Manually assign shifts to specific people. These assignments will replace the site schedule for the chosen dates.</p>
 
                     <div class="mb-4 bg-light p-3 rounded-4" style="min-height: 180px;">
                         <label class="small fw-bold text-muted text-uppercase mb-3 d-block" style="font-size: 0.65rem;">MANUAL ASSIGNMENTS</label>
@@ -113,16 +113,16 @@
                             <span class="small fw-bold text-dark">{{ $employeeCount }}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-3 px-3 py-2 bg-white rounded-3 shadow-sm border-start border-info border-4">
-                            <span class="small text-muted">Manual Overrides</span>
+                            <span class="small text-muted">Manual Plotting</span>
                             <span class="small fw-bold text-info">{{ $directAssignmentCount }}</span>
                         </div>
                         <div class="small text-muted px-2 italic mt-auto" style="font-size: 0.7rem;">
-                            <i class="bi bi-info-circle me-1"></i> These always "win" over Blueprints.
+                            <i class="bi bi-info-circle me-1"></i> These always "win" over Site Schedules.
                         </div>
                     </div>
 
                     <a href="{{ route('schedules.create') }}" class="btn btn-info text-white w-100 py-2 rounded-3 fw-bold shadow-sm">
-                        <i class="bi bi-person-fill-add me-2"></i> Create Manual Override
+                        <i class="bi bi-person-fill-add me-2"></i> Plot Individual Sched
                     </a>
                 </div>
             </div>
