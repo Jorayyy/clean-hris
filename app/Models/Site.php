@@ -11,7 +11,8 @@ class Site extends Model
         'location', 
         'schedule_config', 
         'is_special_1_hour', 
-        'is_present_policy'
+        'is_present_policy',
+        'schedule_group_id'
     ];
 
     protected $casts = [

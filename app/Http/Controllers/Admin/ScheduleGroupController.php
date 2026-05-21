@@ -103,15 +103,17 @@ class ScheduleGroupController extends Controller
         ]);
 
         $employee = \App\Models\Employee::findOrFail($validated['employee_id']);
-        $employee->update(['site_id' => $validated['site_id']]);
+        $employee->site_id = $validated['site_id'];
+        $employee->save();
 
         // Ensure the site is linked to this schedule group
-        $site = Site::findOrFail($validated['site_id']);
+        $site = Site::find($validated['site_id']);
         if ($site->schedule_group_id !== $scheduleGroup->id) {
-            $site->update(['schedule_group_id' => $scheduleGroup->id]);
+            $site->schedule_group_id = $scheduleGroup->id;
+            $site->save();
         }
 
-        return back()->with('success', 'Employee successfully assigned to group via site.');
+        return back()->with('success', "{$employee->full_name} successfully assigned to {$site->name} under this group.");
     }
 
     public function toggleStatus(ScheduleGroup $scheduleGroup)
