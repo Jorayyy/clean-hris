@@ -88,6 +88,13 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::post('admin/settings/schedule-groups/{schedule_group}/members', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'addMember'])->name('admin.settings.schedule-groups.add-member');
     Route::resource('admin/settings/schedule-groups', App\Http\Controllers\Admin\ScheduleGroupController::class)->names('admin.settings.schedule-groups');
 
+    // Individual Schedules Routes
+    Route::get('admin/settings/individual-schedules', [App\Http\Controllers\Admin\IndividualScheduleController::class, 'index'])->name('admin.settings.individual-schedules.index');
+    Route::get('admin/settings/individual-schedules/create', [App\Http\Controllers\Admin\IndividualScheduleController::class, 'create'])->name('admin.settings.individual-schedules.create');
+    Route::post('admin/settings/individual-schedules', [App\Http\Controllers\Admin\IndividualScheduleController::class, 'store'])->name('admin.settings.individual-schedules.store');
+    Route::get('admin/settings/individual-schedules/{employee}/edit', [App\Http\Controllers\Admin\IndividualScheduleController::class, 'edit'])->name('admin.settings.individual-schedules.edit');
+    Route::delete('admin/settings/individual-schedules/{employee}', [App\Http\Controllers\Admin\IndividualScheduleController::class, 'destroy'])->name('admin.settings.individual-schedules.destroy');
+
         Route::get('admin/queue-monitor', [QueueMonitorController::class, 'index'])->name('admin.queue-monitor.index');
 
         // BPO Designations
