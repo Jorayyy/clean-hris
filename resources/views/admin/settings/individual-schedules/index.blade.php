@@ -66,9 +66,9 @@
                                             $isRest = $sched ? $sched->is_rest_day : true;
                                         @endphp
                                         <div class="d-flex flex-column align-items-center" style="width: 25px;">
-                                            <span class="very-small text-muted mb-1" style="font-size: 0.6rem;">{{ $label }}</span>
-                                            <div class="rounded-circle {{ $isRest ? 'bg-secondary bg-opacity-10' : 'bg-success' }}" 
-                                                 style="width: 8px; height: 8px;" 
+                                            <span class="fw-bold text-dark mb-1" style="font-size: 0.75rem;">{{ $label }}</span>
+                                            <div class="rounded-circle {{ $isRest ? 'bg-secondary bg-opacity-20' : 'bg-success' }}" 
+                                                 style="width: 10px; height: 10px;" 
                                                  title="{{ $isRest ? 'Rest Day' : ($sched->shift->code ?? 'Work') }}"></div>
                                         </div>
                                     @endforeach

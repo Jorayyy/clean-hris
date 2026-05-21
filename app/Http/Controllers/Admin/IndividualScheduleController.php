@@ -20,7 +20,7 @@ class IndividualScheduleController extends Controller
     public function create()
     {
         $employees = Employee::orderBy('last_name')->get();
-        $shifts = Shift::where('status', 'Active')->get();
+        $shifts = Shift::where('is_active', true)->get();
         return view('admin.settings.individual-schedules.create', compact('employees', 'shifts'));
     }
 
@@ -59,7 +59,7 @@ class IndividualScheduleController extends Controller
     public function edit(Employee $employee)
     {
         $employee->load('schedules');
-        $shifts = Shift::where('status', 'Active')->get();
+        $shifts = Shift::where('is_active', true)->get();
         
         // Map current schedules to day index for easier view access
         $currentSchedules = $employee->schedules->keyBy('day_of_week');
