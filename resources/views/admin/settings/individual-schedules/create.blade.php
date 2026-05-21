@@ -36,18 +36,18 @@
             <div class="card-body p-4">
                 <label class="form-label fw-bold small text-muted text-uppercase mb-3">2. Plot 7-Day Pattern</label>
                 
-                <div class="row row-cols-1 row-cols-md-7 g-3">
+                <div class="row row-cols-1 row-cols-md-7 g-2">
                     @php 
                         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; 
                     @endphp
                     
                     @foreach($days as $index => $day)
                         <div class="col">
-                            <div class="card h-100 border rounded-4 text-center p-3 shadow-none">
-                                <p class="fw-bold mb-2 text-primary">{{ $day }}</p>
+                            <div class="card h-100 border rounded-4 text-center p-2 shadow-none bg-white">
+                                <p class="fw-bold mb-1 text-primary small">{{ substr($day, 0, 3) }}</p>
                                 
-                                <div class="mb-3">
-                                    <select name="day_{{ $index }}_shift_id" class="form-select form-select-sm border-0 bg-light text-center" id="shift_{{ $index }}">
+                                <div class="mb-2">
+                                    <select name="day_{{ $index }}_shift_id" class="form-select form-select-sm border-0 bg-light text-center py-1" id="shift_{{ $index }}" style="font-size: 0.75rem;">
                                         <option value="">-- Shift --</option>
                                         @foreach($shifts as $shift)
                                             <option value="{{ $shift->id }}">{{ $shift->code }}</option>
@@ -55,9 +55,9 @@
                                     </select>
                                 </div>
                                 
-                                <div class="form-check form-switch d-flex justify-content-center">
-                                    <input class="form-check-input me-2" type="checkbox" name="day_{{ $index }}_rest_day" value="1" id="rest_{{ $index }}" onchange="toggleRest('{{ $index }}')">
-                                    <label class="form-check-label small text-muted" for="rest_{{ $index }}">Rest Day</label>
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input me-1" type="checkbox" name="day_{{ $index }}_rest_day" value="1" id="rest_{{ $index }}" onchange="toggleRest('{{ $index }}')" style="transform: scale(0.8);">
+                                    <label class="form-check-label text-muted" for="rest_{{ $index }}" style="font-size: 0.65rem;">Rest Day</label>
                                 </div>
                             </div>
                         </div>
