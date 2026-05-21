@@ -1,143 +1,184 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-4 px-4" style="max-width: 1400px; margin: auto;">
+<div class="container py-4">
     <div class="mb-5 text-center">
-        <h1 class="fw-bold mb-2">Schedule Management Hub</h1>
-        <p class="text-muted lead">Follow the steps below to set up and assign schedules.</p>
+        <h2 class="fw-bold text-dark">Workforce Scheduling Hub</h2>
+        <p class="text-muted small italic">Set up standard work hours (Blueprints) and handle daily staffing assignments.</p>
     </div>
 
-    <!-- STEP-BY-STEP WORKFLOW -->
-    <div class="row g-4">
-        <!-- STEP 1: DEFINE SHIFTS -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border-top border-primary border-5">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">1</div>
-                        <h4 class="fw-bold mb-0">Define Shifts</h4>
+    <div class="row g-4 justify-content-center">
+        <!-- Step 1: Define Shifts -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift transition-all overflow-hidden">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">1</div>
+                        <h5 class="fw-bold mb-0">Shift Menu</h5>
                     </div>
-                    <p class="text-muted small mb-4">Create reusable shift times (e.g. "Morning 8am-5pm" or "Night 10pm-7am"). This is your "menu" of times.</p>
+                </div>
+                <div class="card-body px-4 pb-4 pt-0">
+                    <p class="text-muted small mb-4">Define your standard work times here (e.g. "Day Shift", "Night Shift"). These will be reused across the system.</p>
                     
-                    <div class="list-group list-group-flush mb-4 scrollbar-thin" style="max-height: 300px; overflow-y: auto;">
-                        @forelse($templates as $t)
-                        <div class="list-group-item px-0 border-light d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-bold">{{ $t->name }}</div>
-                                <small class="text-primary">{{ \Carbon\Carbon::parse($t->time_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($t->time_out)->format('h:i A') }}</small>
+                    <div class="mb-4 bg-light p-3 rounded-4" style="min-height: 180px;">
+                        @if($shifts->count() > 0)
+                            <label class="small fw-bold text-muted text-uppercase mb-2 d-block" style="font-size: 0.65rem;">AVAILABLE TIMES ({{ $shifts->count() }})</label>
+                            @foreach($shifts->take(5) as $shift)
+                                <div class="d-flex align-items-center mb-2 px-2 py-1 bg-white rounded-3 shadow-sm">
+                                    <div class="rounded-circle me-2" style="width: 10px; height: 10px; background-color: {{ $shift->color }}"></div>
+                                    <span class="small fw-medium text-dark flex-grow-1 text-truncate">{{ $shift->name }}</span>
+                                    <span class="small text-muted" style="font-size: 0.7rem;">{{ date('h:i A', strtotime($shift->time_in)) }}</span>
+                                </div>
+                            @endforeach
+                            @if($shifts->count() > 5)
+                                <div class="text-center mt-2">
+                                    <span class="small text-muted">+ {{ $shifts->count() - 5 }} more shifts</span>
+                                </div>
+                            @endif
+                        @else
+                            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center py-4">
+                                <i class="bi bi-clock-history text-muted mb-2 fs-4"></i>
+                                <div class="small text-muted italic">No shifts created yet.</div>
                             </div>
-                            <div class="dropdown">
-                                <button class="btn btn-sm text-muted" type="button" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                    <li><a class="dropdown-item" href="{{ route('schedules.edit', $t->id) }}">Edit Name/Time</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form action="{{ route('schedules.destroy', $t->id) }}" method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Delete this shift definition?')">Delete</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        @empty
-                        <div class="py-3 text-center text-muted italic small">No shifts defined yet.</div>
-                        @endforelse
+                        @endif
                     </div>
 
-                    <a href="{{ route('schedules.create', ['template' => 1]) }}" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
-                        <i class="bi bi-plus-circle me-2"></i> Create New Shift Time
+                    <a href="{{ route('schedules.shifts.index') }}" class="btn btn-primary w-100 py-2 rounded-3 fw-bold shadow-sm">
+                        <i class="bi bi-gear-fill me-2"></i> Manage Shift Menu
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- STEP 2: PLOT BY ACCOUNT -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border-top border-success border-5">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">2</div>
-                        <h4 class="fw-bold mb-0">Plot by Account</h4>
+        <!-- Step 2: Plot by Account -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift transition-all overflow-hidden">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">2</div>
+                        <h5 class="fw-bold mb-0">Master Blueprints</h5>
                     </div>
-                    <p class="text-muted small mb-4">Pick an account (Site) and decide which shifts apply to them for each day of the week.</p>
+                </div>
+                <div class="card-body px-4 pb-4 pt-0">
+                    <p class="text-muted small mb-4">Assign standard weekly patterns to whole Sites. This becomes the "Auto-Schedule" for everyone in that group.</p>
 
-                    <div class="list-group list-group-flush mb-4 scrollbar-thin" style="max-height: 300px; overflow-y: auto;">
-                        @forelse($sites as $site)
-                        <div class="list-group-item px-0 border-light">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-bold text-dark">{{ $site->name }}</div>
+                    <div class="mb-4 bg-light p-3 rounded-4" style="min-height: 180px;">
+                        @if($sites->count() > 0)
+                            <label class="small fw-bold text-muted text-uppercase mb-2 d-block" style="font-size: 0.65rem;">SITES/ACCOUNTS ({{ $sites->count() }})</label>
+                            @foreach($sites->take(5) as $site)
+                                <div class="d-flex align-items-center mb-2 px-2 py-1 bg-white rounded-3 shadow-sm">
+                                    <i class="bi bi-geo-alt me-2 text-success" style="font-size: 0.8rem;"></i>
+                                    <span class="small fw-medium text-dark flex-grow-1 text-truncate">{{ $site->name }}</span>
                                     @if($site->scheduleGroup)
-                                        <span class="badge bg-success bg-opacity-10 text-success" style="font-size: 0.7rem;">Group: {{ $site->scheduleGroup->name }}</span>
-                                    @else
-                                        <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Manual Plotting</span>
+                                        <i class="bi bi-check-circle-fill text-success ms-2" style="font-size: 0.7rem;" title="Has Schedule Pattern"></i>
                                     @endif
                                 </div>
-                                <a href="{{ route('admin.settings.sites.show', $site->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">Plot</a>
+                            @endforeach
+                            @if($sites->count() > 5)
+                                <div class="text-center mt-2">
+                                    <span class="small text-muted">+ {{ $sites->count() - 5 }} more accounts</span>
+                                </div>
+                            @endif
+                        @else
+                            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center py-4">
+                                <i class="bi bi-building text-muted mb-2 fs-4"></i>
+                                <div class="small text-muted italic">No sites found.</div>
                             </div>
-                        </div>
-                        @empty
-                        <div class="py-3 text-center text-muted small">No accounts found. Add sites first.</div>
-                        @endforelse
+                        @endif
                     </div>
 
-                    <a href="{{ route('admin.settings.schedule-groups.index') }}" class="btn btn-outline-success w-100 rounded-pill fw-bold py-2">
-                        <i class="bi bi-calendar-range me-2"></i> Manage Weekly Groups
+                    <a href="{{ route('admin.settings.schedule-groups.index') }}" class="btn btn-outline-success w-100 py-2 rounded-3 fw-bold">
+                        <i class="bi bi-calendar-range me-2"></i> Manage Blueprints
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- STEP 3: ASSIGN EXCEPTIONS -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border-top border-info border-5">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">3</div>
-                        <h4 class="fw-bold mb-0">Direct Assignments</h4>
+        <!-- Step 3: Direct Assignments -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift transition-all overflow-hidden">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">3</div>
+                        <h5 class="fw-bold mb-0">Staffing Overrides</h5>
                     </div>
-                    <p class="text-muted small mb-4">Assign specific shifts directly to one employee or a special payroll category.</p>
+                </div>
+                <div class="card-body px-4 pb-4 pt-0">
+                    <p class="text-muted small mb-4">Manually assign shifts to specific people. Use this for duty rotations or temporary schedule changes.</p>
 
-                    <div class="list-group list-group-flush mb-4 scrollbar-thin" style="max-height: 300px; overflow-y: auto;">
-                        @forelse($schedules as $s)
-                        <div class="list-group-item px-0 border-light d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-bold small">{{ $s->employee ? $s->employee->full_name : ($s->payrollGroup ? $s->payrollGroup->name . ' Group' : 'Special Assigned') }}</div>
-                                <small class="text-info">{{ \Carbon\Carbon::parse($s->time_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($s->time_out)->format('h:i A') }}</small>
-                            </div>
-                            <form action="{{ route('schedules.destroy', $s->id) }}" method="POST">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-sm text-danger" onclick="return confirm('Remove this assignment?')"><i class="bi bi-x-circle"></i></button>
-                            </form>
+                    <div class="mb-4 bg-light p-3 rounded-4" style="min-height: 180px;">
+                        <label class="small fw-bold text-muted text-uppercase mb-3 d-block" style="font-size: 0.65rem;">MANUAL ASSIGNMENTS</label>
+                        <div class="d-flex justify-content-between align-items-center mb-3 px-3 py-2 bg-white rounded-3 shadow-sm">
+                            <span class="small text-muted">Total Manpower</span>
+                            <span class="small fw-bold text-dark">{{ $employeeCount }}</span>
                         </div>
-                        @empty
-                        <div class="py-3 text-center text-muted small">No direct assignments.</div>
-                        @endforelse
+                        <div class="d-flex justify-content-between align-items-center mb-3 px-3 py-2 bg-white rounded-3 shadow-sm border-start border-info border-4">
+                            <span class="small text-muted">Manual Overrides</span>
+                            <span class="small fw-bold text-info">{{ $directAssignmentCount }}</span>
+                        </div>
+                        <div class="small text-muted px-2 italic mt-auto" style="font-size: 0.7rem;">
+                            <i class="bi bi-info-circle me-1"></i> These always "win" over Blueprints.
+                        </div>
                     </div>
 
-                    <a href="{{ route('schedules.create') }}" class="btn btn-info text-white w-100 rounded-pill fw-bold py-2 shadow-sm">
-                        <i class="bi bi-person-plus me-2"></i> Assign Individual
+                    <a href="{{ route('schedules.create') }}" class="btn btn-info text-white w-100 py-2 rounded-3 fw-bold shadow-sm">
+                        <i class="bi bi-person-fill-add me-2"></i> Create Manual Override
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- QUICK LEGEND -->
-    <div class="mt-5 p-4 bg-light rounded-4 border">
-        <h6 class="fw-bold mb-3">How it works:</h6>
-        <div class="row g-3 small">
+    <!-- How it Works section -->
+    <div class="mt-5 bg-white p-4 rounded-4 shadow-sm border-0">
+        <div class="d-flex align-items-center mb-4">
+            <h6 class="fw-bold text-dark mb-0">Hierarchy & Logic Flow</h6>
+            <div class="ms-3 flex-grow-1 border-bottom border-light"></div>
+        </div>
+        <div class="row g-4">
             <div class="col-md-4">
-                <i class="bi bi-info-circle me-2 text-primary"></i> <strong>Priority 1:</strong> Direct Assignments (Step 3) always override everything else.
+                <div class="d-flex align-items-start">
+                    <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                        <i class="bi bi-lightning-fill"></i>
+                    </div>
+                    <div>
+                        <span class="small fw-bold d-block text-dark mb-1">Priority 1: Direct Assignments</span>
+                        <p class="small text-muted mb-0">Individual assignments created in **Step 3** always take top priority. Use these for temporary changes or special duties.</p>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4">
-                <i class="bi bi-info-circle me-2 text-success"></i> <strong>Priority 2:</strong> Account Plotting (Step 2) applies to everyone in that site.
+                <div class="d-flex align-items-start">
+                    <div class="bg-success bg-opacity-10 text-success p-2 rounded-3 me-3">
+                        <i class="bi bi-layers-fill"></i>
+                    </div>
+                    <div>
+                        <span class="small fw-bold d-block text-dark mb-1">Priority 2: Account Plotting</span>
+                        <p class="small text-muted mb-0">Weekly patterns in **Step 2** apply to all employees in that Site. If an employee has no direct assignment, they follow this.</p>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4">
-                <i class="bi bi-info-circle me-2 text-muted"></i> <strong>Priority 3:</strong> If neither is set, system tags the user as no-schedule.
+                <div class="d-flex align-items-start">
+                    <div class="bg-secondary bg-opacity-10 text-secondary p-2 rounded-3 me-3">
+                        <i class="bi bi-shield-slash-fill"></i>
+                    </div>
+                    <div>
+                        <span class="small fw-bold d-block text-muted mb-1">Priority 3: No-Schedule</span>
+                        <p class="small text-muted mb-0">If neither 1 nor 2 is present, the employee is "off-schedule". They won't be able to clock in via the portal.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.hover-lift:hover {
+    transform: translateY(-8px);
+}
+.transition-all {
+    transition: all 0.3s ease;
+}
+</style>
 @endsection

@@ -2,14 +2,17 @@
 
 @section('content')
 <div class="container-fluid px-4 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-0">Schedule Groups</h2>
-            <p class="text-muted">Manage pre-defined group schedules to assign to multiple accounts/sites.</p>
+    <div class="mb-4">
+        <a href="{{ route('schedules.index') }}" class="btn btn-sm text-muted p-0 mb-3"><i class="bi bi-arrow-left me-1"></i> Back to Hub</a>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-0">Schedule Groups</h2>
+                <p class="text-muted">Manage pre-defined group schedules to assign to multiple accounts/sites.</p>
+            </div>
+            <a href="{{ route('admin.settings.schedule-groups.create') }}" class="btn btn-primary rounded-pill px-4 fw-bold">
+                <i class="bi bi-plus-lg me-1"></i> Create New Group
+            </a>
         </div>
-        <a href="{{ route('admin.settings.schedule-groups.create') }}" class="btn btn-primary rounded-pill px-4 fw-bold">
-            <i class="bi bi-plus-lg me-1"></i> Create New Group
-        </a>
     </div>
 
     @if(session('success'))

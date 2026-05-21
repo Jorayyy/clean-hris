@@ -13,14 +13,92 @@ class ScheduleController extends Controller
 {
     public function index()
     {
-        $schedules = Schedule::with(['employee', 'payrollGroup', 'scheduleGroup'])
+        $shifts = \App\Models\Shift::all();
+        $schedules = Schedule::with(['employee', 'payrollGroup', 'scheduleGroup', 'shift'])
             ->where('is_template', false)
+            ->latest()
             ->get();
-        $templates = Schedule::where('is_template', true)->get();
         $sites = Site::with('scheduleGroup')->get();
-        $scheduleGroups = ScheduleGroup::all();
+        $employeeCount = Employee::count();
+        $directAssignmentCount = Schedule::whereNotNull('employee_id')->count();
         
-        return view('admin.schedules.index', compact('schedules', 'templates', 'sites', 'scheduleGroups'));
+        return view('admin.schedules.index', compact('shifts', 'schedules', 'sites', 'employeeCount', 'directAssignmentCount'));
+    }
+
+    public function shiftsIndex()
+    {
+        $shifts = \App\Models\Shift::all();
+        return view('admin.schedules.shifts.index', compact('shifts'));
+    }
+
+    public function shiftsStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'time_in' => 'required',
+            'time_out' => 'required',
+            'color' => 'required|string|max:7',
+        ]);
+
+        \App\Models\Shift::create($request->all());
+
+        return back()->with('success', 'Shift created successfully.');
+    }
+
+    public function shiftsUpdate(Request $request, \App\Models\Shift $shift)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'time_in' => 'required',
+            'time_out' => 'required',
+            'color' => 'required|string|max:7',
+        ]);
+
+        $shift->update($request->all());
+
+        return back()->with('success', 'Shift updated successfully.');
+    }
+
+    public function shiftsDestroy(\App\Models\Shift $shift)
+    {
+        $shift->delete();
+        return back()->with('success', 'Shift deleted successfully.');
+    }
+
+    public function visualPlotting()
+    {
+        $employees = Employee::with(['schedules', 'site'])->get();
+        $shifts = \App\Models\Shift::where('is_active', true)->get();
+        $sites = Site::all();
+        
+        return view('admin.schedules.plotting.index', compact('employees', 'shifts', 'sites'));
+    }
+
+    public function bulkAssign(Request $request)
+    {
+        $request->validate([
+            'employee_ids' => 'required|array',
+            'shift_id' => 'required|exists:shifts,id',
+            'days' => 'required|array',
+        ]);
+
+        $shift = \App\Models\Shift::find($request->shift_id);
+
+        foreach ($request->employee_ids as $empId) {
+            Schedule::updateOrCreate(
+                ['employee_id' => $empId, 'is_template' => false],
+                [
+                    'shift_id' => $shift->id,
+                    'time_in' => $shift->time_in,
+                    'time_out' => $shift->time_out,
+                    'days' => $request->days,
+                    'is_template' => false,
+                    'assigned_by' => auth()->id(),
+                ]
+            );
+        }
+
+        return response()->json(['success' => true, 'message' => 'Schedules updated successfully.']);
     }
 
     public function create(Request $request)

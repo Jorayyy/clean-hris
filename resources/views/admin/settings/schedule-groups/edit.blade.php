@@ -11,13 +11,21 @@
         </nav>
         <h2 class="fw-bold">Edit Schedule Group</h2>
         <p class="text-muted">Modify the template schedule for "{{ $scheduleGroup->name }}".</p>
+        
+        <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center mb-0" role="alert">
+            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+            <div>
+                <strong class="d-block">Base Blueprint Mode</strong>
+                <span class="small">This defines the <strong>standard weekly pattern</strong> for this group. Employees assigned here follow this by default unless an active override is assigned.</span>
+            </div>
+        </div>
     </div>
 
     <form action="{{ route('admin.settings.schedule-groups.update', $scheduleGroup->id) }}" method="POST">
         @csrf
         @method('PUT')
-        <div class="row">
-            <div class="col-md-4">
+        <div class="row g-4">
+            <div class="col-12 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">Group Details</h5>
@@ -38,12 +46,12 @@
                 </div>
             </div>
 
-            <div class="col-md-8">
+            <div class="col-12 col-lg-8">
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">Daily Schedule Plotting</h5>
                         <div class="table-responsive">
-                            <table class="table table-borderless align-middle">
+                            <table class="table table-borderless align-middle" style="min-width: 600px;">
                                 <thead>
                                     <tr class="text-muted small uppercase">
                                         <th style="width: 150px">Day</th>

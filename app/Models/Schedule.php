@@ -9,12 +9,42 @@ class Schedule extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'time_in', 'time_out', 'days', 'payroll_group_id', 'schedule_group_id', 'employee_id', 'is_template'];
+    protected $fillable = [
+        'name', 
+        'time_in', 
+        'time_out', 
+        'days', 
+        'payroll_group_id', 
+        'schedule_group_id', 
+        'employee_id', 
+        'is_template',
+        'shift_id',
+        'custom_shift_id',
+        'schedule_date',
+        'assigned_by',
+        'remarks'
+    ];
 
     protected $casts = [
         'days' => 'array',
         'is_template' => 'boolean',
+        'schedule_date' => 'date',
     ];
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    public function customShift()
+    {
+        return $this->belongsTo(CustomShift::class);
+    }
+
+    public function assignedBy()
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
+    }
 
     public function employee()
     {

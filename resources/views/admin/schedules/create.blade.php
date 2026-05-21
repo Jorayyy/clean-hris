@@ -5,9 +5,20 @@
     <div class="col-md-6">
         <div class="card shadow rounded border-0">
             <div class="card-header bg-white py-3 border-0">
-                <h5 class="mb-0 fw-bold">{{ $isTemplate ? 'Create Shift Template' : 'Assign New Schedule' }}</h5>
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold">{{ $isTemplate ? 'Create Shift Template' : 'Assign New Schedule' }}</h5>
+                    @if(!$isTemplate)
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-layers-fill me-1"></i> Override Mode</span>
+                    @endif
+                </div>
             </div>
             <div class="card-body">
+                @if(!$isTemplate)
+                    <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-dark small rounded-3 mb-4">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Note:</strong> This assignment will <strong>overwrite</strong> any default group schedules for the selected targets and days.
+                    </div>
+                @endif
                 <form action="{{ route('schedules.store') }}" method="POST">
                     @csrf
                     @if($isTemplate)

@@ -115,6 +115,15 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');
 
     Route::resource('schedules', ScheduleController::class);
+    Route::prefix('admin/scheduling')->name('schedules.')->group(function () {
+        Route::get('/shifts', [ScheduleController::class, 'shiftsIndex'])->name('shifts.index');
+        Route::post('/shifts', [ScheduleController::class, 'shiftsStore'])->name('shifts.store');
+        Route::put('/shifts/{shift}', [ScheduleController::class, 'shiftsUpdate'])->name('shifts.update');
+        Route::delete('/shifts/{shift}', [ScheduleController::class, 'shiftsDestroy'])->name('shifts.destroy');
+        
+        Route::get('/visual-scheduler', [ScheduleController::class, 'visualPlotting'])->name('plotting');
+        Route::post('/assign-bulk', [ScheduleController::class, 'bulkAssign'])->name('bulk-assign');
+    });
 
     // DTR Management
     Route::prefix('admin/dtrs')->name('admin.dtrs.')->group(function () {
