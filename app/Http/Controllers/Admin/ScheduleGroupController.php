@@ -86,7 +86,32 @@ class ScheduleGroupController extends Controller
         $siteIds = $scheduleGroup->sites->pluck('id');
         $employees = \App\Models\Employee::whereIn('site_id', $siteIds)->with('site')->get();
         
-        return view('admin.settings.schedule-groups.members', compact('scheduleGroup', 'employees'));
+        // For the "Add Employee" modal
+        $allSites = Site::all();
+        $unassignedEmployees = \App\Models\Employee::whereNotIn('site_id', $siteIds)
+            ->orWhereNull('site_id')
+            ->get();
+        
+        return view('admin.settings.schedule-groups.members', compact('scheduleGroup', 'employees', 'allSites', 'unassignedEmployees'));
+    }
+
+    public function addMember(Request $request, ScheduleGroup $scheduleGroup)
+    {
+        $validated = $request->validate([
+            'site_id' => 'required|exists:sites,id',
+            'employee_id' => 'required|exists:employees,id',
+        ]);
+
+        $employee = \App\Models\Employee::findOrFail($validated['employee_id']);
+        $employee->update(['site_id' => $validated['site_id']]);
+
+        // Ensure the site is linked to this schedule group
+        $site = Site::findOrFail($validated['site_id']);
+        if ($site->schedule_group_id !== $scheduleGroup->id) {
+            $site->update(['schedule_group_id' => $scheduleGroup->id]);
+        }
+
+        return back()->with('success', 'Employee successfully assigned to group via site.');
     }
 
     public function toggleStatus(ScheduleGroup $scheduleGroup)
