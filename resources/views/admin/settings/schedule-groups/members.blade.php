@@ -7,9 +7,14 @@
             <h4 class="fw-bold mb-0 text-dark">Group Members</h4>
             <p class="text-muted small">Employees assigned to <strong>{{ $scheduleGroup->name }}</strong></p>
         </div>
-        <a href="{{ route('admin.settings.schedule-groups.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
-            <i class="bi bi-arrow-left me-2"></i> Back to Groups
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('employees.create') }}" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-person-plus-fill me-2"></i> Add Employee
+            </a>
+            <a href="{{ route('admin.settings.schedule-groups.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-2"></i> Back to Groups
+            </a>
+        </div>
     </div>
 
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
