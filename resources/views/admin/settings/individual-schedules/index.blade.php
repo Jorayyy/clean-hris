@@ -32,10 +32,10 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light text-dark fw-bold small uppercase">
                         <tr>
-                            <th class="ps-4 py-3">Employee</th>
-                            <th class="py-3">Current Site</th>
-                            <th class="py-3">Schedule Status</th>
-                            <th class="py-3 text-end pe-4">Actions</th>
+                            <th class="ps-4 py-3">Employee Name</th>
+                            <th class="py-3">Designated Site</th>
+                            <th class="py-3 text-center">Schedule Details</th>
+                            <th class="py-3 text-end pe-4">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -55,20 +55,37 @@
                             <td>
                                 <span class="badge bg-light text-dark border fw-normal">{{ $employee->site->name ?? 'Unassigned' }}</span>
                             </td>
-                            <td>
-                                <span class="badge bg-warning bg-opacity-10 text-warning fw-normal">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Individual Override Active
-                                </span>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    @php
+                                        $days = ['M', 'T', 'W', 'Th', 'F', 'S', 'Su'];
+                                    @endphp
+                                    @foreach($days as $idx => $label)
+                                        @php
+                                            $sched = $employee->schedules->where('day_of_week', $idx)->first();
+                                            $isRest = $sched ? $sched->is_rest_day : true;
+                                        @endphp
+                                        <div class="d-flex flex-column align-items-center" style="width: 25px;">
+                                            <span class="very-small text-muted mb-1" style="font-size: 0.6rem;">{{ $label }}</span>
+                                            <div class="rounded-circle {{ $isRest ? 'bg-secondary bg-opacity-10' : 'bg-success' }}" 
+                                                 style="width: 8px; height: 8px;" 
+                                                 title="{{ $isRest ? 'Rest Day' : ($sched->shift->code ?? 'Work') }}"></div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a href="{{ route('admin.settings.individual-schedules.edit', $employee->id) }}" class="btn btn-sm btn-outline-primary rounded-circle p-2" title="Edit Override">
-                                        <i class="bi bi-pencil-fill"></i>
+                                    <span class="badge bg-warning bg-opacity-10 text-warning fw-normal align-self-center me-2" style="font-size: 0.7rem;">
+                                        INDIVIDUAL OVERRIDE
+                                    </span>
+                                    <a href="{{ route('admin.settings.individual-schedules.edit', $employee->id) }}" class="btn btn-sm btn-light border text-primary rounded-pill px-3">
+                                        <i class="bi bi-pencil-fill me-1"></i> Modify
                                     </a>
                                     <form action="{{ route('admin.settings.individual-schedules.destroy', $employee->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove override? This employee will revert to their Site Schedule.')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-2" title="Delete Override">
+                                        <button type="submit" class="btn btn-sm btn-light border text-danger rounded-pill px-3">
                                             <i class="bi bi-trash-fill"></i>
                                         </button>
                                     </form>
