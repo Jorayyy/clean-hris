@@ -12,7 +12,7 @@
                     <a href="{{ route('employees.edit', $employee) }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
                         <i class="bi bi-pencil me-1"></i> Edit
                     </a>
-                    <a href="{{ route('employees.index') }}" class="btn btn-secondary btn-sm rounded-pill px-3 shadow-sm">
+                    <a href="{{ url()->previous() }}" class="btn btn-secondary btn-sm rounded-pill px-3 shadow-sm">
                         <i class="bi bi-arrow-left me-1"></i> Back
                     </a>
                 </div>
