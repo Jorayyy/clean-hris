@@ -62,7 +62,7 @@ class ScheduleGroupController extends Controller
     public function plot(ScheduleGroup $scheduleGroup)
     {
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        $schedules = \App\Models\Schedule::where('is_template', true)->get();
+        $schedules = \App\Models\Shift::where('is_active', true)->get();
         return view('admin.settings.schedule-groups.plot', compact('scheduleGroup', 'days', 'schedules'));
     }
 
@@ -78,6 +78,15 @@ class ScheduleGroupController extends Controller
 
         return redirect()->route('admin.settings.schedule-groups.index')
             ->with('success', 'Schedule pattern updated successfully.');
+    }
+
+    public function members(ScheduleGroup $scheduleGroup)
+    {
+        // Get all employees from sites that use this group
+        $siteIds = $scheduleGroup->sites->pluck('id');
+        $employees = \App\Models\Employee::whereIn('site_id', $siteIds)->with('site')->get();
+        
+        return view('admin.settings.schedule-groups.members', compact('scheduleGroup', 'employees'));
     }
 
     public function toggleStatus(ScheduleGroup $scheduleGroup)

@@ -107,7 +107,8 @@ class ScheduleController extends Controller
         $employees = Employee::all();
         $payrollGroups = PayrollGroup::all();
         $scheduleGroups = ScheduleGroup::all();
-        return view('admin.schedules.create', compact('employees', 'payrollGroups', 'scheduleGroups', 'isTemplate'));
+        $shifts = \App\Models\Shift::where('is_active', true)->get();
+        return view('admin.schedules.create', compact('employees', 'payrollGroups', 'scheduleGroups', 'isTemplate', 'shifts'));
     }
 
     public function store(Request $request)

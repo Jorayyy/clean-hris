@@ -80,14 +80,27 @@
                     </div>
                     @endif
 
+                    <div class="mb-3" id="shiftSelectionField">
+                        <label class="form-label fw-semibold">Select Shift Template</label>
+                        <select id="shift_id" class="form-select border-primary" onchange="updateTimes(this)">
+                            <option value="">-- Manual Entry / No Template --</option>
+                            @foreach($shifts as $s)
+                                <option value="{{ $s->id }}" data-in="{{ $s->time_in }}" data-out="{{ $s->time_out }}">
+                                    {{ $s->name }} ({{ date('h:i A', strtotime($s->time_in)) }} - {{ date('h:i A', strtotime($s->time_out)) }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text small italic">Pick a shift from your "Shift Menu" to auto-fill the times.</div>
+                    </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Time In</label>
-                            <input type="time" name="time_in" class="form-control" required value="08:00">
+                            <input type="time" name="time_in" id="time_in" class="form-control" required value="08:00">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Time Out</label>
-                            <input type="time" name="time_out" class="form-control" required value="17:00">
+                            <input type="time" name="time_out" id="time_out" class="form-control" required value="17:00">
                         </div>
                     </div>
 
@@ -124,6 +137,14 @@ function toggleFields() {
     document.getElementById('groupField').classList.toggle('d-none', !isGroup);
     document.getElementById('payrollField').classList.toggle('d-none', !isPayroll);
     document.getElementById('individualField').classList.toggle('d-none', !isIndividual);
+}
+
+function updateTimes(select) {
+    const option = select.options[select.selectedIndex];
+    if (option.value) {
+        document.getElementById('time_in').value = option.getAttribute('data-in').substring(0, 5);
+        document.getElementById('time_out').value = option.getAttribute('data-out').substring(0, 5);
+    }
 }
 </script>
 @endsection

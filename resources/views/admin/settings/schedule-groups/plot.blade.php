@@ -17,6 +17,12 @@
                 </div>
 
                 <div class="card-body p-4">
+                    <div class="alert alert-light border small text-muted mb-4">
+                        <i class="bi bi-info-circle me-1"></i> These shifts are managed in the 
+                        <a href="{{ route('schedules.shifts.index') }}" class="fw-bold text-decoration-none" target="_blank">Shift Menu</a>. 
+                        If a shift is missing, add it there first.
+                    </div>
+
                     <form action="{{ route('admin.settings.schedule-groups.update-plot', $scheduleGroup->id) }}" method="POST">
                         @csrf
                         @method('PUT')

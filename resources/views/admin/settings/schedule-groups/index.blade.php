@@ -51,6 +51,11 @@
                                         <i class="bi bi-folder-fill"></i>
                                     </a>
 
+                                    <!-- View Members (People Icon) -->
+                                    <a href="{{ route('admin.settings.schedule-groups.members', $group->id) }}" class="text-secondary" title="View Members">
+                                        <i class="bi bi-people-fill"></i>
+                                    </a>
+
                                     <!-- Edit Name/Pencil Icon -->
                                     <a href="{{ route('admin.settings.schedule-groups.edit', $group->id) }}" class="text-warning" title="Edit Group Name">
                                         <i class="bi bi-pencil-fill"></i>
