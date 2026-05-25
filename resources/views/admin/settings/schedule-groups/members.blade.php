@@ -52,9 +52,18 @@
                                 </span>
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-sm btn-light border text-primary rounded-pill px-3">
-                                    View Profile
-                                </a>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-sm btn-light border text-primary rounded-pill px-3">
+                                        View Profile
+                                    </a>
+                                    <form action="{{ route('admin.settings.schedule-groups.remove-member', [$scheduleGroup->id, $employee->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this employee from the group?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                            Remove
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -83,22 +92,22 @@
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-muted text-uppercase mb-2">1. Select Target Site</label>
-                        <select name="site_id" class="form-select border-primary" required>
-                            <option value="">-- Choose Site --</option>
-                            @foreach($allSites as $site)
-                                <option value="{{ $site->id }}">{{ $site->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="form-text small italic">Selecting a site will link it to this schedule group.</div>
-                    </div>
-
-                    <div class="mb-0">
-                        <label class="form-label fw-bold small text-muted text-uppercase mb-2">2. Select Employee</label>
+                        <label class="form-label fw-bold small text-muted text-uppercase mb-2">1. Select Employee</label>
                         <select name="employee_id" class="form-select border-primary" required>
                             <option value="">-- Choose Employee --</option>
                             @foreach($unassignedEmployees as $emp)
                                 <option value="{{ $emp->id }}">{{ $emp->full_name }} ({{ $emp->employee_id }})</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text small italic">This will assign the schedule group directly to this employee.</div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label fw-bold small text-muted text-uppercase mb-2">2. Update Site (Optional)</label>
+                        <select name="site_id" class="form-select border-primary">
+                            <option value="">-- No Change --</option>
+                            @foreach($allSites as $site)
+                                <option value="{{ $site->id }}">{{ $site->name }}</option>
                             @endforeach
                         </select>
                     </div>

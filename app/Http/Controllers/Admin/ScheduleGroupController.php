@@ -82,14 +82,15 @@ class ScheduleGroupController extends Controller
 
     public function members(ScheduleGroup $scheduleGroup)
     {
-        // Get all employees from sites that use this group
-        $siteIds = $scheduleGroup->sites->pluck('id');
-        $employees = \App\Models\Employee::whereIn('site_id', $siteIds)->with('site')->get();
+        // Get employees directly assigned to this group
+        $employees = \App\Models\Employee::where('schedule_group_id', $scheduleGroup->id)
+            ->with('site')
+            ->get();
         
         // For the "Add Employee" modal
         $allSites = Site::all();
-        $unassignedEmployees = \App\Models\Employee::whereNotIn('site_id', $siteIds)
-            ->orWhereNull('site_id')
+        $unassignedEmployees = \App\Models\Employee::where('schedule_group_id', '!=', $scheduleGroup->id)
+            ->orWhereNull('schedule_group_id')
             ->get();
         
         return view('admin.settings.schedule-groups.members', compact('scheduleGroup', 'employees', 'allSites', 'unassignedEmployees'));
@@ -98,22 +99,30 @@ class ScheduleGroupController extends Controller
     public function addMember(Request $request, ScheduleGroup $scheduleGroup)
     {
         $validated = $request->validate([
-            'site_id' => 'required|exists:sites,id',
+            'site_id' => 'nullable|exists:sites,id',
             'employee_id' => 'required|exists:employees,id',
         ]);
 
         $employee = \App\Models\Employee::findOrFail($validated['employee_id']);
-        $employee->site_id = $validated['site_id'];
+        
+        // Update site if provided
+        if ($validated['site_id']) {
+            $employee->site_id = $validated['site_id'];
+        }
+        
+        // Assign the schedule group directly to the employee
+        $employee->schedule_group_id = $scheduleGroup->id;
         $employee->save();
 
-        // Ensure the site is linked to this schedule group
-        $site = Site::find($validated['site_id']);
-        if ($site->schedule_group_id !== $scheduleGroup->id) {
-            $site->schedule_group_id = $scheduleGroup->id;
-            $site->save();
-        }
+        return back()->with('success', "{$employee->full_name} successfully added to this schedule group.");
+    }
 
-        return back()->with('success', "{$employee->full_name} successfully assigned to {$site->name} under this group.");
+    public function removeMember(ScheduleGroup $scheduleGroup, \App\Models\Employee $employee)
+    {
+        $employee->schedule_group_id = null;
+        $employee->save();
+
+        return back()->with('success', "{$employee->full_name} removed from this schedule group.");
     }
 
     public function toggleStatus(ScheduleGroup $scheduleGroup)

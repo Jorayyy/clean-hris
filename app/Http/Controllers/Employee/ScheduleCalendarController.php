@@ -35,7 +35,8 @@ class ScheduleCalendarController extends Controller
         $scheduleData = [];
 
         // Pre-fetch Site & Groups
-        $site = $employee->site_id ? Site::with('scheduleGroup')->find($employee->site_id) : null;
+        $employee->load(['scheduleGroup', 'site.scheduleGroup']);
+        $site = $employee->site;
         $activeSchedule = $employee->active_schedule;
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
@@ -46,8 +47,19 @@ class ScheduleCalendarController extends Controller
             $dailySched = null;
             $isRestDay = false;
 
-            // 1. Site Group Schedule
-            if ($site && $site->schedule_group_id && $site->scheduleGroup) {
+            // 1. Direct Employee Group Schedule
+            if ($employee->schedule_group_id && $employee->scheduleGroup) {
+                $dayConfig = $employee->scheduleGroup->schedule_config[$dayName] ?? null;
+                if ($dayConfig === 'OFF' || (isset($dayConfig['is_rest_day']) && $dayConfig['is_rest_day'])) {
+                    $isRestDay = true;
+                } else {
+                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
+                    $dailySched = Schedule::find($schedId);
+                }
+            }
+
+            // 2. Site Group Schedule
+            if (!$dailySched && !$isRestDay && $site && $site->schedule_group_id && $site->scheduleGroup) {
                 $dayConfig = $site->scheduleGroup->schedule_config[$dayName] ?? null;
                 if ($dayConfig === 'OFF' || (isset($dayConfig['is_rest_day']) && $dayConfig['is_rest_day'])) {
                     $isRestDay = true;
@@ -56,8 +68,8 @@ class ScheduleCalendarController extends Controller
                     $dailySched = Schedule::find($schedId);
                 }
             } 
-            // 2. Site Manual Config
-            elseif ($site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
+            // 3. Site Manual Config
+            elseif (!$dailySched && !$isRestDay && $site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
                 $config = $site->schedule_config[$dayName];
                 if ($config === 'OFF') {
                     $isRestDay = true;

@@ -86,6 +86,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::put('admin/settings/schedule-groups/{schedule_group}/plot', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'updatePlot'])->name('admin.settings.schedule-groups.update-plot');
     Route::get('admin/settings/schedule-groups/{schedule_group}/members', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'members'])->name('admin.settings.schedule-groups.members');
     Route::post('admin/settings/schedule-groups/{schedule_group}/members', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'addMember'])->name('admin.settings.schedule-groups.add-member');
+    Route::delete('admin/settings/schedule-groups/{schedule_group}/members/{employee}', [App\Http\Controllers\Admin\ScheduleGroupController::class, 'removeMember'])->name('admin.settings.schedule-groups.remove-member');
     Route::resource('admin/settings/schedule-groups', App\Http\Controllers\Admin\ScheduleGroupController::class)->names('admin.settings.schedule-groups');
 
     // Individual Schedules Routes

@@ -168,11 +168,37 @@ class PayrollService
 
         // Try to get actual schedule if employee provided
         if ($employeeId) {
-            $employee = \App\Models\Employee::find($employeeId);
+            $employee = \App\Models\Employee::with(['scheduleGroup', 'site.scheduleGroup'])->find($employeeId);
             
-            // PRIORITY 1: Check Site/Account-based Fixed Schedule
+            // PRIORITY 1: Check Direct Employee-based Schedule Group
+            if ($employee->schedule_group_id && $employee->scheduleGroup) {
+                $dayConfig = $employee->scheduleGroup->schedule_config[$dayName] ?? null;
+                if ($dayConfig) {
+                    if (isset($dayConfig['is_rest_day']) || $dayConfig === 'OFF') {
+                        return [
+                            'total_hours' => abs(round($totalHours, 2)),
+                            'late_minutes' => 0,
+                            'undertime_minutes' => 0,
+                            'overtime_hours' => round($totalHours, 2),
+                        ];
+                    }
+
+                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
+                    $siteSchedule = \App\Models\Schedule::find($schedId);
+                    
+                    if ($siteSchedule) {
+                        $scheduleInTime = $siteSchedule->time_in;
+                        $scheduleOutTime = $siteSchedule->time_out;
+                        
+                        // Set flag to skip site-based check
+                        goto schedule_found;
+                    }
+                }
+            }
+
+            // PRIORITY 2: Check Site/Account-based Fixed Schedule
             if ($employee->site_id) {
-                $site = \App\Models\Site::with('scheduleGroup')->find($employee->site_id);
+                $site = $employee->site;
                 
                 // A: Use Group Schedule if assigned
                 if ($site && $site->schedule_group_id && $site->scheduleGroup) {
@@ -228,6 +254,8 @@ class PayrollService
                     }
                 }
             }
+            
+            schedule_found:
 
             // PRIORITY 2: Fallback to existing manual/group schedule logic
             $schedule = $employee?->active_schedule;

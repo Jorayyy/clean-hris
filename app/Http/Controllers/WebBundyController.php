@@ -56,14 +56,28 @@ class WebBundyController extends Controller
 
         // Check if employee has a schedule for today
         $dayName = $now->format('l');
-        $schedule = $employee->active_schedule;
         
-        // Priority 1: Use Site-based schedule config if it exists (mirroring PayrollService logic)
+        // Priority 1: Use direct Employee-based schedule group
         $scheduleInTime = null;
         $scheduleOutTime = null;
         $isRestDay = false;
 
-        if ($employee->site_id) {
+        if ($employee->schedule_group_id && $employee->scheduleGroup) {
+            $dayConfig = $employee->scheduleGroup->schedule_config[$dayName] ?? null;
+            if ($dayConfig === 'OFF' || (isset($dayConfig['is_rest_day']) && $dayConfig['is_rest_day'])) {
+                $isRestDay = true;
+            } else {
+                $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
+                $siteSchedule = \App\Models\Schedule::find($schedId);
+                if ($siteSchedule) {
+                    $scheduleInTime = $siteSchedule->time_in;
+                    $scheduleOutTime = $siteSchedule->time_out;
+                }
+            }
+        }
+
+        // Priority 2: Use Site-based schedule config if it exists (mirroring PayrollService logic)
+        if (!$scheduleInTime && !$isRestDay && $employee->site_id) {
             $site = \App\Models\Site::with('scheduleGroup')->find($employee->site_id);
             if ($site && $site->schedule_group_id && $site->scheduleGroup) {
                 $dayConfig = $site->scheduleGroup->schedule_config[$dayName] ?? null;
