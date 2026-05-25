@@ -196,24 +196,59 @@
     <!-- Sidebar Area -->
     <div class="col-lg-4 d-flex flex-column">
         <!-- Payroll Deadline / Runway -->
-        <div class="card shadow-sm border-0 rounded-4 bg-white mb-4 overflow-hidden">
+        <div class="card shadow-sm border-0 rounded-4 bg-white mb-4 flex-shrink-0">
             <div class="card-body p-4">
-                <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-3">Payroll Runway</h6>
-                @php
-                    $activePayroll = \App\Models\Payroll::where('status', '!=', 'approved')->latest()->first();
-                @endphp
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="fw-bold small text-uppercase tracking-widest text-primary mb-0" style="letter-spacing: 0.1rem;">PAYROLL RUNWAY</h6>
+                    @php
+                        $activePayroll = \App\Models\Payroll::where('status', '!=', 'approved')->latest()->first();
+                    @endphp
+                    @if($activePayroll)
+                        <span class="badge bg-primary bg-opacity-10 text-primary border-0 rounded-pill px-3">{{ $activePayroll->payroll_code }}</span>
+                    @endif
+                </div>
+
                 @if($activePayroll)
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold text-dark">{{ $activePayroll->payroll_code }}</span>
-                        <span class="badge bg-warning text-dark">{{ ucfirst($activePayroll->status) }}</span>
+                    @php
+                        $status = strtolower($activePayroll->status);
+                        $stages = [
+                            ['label' => 'Setup', 'icon' => 'bi-gear', 'active' => true],
+                            ['label' => 'Process', 'icon' => 'bi-cpu', 'active' => in_array($status, ['processing', 'processed', 'review'])],
+                            ['label' => 'Review', 'icon' => 'bi-eye', 'active' => in_array($status, ['processed', 'review'])],
+                            ['label' => 'Pay', 'icon' => 'bi-cash-stack', 'active' => false],
+                        ];
+                        $progress = match($status) {
+                            'draft' => 25,
+                            'processing' => 50,
+                            'processed' => 75,
+                            'review' => 90,
+                            default => 10
+                        };
+                    @endphp
+                    <div class="payroll-runway-container py-3">
+                        <div class="position-relative mb-5" style="height: 40px;">
+                            <div class="progress position-absolute w-100" style="height: 4px; top: 18px; border-radius: 2px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $progress }}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between position-absolute w-100">
+                                @foreach($stages as $stage)
+                                    <div class="text-center" style="width: 25%;">
+                                        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm {{ $stage['active'] ? 'bg-primary text-white border-primary' : 'bg-white text-muted border' }}" 
+                                             style="width: 36px; height: 36px; position: relative; z-index: 2; border-width: 2px !important;">
+                                            <i class="bi {{ $stage['icon'] }} small"></i>
+                                        </div>
+                                        <div class="mt-2 text-center" style="width: 100%;">
+                                            <span class="d-block small fw-bold {{ $stage['active'] ? 'text-primary' : 'text-muted' }}" style="font-size: 0.7rem;">{{ $stage['label'] }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="mt-5 p-3 bg-light rounded-4 border-start border-primary border-4">
+                            <p class="small text-muted mb-1">Target Disbursement</p>
+                            <h6 class="fw-bold mb-0 text-dark">{{ $activePayroll->pay_date }}</h6>
+                        </div>
                     </div>
-                    <div class="progress bg-white mb-3" style="height: 10px; border-radius: 10px;">
-                        @php
-                            $prog = $activePayroll->status == 'draft' ? 25 : ($activePayroll->status == 'processing' ? 60 : 90);
-                        @endphp
-                        <div class="progress-bar bg-warning" style="width: {{ $prog }}%"></div>
-                    </div>
-                    <p class="small text-muted mb-0">Target Disbursement: <strong class="text-dark">{{ $activePayroll->pay_date }}</strong></p>
                 @else
                     @php
                         $today = \Carbon\Carbon::now();
@@ -221,11 +256,14 @@
                             ? $today->copy()->day(15) 
                             : $today->copy()->endOfMonth();
                     @endphp
-                    <div class="d-flex flex-column align-items-center py-2 text-center">
-                        <i class="bi bi-calendar2-check mb-2 text-primary" style="font-size: 1.5rem;"></i>
-                        <p class="small text-dark fw-bold mb-1">Next Estimated Payroll</p>
-                        <p class="small text-muted mb-3">{{ $nextPayrollDate->format('M d, Y') }} ({{ $nextPayrollDate->format('l') }})</p>
-                        <a href="{{ route('payroll.create') }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                    <div class="text-center py-5 px-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                            <i class="bi bi-calendar2-check text-primary fs-3"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-2">Next Estimated Payroll</h6>
+                        <p class="text-muted small mb-4">{{ $nextPayrollDate->format('F d, Y') }}<br><span class="opacity-75">{{ $nextPayrollDate->format('l') }}</span></p>
+                        
+                        <a href="{{ route('payroll.create') }}" class="btn btn-primary btn-sm rounded-pill px-5 shadow-sm">
                             <i class="bi bi-plus-circle me-1"></i> Create New Batch
                         </a>
                     </div>
