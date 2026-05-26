@@ -25,7 +25,7 @@
     @endif
 
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-header bg-danger text-white py-3 px-4">
+        <div class="card-header bg-primary text-white py-3 px-4">
             <h5 class="mb-0 fw-bold">Group: {{ strtoupper($site->name) }} SCHEDULE PLOTTING</h5>
         </div>
         <div class="card-body p-4">
@@ -120,7 +120,7 @@
                     <i class="bi bi-info-circle-fill me-2"></i> <strong>Note:</strong> This plotting will take effect to all members of the site/account selected.
                 </div>
 
-                <button type="submit" class="btn btn-danger w-100 py-3 fw-bold rounded-3">
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3">
                     <i class="bi bi-save me-2"></i> SAVE SCHEDULE PLOTTING
                 </button>
             </form>
