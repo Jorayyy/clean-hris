@@ -97,9 +97,13 @@
                 <div id="methodField"></div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <div class="col-12">
+                        <div class="col-8">
                             <label class="form-label small fw-bold">Shift Name</label>
                             <input type="text" name="name" id="shift_name" class="form-control" placeholder="e.g. Morning Shift" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Code</label>
+                            <input type="text" name="code" id="shift_code" class="form-control" placeholder="MSHIFT" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold">Time In</label>
@@ -166,6 +170,7 @@ function editShift(shift) {
     document.getElementById('methodField').innerHTML = '@method("PUT")';
     
     document.getElementById('shift_name').value = shift.name;
+    document.getElementById('shift_code').value = shift.code || '';
     document.getElementById('shift_time_in').value = shift.time_in;
     document.getElementById('shift_time_out').value = shift.time_out;
     document.getElementById('shift_break_minutes').value = shift.break_minutes;

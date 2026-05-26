@@ -2,6 +2,10 @@
 
 @section('content')
 <div class="container py-4">
+    <div class="mb-3">
+        <a href="{{ route('schedules.index') }}" class="btn btn-sm text-muted p-0 mb-3"><i class="bi bi-arrow-left me-1"></i> Back to Hub</a>
+    </div>
+
     <div class="mb-4 d-flex justify-content-between align-items-center">
         <div>
             <h4 class="fw-bold mb-0 text-dark">Individual Schedules</h4>
