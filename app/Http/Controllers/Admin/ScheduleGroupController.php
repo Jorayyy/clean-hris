@@ -19,13 +19,16 @@ class ScheduleGroupController extends Controller
     {
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         $schedules = \App\Models\Schedule::where('is_template', true)->get();
-        return view('admin.settings.schedule-groups.create', compact('days', 'schedules'));
+        $sites = Site::all();
+        return view('admin.settings.schedule-groups.create', compact('days', 'schedules', 'sites'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'site_ids' => 'nullable|array',
+            'site_ids.*' => 'exists:sites,id'
         ]);
 
         $group = ScheduleGroup::create([
@@ -34,8 +37,12 @@ class ScheduleGroupController extends Controller
             'schedule_config' => [] // Initialize empty
         ]);
 
-        return redirect()->route('admin.settings.schedule-groups.index')
-            ->with('success', 'Master Blueprint created successfully.');
+        if (!empty($validated['site_ids'])) {
+            Site::whereIn('id', $validated['site_ids'])->update(['schedule_group_id' => $group->id]);
+        }
+
+        return redirect()->route('admin.settings.schedule-groups.plot', $group->id)
+            ->with('success', 'Master Blueprint created successfully. Now, please plot the schedule.');
     }
 
     public function edit(ScheduleGroup $scheduleGroup)

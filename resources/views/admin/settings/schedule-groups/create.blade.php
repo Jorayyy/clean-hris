@@ -25,9 +25,27 @@
                             @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark small">Assign to Sites (Optional)</label>
+                            <div class="p-3 border rounded-1 bg-light" style="max-height: 200px; overflow-y: auto;">
+                                @foreach($sites as $site)
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="site_ids[]" value="{{ $site->id }}" id="site_{{ $site->id }}">
+                                        <label class="form-check-label small" for="site_{{ $site->id }}">
+                                            {{ $site->name }} 
+                                            @if($site->scheduleGroup)
+                                                <span class="text-muted italic">(Currently: {{ $site->scheduleGroup->name }})</span>
+                                            @endif
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <small class="text-muted">You can select one or more sites to immediately apply this blueprint to.</small>
+                        </div>
+
                         <div class="text-end">
-                            <button type="submit" class="btn btn-danger px-4 d-inline-flex align-items-center gap-2" style="background-color: #d9534f; border: none;">
-                                <i class="bi bi-floppy-fill"></i> Save
+                            <button type="submit" class="btn btn-primary px-4 d-inline-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-right-circle-fill"></i> Save & Plot Schedule
                             </button>
                         </div>
                     </form>
