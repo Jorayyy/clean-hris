@@ -30,4 +30,9 @@ class Site extends Model
     {
         return $this->hasMany(Employee::class);
     }
+
+    public function scheduleGroups()
+    {
+        return $this->hasMany(ScheduleGroup::class);
+    }
 }

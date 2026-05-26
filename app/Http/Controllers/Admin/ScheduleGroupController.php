@@ -28,12 +28,14 @@ class ScheduleGroupController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'site_ids' => 'nullable|array',
-            'site_ids.*' => 'exists:sites,id'
+            'site_ids.*' => 'exists:sites,id',
+            'primary_site_id' => 'nullable|exists:sites,id'
         ]);
 
         $group = ScheduleGroup::create([
             'name' => $validated['name'],
             'created_by' => auth()->id(),
+            'site_id' => $validated['primary_site_id'] ?? ($validated['site_ids'][0] ?? null),
             'schedule_config' => [] // Initialize empty
         ]);
 

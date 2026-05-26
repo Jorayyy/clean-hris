@@ -181,7 +181,13 @@
                                             </div>
                                         </td>
                                         <td>
-                                            @if($site->scheduleGroup)
+                                            @if($site->scheduleGroups->count() > 0)
+                                                @foreach($site->scheduleGroups as $group)
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary fw-normal mb-1 d-inline-block">
+                                                        <i class="bi bi-file-earmark-text me-1"></i> {{ $group->name }}
+                                                    </span>
+                                                @endforeach
+                                            @elseif($site->scheduleGroup)
                                                 <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">
                                                     <i class="bi bi-file-earmark-text me-1"></i> {{ $site->scheduleGroup->name }}
                                                 </span>
@@ -193,9 +199,9 @@
                                             <div class="d-flex justify-content-center gap-1">
                                                 @php $days = ['M', 'T', 'W', 'Th', 'F', 'S', 'Su']; @endphp
                                                 @foreach($days as $day)
-                                                    <div class="rounded-circle {{ $site->scheduleGroup ? 'bg-success' : 'bg-secondary bg-opacity-20' }}" 
+                                                    <div class="rounded-circle {{ ($site->scheduleGroup || $site->scheduleGroups->count() > 0) ? 'bg-success' : 'bg-secondary bg-opacity-20' }}" 
                                                          style="width: 8px; height: 8px;" 
-                                                         title="{{ $site->scheduleGroup ? 'Pattern Active' : 'No Pattern' }}"></div>
+                                                         title="{{ ($site->scheduleGroup || $site->scheduleGroups->count() > 0) ? 'Pattern Active' : 'No Pattern' }}"></div>
                                                 @endforeach
                                             </div>
                                         </td>
