@@ -52,13 +52,30 @@
                                         <a href="{{ route('admin.settings.schedule-groups.edit', $site->scheduleGroup->id) }}" class="small text-decoration-none">View/Edit Group</a>
                                     </div>
                                     <div class="mt-2 row">
-                                        @foreach($site->scheduleGroup->schedule_config as $day => $config)
-                                            <div class="col-md-3 small">
+                                        @php 
+                                            $config = $site->scheduleGroup->schedule_config ?? [];
+                                            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                        @endphp
+                                        @foreach($days as $day)
+                                            @php $dayConfig = $config[$day] ?? null; @endphp
+                                            <div class="col-md-3 mb-2 small">
                                                 <strong>{{ substr($day, 0, 3) }}:</strong> 
-                                                @if(isset($config['is_rest_day']))
+                                                @if(isset($dayConfig['is_rest_day']) || (is_string($dayConfig) && $dayConfig === 'OFF'))
                                                     <span class="text-danger">REST</span>
+                                                @elseif(isset($dayConfig['id']) || is_numeric($dayConfig))
+                                                    @php 
+                                                        $shiftId = $dayConfig['id'] ?? $dayConfig;
+                                                        $shift = \App\Models\Shift::find($shiftId);
+                                                    @endphp
+                                                    @if($shift)
+                                                        {{ \Carbon\Carbon::parse($shift->time_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($shift->time_out)->format('h:i A') }}
+                                                    @else
+                                                        <span class="text-muted small">Not Set</span>
+                                                    @endif
+                                                @elseif(isset($dayConfig['start']))
+                                                    {{ \Carbon\Carbon::parse($dayConfig['start'])->format('h:i A') }} - {{ \Carbon\Carbon::parse($dayConfig['end'])->format('h:i A') }}
                                                 @else
-                                                    {{ \Carbon\Carbon::parse($config['start'])->format('h:i A') }} - {{ \Carbon\Carbon::parse($config['end'])->format('h:i A') }}
+                                                    <span class="text-muted small">Not Set</span>
                                                 @endif
                                             </div>
                                         @endforeach
