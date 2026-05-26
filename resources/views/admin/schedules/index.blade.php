@@ -204,9 +204,9 @@
                                             <span class="small text-muted">Staff</span>
                                         </td>
                                         <td class="text-end pe-4">
-                                            <a href="{{ $site->scheduleGroup ? route('admin.settings.schedule-groups.members', $site->scheduleGroup->id) : route('admin.settings.schedule-groups.index') }}" 
+                                            <a href="{{ route('admin.settings.sites.show', $site->id) }}" 
                                                class="btn btn-sm btn-light border text-primary rounded-pill px-3">
-                                                View Setup
+                                                {{ $site->scheduleGroup ? 'Manage Blueprint' : 'Assign Blueprint' }}
                                             </a>
                                         </td>
                                     </tr>
