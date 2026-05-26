@@ -35,53 +35,57 @@
                 <div class="row mb-5">
                     <div class="col-md-12">
                         <div class="bg-light p-4 rounded-4 border">
-                            <h5 class="fw-bold mb-3"><i class="bi bi-calendar-week me-2"></i> Use Schedule Group</h5>
-                            <p class="text-muted small">Select a pre-defined schedule group for this account. If you select a group, the manual plotting below will be ignored.</p>
-                            <select name="schedule_group_id" class="form-select form-select-lg rounded-pill border-0 shadow-sm px-4">
-                                <option value="">-- No Group (Use Manual Plotting Below) --</option>
-                                @foreach($scheduleGroups as $group)
-                                    <option value="{{ $group->id }}" {{ $site->schedule_group_id == $group->id ? 'selected' : '' }}>
-                                        {{ $group->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @if($site->scheduleGroup)
-                                <div class="mt-3 p-3 bg-white rounded-3 shadow-sm border-start border-primary border-4">
-                                    <div class="d-flex justify-content-between">
-                                        <span class="fw-bold text-primary">Active Group Schedule:</span>
-                                        <a href="{{ route('admin.settings.schedule-groups.edit', $site->scheduleGroup->id) }}" class="small text-decoration-none">View/Edit Group</a>
-                                    </div>
-                                    <div class="mt-2 row">
-                                        @php 
-                                            $config = $site->scheduleGroup->schedule_config ?? [];
-                                            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                                        @endphp
-                                        @foreach($days as $day)
-                                            @php $dayConfig = $config[$day] ?? null; @endphp
-                                            <div class="col-md-3 mb-2 small">
-                                                <strong>{{ substr($day, 0, 3) }}:</strong> 
-                                                @if(isset($dayConfig['is_rest_day']) || (is_string($dayConfig) && $dayConfig === 'OFF'))
-                                                    <span class="text-danger">REST</span>
-                                                @elseif(isset($dayConfig['id']) || is_numeric($dayConfig))
-                                                    @php 
-                                                        $shiftId = $dayConfig['id'] ?? $dayConfig;
-                                                        $shift = \App\Models\Shift::find($shiftId);
-                                                    @endphp
-                                                    @if($shift)
-                                                        {{ \Carbon\Carbon::parse($shift->time_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($shift->time_out)->format('h:i A') }}
-                                                    @else
-                                                        <span class="text-muted small">Not Set</span>
-                                                    @endif
-                                                @elseif(isset($dayConfig['start']))
-                                                    {{ \Carbon\Carbon::parse($dayConfig['start'])->format('h:i A') }} - {{ \Carbon\Carbon::parse($dayConfig['end'])->format('h:i A') }}
-                                                @else
-                                                    <span class="text-muted small">Not Set</span>
-                                                @endif
+                            <h5 class="fw-bold mb-3"><i class="bi bi-calendar-week me-2"></i> Active Blueprints</h5>
+                            <p class="text-muted small">These Blueprints are currently assigned to this site. Employees assigned to this site will follow these patterns unless they have an individual override.</p>
+                            
+                            <div class="row g-3">
+                                @forelse($site->scheduleGroups as $group)
+                                    <div class="col-md-6">
+                                        <div class="bg-white p-3 rounded-3 shadow-sm border-start border-primary border-4 h-100">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="fw-bold text-primary">{{ $group->name }}</span>
+                                                <a href="{{ route('admin.settings.schedule-groups.plot', $group->id) }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">Edit Pattern</a>
                                             </div>
-                                        @endforeach
+                                            <div class="very-small text-muted mb-2">Weekly Pattern:</div>
+                                            <div class="row g-1">
+                                                @php 
+                                                    $config = $group->schedule_config ?? [];
+                                                    $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                                @endphp
+                                                @foreach($days as $day)
+                                                    @php $dayConfig = $config[$day] ?? null; @endphp
+                                                    <div class="col-6" style="font-size: 0.65rem;">
+                                                        <span class="fw-bold">{{ substr($day, 0, 3) }}:</span> 
+                                                        @if(isset($dayConfig['is_rest_day']) || (is_string($dayConfig) && $dayConfig === 'OFF'))
+                                                            <span class="text-danger">OFF</span>
+                                                        @elseif(isset($dayConfig['id']) || is_numeric($dayConfig))
+                                                            @php 
+                                                                $shiftId = $dayConfig['id'] ?? $dayConfig;
+                                                                $shift = \App\Models\Shift::find($shiftId);
+                                                            @endphp
+                                                            {{ $shift ? \Carbon\Carbon::parse($shift->time_in)->format('h:i') : '?' }}
+                                                        @else
+                                                            <span class="text-muted italic">None</span>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
                                     </div>
+                                @empty
+                                    <div class="col-12 text-center py-3 bg-white rounded-3 border dashed">
+                                        <span class="text-muted small italic">No blueprints assigned to this site.</span>
+                                        <div class="mt-2">
+                                            <a href="{{ route('admin.settings.schedule-groups.create') }}?site_id={{ $site->id }}" class="btn btn-sm btn-primary rounded-pill">Create First Blueprint</a>
+                                        </div>
+                                    </div>
+                                @endforelse
+                                <div class="col-12 text-center mt-3">
+                                    <a href="{{ route('admin.settings.schedule-groups.create') }}?site_id={{ $site->id }}" class="small text-decoration-none">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Another Blueprint for this Site
+                                    </a>
                                 </div>
-                            @endif
+                            </div>
                         </div>
                     </div>
                 </div>

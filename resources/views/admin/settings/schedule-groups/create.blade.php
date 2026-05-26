@@ -30,11 +30,11 @@
                             <div class="p-3 border rounded-1 bg-light" style="max-height: 200px; overflow-y: auto;">
                                 @foreach($sites as $site)
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="site_ids[]" value="{{ $site->id }}" id="site_{{ $site->id }}">
+                                        <input class="form-check-input" type="checkbox" name="site_ids[]" value="{{ $site->id }}" id="site_{{ $site->id }}" {{ request('site_id') == $site->id ? 'checked' : '' }}>
                                         <label class="form-check-label small" for="site_{{ $site->id }}">
                                             {{ $site->name }} 
                                             @if($site->scheduleGroup)
-                                                <span class="text-muted italic">(Currently: {{ $site->scheduleGroup->name }})</span>
+                                                <span class="text-muted italic">(Currently has: {{ $site->scheduleGroup->name }} @if($site->scheduleGroups->count() > 1) + {{ $site->scheduleGroups->count() - 1 }} more @endif)</span>
                                             @endif
                                         </label>
                                     </div>
