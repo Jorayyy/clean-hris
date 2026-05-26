@@ -2,6 +2,10 @@
 
 @section('content')
 <div class="container-fluid py-4">
+    <div class="mb-3">
+        <a href="{{ route('schedules.index') }}" class="btn btn-sm text-muted p-0 mb-3"><i class="bi bi-arrow-left me-1"></i> Back to Hub</a>
+    </div>
+
     <div class="row mb-4">
         <div class="col-12">
             <h4 class="fw-bold mb-0">Configure Account: <span class="text-primary">{{ $site->name }}</span></h4>
