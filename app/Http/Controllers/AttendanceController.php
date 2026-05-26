@@ -109,6 +109,8 @@ class AttendanceController extends Controller
                         return [
                             'time_in' => $log->time_in ? date('h:i A', strtotime($log->time_in)) : '--:--',
                             'time_out' => $log->time_out ? date('h:i A', strtotime($log->time_out)) : '--:--',
+                            'break1_out' => $log->break1_out ? date('h:i A', strtotime($log->break1_out)) : null,
+                            'break1_in' => $log->break1_in ? date('h:i A', strtotime($log->break1_in)) : null,
                         ];
                     })
                 ];

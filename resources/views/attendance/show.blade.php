@@ -286,6 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     const showSchedule = document.getElementById('toggle-schedule').checked;
                     const showAttendance = document.getElementById('toggle-attendance').checked;
+                    const showBreaks = document.getElementById('toggle-breaks').checked;
                     
                     let events = [];
                     const todayStr = new Date().toISOString().split('T')[0];
@@ -309,31 +310,59 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
 
                         // Add Attendance Event
-                        if (showAttendance && dayData.attendance) {
+                        if (dayData.attendance) {
                             const mainLog = dayData.attendance.logs[0];
                             
-                            // IN Event
-                            events.push({
-                                title: `IN: ${mainLog.time_in}`,
-                                start: date,
-                                backgroundColor: '#198754',
-                                borderColor: '#198754',
-                                textColor: '#ffffff',
-                                allDay: true,
-                                extendedProps: { type: 'attendance', ...dayData.attendance }
-                            });
-
-                            // OUT Event (if exists)
-                            if (mainLog.time_out && mainLog.time_out !== '--:--') {
+                            if (showAttendance) {
+                                // IN Event
                                 events.push({
-                                    title: `OUT: ${mainLog.time_out}`,
+                                    title: `IN: ${mainLog.time_in}`,
                                     start: date,
-                                    backgroundColor: '#dc3545',
-                                    borderColor: '#dc3545',
+                                    backgroundColor: '#198754',
+                                    borderColor: '#198754',
                                     textColor: '#ffffff',
                                     allDay: true,
                                     extendedProps: { type: 'attendance', ...dayData.attendance }
                                 });
+
+                                // OUT Event (if exists)
+                                if (mainLog.time_out && mainLog.time_out !== '--:--') {
+                                    events.push({
+                                        title: `OUT: ${mainLog.time_out}`,
+                                        start: date,
+                                        backgroundColor: '#dc3545',
+                                        borderColor: '#dc3545',
+                                        textColor: '#ffffff',
+                                        allDay: true,
+                                        extendedProps: { type: 'attendance', ...dayData.attendance }
+                                    });
+                                }
+                            }
+
+                            // BREAK Events
+                            if (showBreaks) {
+                                if (mainLog.break1_out) {
+                                    events.push({
+                                        title: `LO: ${mainLog.break1_out}`,
+                                        start: date,
+                                        backgroundColor: '#0dcaf0',
+                                        borderColor: '#0dcaf0',
+                                        textColor: '#000000',
+                                        allDay: true,
+                                        extendedProps: { type: 'break', ...dayData.attendance }
+                                    });
+                                }
+                                if (mainLog.break1_in) {
+                                    events.push({
+                                        title: `LI: ${mainLog.break1_in}`,
+                                        start: date,
+                                        backgroundColor: '#0dcaf0',
+                                        borderColor: '#0dcaf0',
+                                        textColor: '#000000',
+                                        allDay: true,
+                                        extendedProps: { type: 'break', ...dayData.attendance }
+                                    });
+                                }
                             }
                         } else if (showAttendance && !dayData.attendance && dayData.schedule && date < todayStr) {
                             // Only show ABSENT for past dates that had a schedule
