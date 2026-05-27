@@ -153,6 +153,10 @@ class DtrController extends Controller
             return back()->with('error', 'Invalid security password. Verification failed.');
         }
 
+        if ($dtr->total_regular_hours <= 0) {
+            return back()->with('error', 'Cannot verify a DTR with zero regular hours. Please check attendance logs first.');
+        }
+
         $dtr->update([
             'status' => 'verified',
             'verified_by' => Auth::id(),
@@ -208,13 +212,20 @@ class DtrController extends Controller
 
         $count = Dtr::whereIn('id', $request->ids)
             ->where('status', 'draft')
+            ->where('total_regular_hours', '>', 0)
             ->update([
                 'status' => 'verified',
                 'verified_by' => Auth::id(),
                 'verified_at' => now(),
             ]);
 
-        return back()->with('success', $count . ' DTR record(s) verified successfully.');
+        $skipped = count($request->ids) - $count;
+        $msg = $count . ' DTR record(s) verified successfully.';
+        if ($skipped > 0) {
+            $msg .= " (" . $skipped . " skipped due to zero hours or invalid status)";
+        }
+
+        return back()->with('success', $msg);
     }
 
     public function batchFinalize(Request $request)

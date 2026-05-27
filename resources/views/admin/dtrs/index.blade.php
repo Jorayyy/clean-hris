@@ -136,7 +136,8 @@
                                     </button>
                                     @endif
                                     @if($dtr->status == 'draft')
-                                    <button type="button" class="btn btn-sm btn-outline-info fw-bold border-2 ms-1" data-bs-toggle="modal" data-bs-target="#verifyDtrModal{{ $dtr->id }}" title="Verify DTR">
+                                    <button type="button" class="btn btn-sm btn-outline-info fw-bold border-2 ms-1" 
+                                        @if($dtr->total_regular_hours <= 0) disabled title="Empty records cannot be verified" @else data-bs-toggle="modal" data-bs-target="#verifyDtrModal{{ $dtr->id }}" @endif>
                                         <i class="bi bi-check2-square"></i> Verify
                                     </button>
                                     @elseif($dtr->status == 'verified')

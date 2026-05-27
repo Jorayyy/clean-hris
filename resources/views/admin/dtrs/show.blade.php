@@ -180,7 +180,8 @@
                 <div class="col-md-6 text-end no-print">
                     <div class="mt-2 text-end">
                         @if($dtr->status == 'draft')
-                            <button type="button" class="btn btn-info btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#verifyDtrModal">
+                            <button type="button" class="btn btn-info btn-sm fw-bold" 
+                                @if($dtr->total_regular_hours <= 0) disabled title="Empty records cannot be verified" @else data-bs-toggle="modal" data-bs-target="#verifyDtrModal" @endif>
                                 <i class="bi bi-shield-check me-1"></i> Verify DTR
                             </button>
                         @elseif($dtr->status == 'verified')
