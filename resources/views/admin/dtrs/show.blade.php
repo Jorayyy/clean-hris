@@ -1,6 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    if (!function_exists('formatDtrMinutes')) {
+        function formatDtrMinutes($totalMinutes) {
+            if ($totalMinutes <= 0) return '0m';
+            
+            $days = floor($totalMinutes / (8 * 60));
+            $remainingMinutes = $totalMinutes % (8 * 60);
+            $hours = floor($remainingMinutes / 60);
+            $minutes = $remainingMinutes % 60;
+            
+            $parts = [];
+            if ($days > 0) $parts[] = $days . 'd';
+            if ($hours > 0) $parts[] = $hours . 'h';
+            if ($minutes > 0 || empty($parts)) $parts[] = $minutes . 'm';
+            
+            return implode(' ', $parts);
+        }
+    }
+@endphp
 <style>
     .dtr-header { background: #003366; color: white; font-size: 0.8rem; }
     .dtr-table th { background: #005a9c; color: white; font-size: 0.75rem; text-transform: uppercase; border: 1px solid #dee2e6; vertical-align: middle; text-align: center; }
@@ -122,7 +141,7 @@
                                 {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('h:i A') : '--:--' }}
                             </td>
                             <td class="{{ ($log && $log->late_minutes > 0) ? 'text-danger fw-bold' : '' }}">
-                                {{ ($log && $log->late_minutes > 0) ? $log->late_minutes : '' }}
+                                {{ ($log && $log->late_minutes > 0) ? formatDtrMinutes($log->late_minutes) : '' }}
                             </td>
                             <td class="small pe-1">
                                 @if($log && $log->break1_out && $log->break1_out !== '00:00:00')
@@ -133,7 +152,8 @@
                                 @endif
                             </td>
                             <td class="{{ ($log && $log->undertime_minutes > 0) ? 'text-warning fw-bold' : '' }}">
-                                {{ ($log && $log->undertime_minutes > 0) ? $log->undertime_minutes : '' }}
+                                {{ ($log && $log->undertime_minutes > 0) ? formatDtrMinutes($log->undertime_minutes) : '' }}
+                            </td>
                             </td>
                             <td class="text-primary fw-bold">{{ $log ? '8.00' : '' }}</td>
                             <td></td>
@@ -166,8 +186,8 @@
                             <td>Totals</td>
                             <td class="fw-bold">{{ $dtr->total_regular_hours }}</td>
                             <td>0.00</td>
-                            <td class="text-danger fw-bold">{{ $dtr->total_late_minutes }}</td>
-                            <td class="text-warning fw-bold">{{ $dtr->total_undertime_minutes }}</td>
+                            <td class="text-danger fw-bold">{{ formatDtrMinutes($dtr->total_late_minutes) }}</td>
+                            <td class="text-warning fw-bold">{{ formatDtrMinutes($dtr->total_undertime_minutes) }}</td>
                         </tr>
                     </table>
                 </div>

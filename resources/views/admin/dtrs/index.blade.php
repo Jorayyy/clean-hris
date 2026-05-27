@@ -1,6 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    if (!function_exists('formatDtrMinutes')) {
+        function formatDtrMinutes($totalMinutes) {
+            if ($totalMinutes <= 0) return '0m';
+            
+            $days = floor($totalMinutes / (8 * 60));
+            $remainingMinutes = $totalMinutes % (8 * 60);
+            $hours = floor($remainingMinutes / 60);
+            $minutes = $remainingMinutes % 60;
+            
+            $parts = [];
+            if ($days > 0) $parts[] = $days . 'd';
+            if ($hours > 0) $parts[] = $hours . 'h';
+            if ($minutes > 0 || empty($parts)) $parts[] = $minutes . 'm';
+            
+            return implode(' ', $parts);
+        }
+    }
+@endphp
 <div class="row align-items-center mb-4">
     <div class="col">
         <h4 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Generate Daily Time Records (DTR)</h4>
@@ -105,10 +124,10 @@
                                 <span class="badge bg-secondary small">ABSENT / NO LOGS</span>
                             @else
                                 @if($dtr->total_late_minutes > 0)
-                                    <span class="text-danger small fw-bold">Late: {{ $dtr->total_late_minutes }}m</span><br/>
+                                    <span class="text-danger small fw-bold">Late: {{ formatDtrMinutes($dtr->total_late_minutes) }}</span><br/>
                                 @endif
                                 @if($dtr->total_undertime_minutes > 0)
-                                    <span class="text-warning small fw-bold">UT: {{ $dtr->total_undertime_minutes }}m</span>
+                                    <span class="text-warning small fw-bold">UT: {{ formatDtrMinutes($dtr->total_undertime_minutes) }}</span>
                                 @endif
                                 @if($dtr->total_late_minutes == 0 && $dtr->total_undertime_minutes == 0)
                                     <span class="text-success small fw-bold"><i class="bi bi-check2-circle"></i> Perfect</span>
