@@ -89,6 +89,16 @@ class DtrController extends Controller
                 ->whereDate('date', '<=', $request->end_date)
                 ->get();
 
+            // Calculate metrics
+            $totalLate = $attendances->sum('late_minutes');
+            $totalUT = $attendances->sum('undertime_minutes');
+            $totalOT = $attendances->sum('overtime_hours');
+            $totalHours = $attendances->sum('total_hours');
+
+            // If there's no attendance at all, we should still account for the "deficit" 
+            // of being absent. Currently, empty attendance results in 0 late/UT.
+            // We'll keep the raw sums but ensure the record is created.
+
             Dtr::updateOrCreate(
                 [
                     'employee_id' => $empId,
@@ -96,10 +106,10 @@ class DtrController extends Controller
                     'end_date' => $request->end_date,
                 ],
                 [
-                    'total_late_minutes' => $attendances->sum('late_minutes'),
-                    'total_undertime_minutes' => $attendances->sum('undertime_minutes'),
-                    'total_overtime_hours' => $attendances->sum('overtime_hours'),
-                    'total_regular_hours' => $attendances->count() * 8,
+                    'total_late_minutes' => $totalLate,
+                    'total_undertime_minutes' => $totalUT,
+                    'total_overtime_hours' => $totalOT,
+                    'total_regular_hours' => $totalHours,
                     'status' => 'draft',
                 ]
             );

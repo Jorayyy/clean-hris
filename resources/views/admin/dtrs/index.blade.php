@@ -101,14 +101,18 @@
                             @endif
                         </td>
                         <td>
-                            @if($dtr->total_late_minutes > 0)
-                                <span class="text-danger small fw-bold">Late: {{ $dtr->total_late_minutes }}m</span><br/>
-                            @endif
-                            @if($dtr->total_undertime_minutes > 0)
-                                <span class="text-warning small fw-bold">UT: {{ $dtr->total_undertime_minutes }}m</span>
-                            @endif
-                            @if($dtr->total_late_minutes == 0 && $dtr->total_undertime_minutes == 0)
-                                <span class="text-success small fw-bold"><i class="bi bi-check2-circle"></i> Perfect</span>
+                            @if($dtr->total_regular_hours == 0)
+                                <span class="badge bg-secondary small">ABSENT / NO LOGS</span>
+                            @else
+                                @if($dtr->total_late_minutes > 0)
+                                    <span class="text-danger small fw-bold">Late: {{ $dtr->total_late_minutes }}m</span><br/>
+                                @endif
+                                @if($dtr->total_undertime_minutes > 0)
+                                    <span class="text-warning small fw-bold">UT: {{ $dtr->total_undertime_minutes }}m</span>
+                                @endif
+                                @if($dtr->total_late_minutes == 0 && $dtr->total_undertime_minutes == 0)
+                                    <span class="text-success small fw-bold"><i class="bi bi-check2-circle"></i> Perfect</span>
+                                @endif
                             @endif
                         </td>
                         <td>
