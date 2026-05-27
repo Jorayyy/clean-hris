@@ -87,7 +87,7 @@
                                 <div class="card-body">
                                     <div class="row g-4">
                                         <div class="col-md-6">
-                                            <label class="form-label small text-muted mb-2">Break 1 (Out - Return)</label>
+                                            <label class="form-label small text-muted mb-2">Lunch Break (Out - Return)</label>
                                             <div class="input-group input-group-sm">
                                                 <input type="time" name="break1_out" class="form-control" value="{{ old('break1_out', $attendance->break1_out ? \Carbon\Carbon::parse($attendance->break1_out)->format('H:i') : '') }}">
                                                 <span class="input-group-text">to</span>
@@ -95,7 +95,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small text-muted mb-2">Break 2 (Out - Return)</label>
+                                            <label class="form-label small text-muted mb-2">2nd Break (Out - Return)</label>
                                             <div class="input-group input-group-sm">
                                                 <input type="time" name="break2_out" class="form-control" value="{{ old('break2_out', $attendance->break2_out ? \Carbon\Carbon::parse($attendance->break2_out)->format('H:i') : '') }}">
                                                 <span class="input-group-text">to</span>

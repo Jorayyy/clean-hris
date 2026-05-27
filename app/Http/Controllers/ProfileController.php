@@ -41,11 +41,16 @@ class ProfileController extends Controller
             'civil_status' => 'nullable|string',
             'religion' => 'nullable|string',
             'place_of_birth' => 'nullable|string',
-            'photo' => 'nullable|image|max:2048'
+            'photo' => 'nullable|image|max:2048',
+            'dtr_password' => 'nullable|string'
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
+        
+        if ($request->filled('dtr_password')) {
+            $user->dtr_password = $request->dtr_password;
+        }
 
         if ($employee) {
             $employee->first_name = $request->first_name;

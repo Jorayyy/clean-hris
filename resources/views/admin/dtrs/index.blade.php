@@ -141,7 +141,7 @@
                                     </button>
                                     @endif
                                     
-                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteDtrModal{{ $dtr->id }}" title="Delete record" {{ $dtr->status === 'finalized' && Auth::user()->role !== 'admin' ? 'disabled' : '' }}>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteDtrModal{{ $dtr->id }}" title="Delete record" {{ $dtr->status === 'finalized' && !Auth::user()->isAdmin() ? 'disabled' : '' }}>
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -415,7 +415,7 @@
                     <p>You are about to delete <strong id="batchDeleteCount">0</strong> selected DTR records.</p>
                     <div class="alert alert-danger small">
                         <i class="bi bi-exclamation-triangle-fill"></i> This action is permanent and cannot be undone. 
-                        @if(Auth::user()->role !== 'admin')
+                        @if(!Auth::user()->isAdmin())
                             <br/><strong>Note:</strong> Finalized records will be skipped.
                         @endif
                     </div>

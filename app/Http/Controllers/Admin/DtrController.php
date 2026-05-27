@@ -258,11 +258,30 @@ class DtrController extends Controller
 
         // Logic check: Non-admins cannot delete finalized records
         $query = Dtr::whereIn('id', $request->ids);
-        if ($user->role !== 'admin') {
+        if (!$user->isAdmin()) {
             $query->where('status', '!=', 'finalized');
         }
 
-        $count = $query->delete();
+        $idsToDelete = $query->pluck('id')->toArray();
+        $count = count($idsToDelete);
+
+        if ($count > 0) {
+            AuditLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'DTR_BATCH_DELETION',
+                'model_type' => Dtr::class,
+                'details' => [
+                    'count' => $count,
+                    'ids' => $idsToDelete,
+                    'reason' => 'Administrative Batch Deletion',
+                    'ip' => $request->ip()
+                ],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+
+            Dtr::whereIn('id', $idsToDelete)->delete();
+        }
 
         return back()->with('success', $count . ' DTR record(s) deleted successfully.');
     }
@@ -311,7 +330,7 @@ class DtrController extends Controller
 
         // Only allow updating non-finalized records OR allow if admin
         $query = Dtr::whereIn('id', $ids);
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::user()->isAdmin()) {
             $query->where('status', '!=', 'finalized');
         }
 
@@ -348,7 +367,7 @@ class DtrController extends Controller
             return back()->with('error', 'Invalid password. Update unauthorized.');
         }
 
-        if ($dtr->status === 'finalized' && $user->role !== 'admin') {
+        if ($dtr->status === 'finalized' && !$user->isAdmin()) {
             return back()->with('error', 'Cannot edit a finalized DTR record.');
         }
 
@@ -409,7 +428,7 @@ class DtrController extends Controller
             return back()->with('error', 'Invalid password. Deletion unauthorized.');
         }
 
-        if ($dtr->status == 'finalized' && $user->role !== 'admin') {
+        if ($dtr->status == 'finalized' && !$user->isAdmin()) {
             return back()->with('error', 'Only top-level admins can delete finalized DTR records.');
         }
 

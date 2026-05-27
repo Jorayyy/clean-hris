@@ -158,7 +158,7 @@
                                     <tr>
                                         <th class="ps-4">Date</th>
                                         <th>Time In</th>
-                                        <th>Breaks (Out|In)</th>
+                                        <th>Breaks</th>
                                         <th>Time Out</th>
                                         <th>Total Hours</th>
                                         <th class="text-end pe-4">Actions</th>
@@ -172,14 +172,29 @@
                                             <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ \Carbon\Carbon::parse($row->time_in)->format('h:i A') }}</span>
                                         </td>
                                         <td>
-                                            @if($row->break1_out || $row->break1_in)
-                                                <div class="small fw-bold text-info">
-                                                    {{ $row->break1_out ? \Carbon\Carbon::parse($row->break1_out)->format('h:i A') : '--:--' }} | 
-                                                    {{ $row->break1_in ? \Carbon\Carbon::parse($row->break1_in)->format('h:i A') : '--:--' }}
-                                                </div>
-                                            @else
-                                                <span class="text-muted small">-- | --</span>
-                                            @endif
+                                            <div class="small">
+                                                @if($row->break1_out || $row->break1_in)
+                                                    <div>
+                                                        <span class="text-muted small">Lunch Break:</span> 
+                                                        <span class="fw-bold text-info">
+                                                            {{ $row->break1_out ? \Carbon\Carbon::parse($row->break1_out)->format('h:i A') : '--:--' }} - 
+                                                            {{ $row->break1_in ? \Carbon\Carbon::parse($row->break1_in)->format('h:i A') : '--:--' }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                                @if($row->break2_out || $row->break2_in)
+                                                    <div>
+                                                        <span class="text-muted small">2nd Break:</span> 
+                                                        <span class="fw-bold text-info">
+                                                            {{ $row->break2_out ? \Carbon\Carbon::parse($row->break2_out)->format('h:i A') : '--:--' }} - 
+                                                            {{ $row->break2_in ? \Carbon\Carbon::parse($row->break2_in)->format('h:i A') : '--:--' }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                                @if(!$row->break1_out && !$row->break1_in && !$row->break2_out && !$row->break2_in)
+                                                    <span class="text-muted small">-- | --</span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td>
                                             <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('h:i A') : '---' }}</span>
