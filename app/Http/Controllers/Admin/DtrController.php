@@ -270,6 +270,7 @@ class DtrController extends Controller
                 'user_id' => Auth::id(),
                 'action' => 'DTR_BATCH_DELETION',
                 'model_type' => Dtr::class,
+                'model_id' => '0',
                 'details' => [
                     'count' => $count,
                     'ids' => $idsToDelete,
