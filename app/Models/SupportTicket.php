@@ -9,6 +9,9 @@ class SupportTicket extends Model
     protected $fillable = [
         'employee_id',
         'type',
+        'correction_date',
+        'correction_time_in',
+        'correction_time_out',
         'subject',
         'description',
         'status',

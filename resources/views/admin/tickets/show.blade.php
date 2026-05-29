@@ -76,6 +76,31 @@
                     <p class="mb-0 text-dark" style="white-space: pre-line;">{{ $ticket->description }}</p>
                 </div>
 
+                @if($ticket->type === 'DTR Correction' && $ticket->correction_date)
+                <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill me-2"></i> Structured DTR Request</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Target Date</small>
+                            <span class="fw-bold text-primary">{{ \Carbon\Carbon::parse($ticket->correction_date)->format('M d, Y') }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Time IN</small>
+                            <span class="fw-bold text-success">{{ \Carbon\Carbon::parse($ticket->correction_time_in)->format('M d, Y H:i') }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Time OUT</small>
+                            <span class="fw-bold text-danger">{{ \Carbon\Carbon::parse($ticket->correction_time_out)->format('M d, Y H:i') }}</span>
+                        </div>
+                    </div>
+                    @if($ticket->status !== 'resolved')
+                    <div class="mt-3 small text-muted font-italic">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Marking this as <strong>Resolved</strong> will automatically update the employee's attendance record for this date.
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <h5 class="fw-bold mb-3">Post a Reply / Change Status</h5>
                 <form action="{{ route('admin.tickets.update', $ticket->id) }}" method="POST">
                     @csrf

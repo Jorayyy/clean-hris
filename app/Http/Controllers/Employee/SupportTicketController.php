@@ -32,17 +32,20 @@ class SupportTicketController extends Controller
     {
         // Custom logic for TK Complaint or standard ticket
         if ($request->has('covered_date')) {
-            $time_in = $request->time_in_hh . ':' . $request->time_in_mm;
-            $time_out = $request->time_out_hh . ':' . $request->time_out_mm;
+            $time_in_str = $request->time_in_date . ' ' . $request->time_in_hh . ':' . $request->time_in_mm . ':00';
+            $time_out_str = $request->time_out_date . ' ' . $request->time_out_hh . ':' . $request->time_out_mm . ':00';
             
             $extended_desc = "Covered Date: " . $request->covered_date . "\n" .
-                             "Time IN: " . $time_in . " (" . $request->time_in_date . ")\n" .
-                             "Time OUT: " . $time_out . " (" . $request->time_out_date . ")\n" .
+                             "Proposed Time IN: " . $request->time_in_hh . ':' . $request->time_in_mm . " (" . $request->time_in_date . ")\n" .
+                             "Proposed Time OUT: " . $request->time_out_hh . ':' . $request->time_out_mm . " (" . $request->time_out_date . ")\n" .
                              "Reason: " . $request->description;
                              
             SupportTicket::create([
                 'employee_id' => Auth::user()->employee_id,
                 'type' => 'DTR Correction',
+                'correction_date' => $request->covered_date,
+                'correction_time_in' => $time_in_str,
+                'correction_time_out' => $time_out_str,
                 'subject' => 'TK Complaint - ' . $request->covered_date,
                 'description' => $extended_desc,
                 'priority' => 'normal',
