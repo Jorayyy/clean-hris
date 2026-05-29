@@ -19,14 +19,14 @@
 @endphp
 <style>
     .dtr-table th { 
-        background: #002b5c !important; 
+        background: #3498db !important; 
         color: white !important; 
         font-size: 11px; 
         font-weight: bold; 
         border: 1px solid #ddd; 
         vertical-align: middle; 
         text-align: center; 
-        padding: 4px;
+        padding: 6px !important;
         -webkit-print-color-adjust: exact;
     }
     .dtr-table td { 
@@ -36,11 +36,11 @@
         padding: 4px; 
         text-align: center;
     }
-    .bg-shift { background-color: #ffb6c1 !important; } /* Soft Pink */
-    .bg-actual { background-color: #90ee90 !important; } /* Soft Green */
-    .text-absent { color: red; font-weight: bold; }
-    .bg-dtr-label { background: #002b5c !important; color: white !important; font-weight: bold; width: 12%; border: 1px solid #ddd; }
-    .bg-dtr-value { background: #ffffff; width: 21%; border: 1px solid #ddd; }
+    .bg-shift { background-color: #ffe4e1 !important; } /* Very Soft Pink */
+    .bg-actual { background-color: #e0f2f1 !important; } /* Very Soft Teal/Green */
+    .text-absent { color: #e74c3c; font-weight: bold; font-size: 10px; }
+    .bg-dtr-label { background: #3498db !important; color: white !important; font-weight: bold; width: 14%; border: 1px solid #ddd; font-size: 11px; }
+    .bg-dtr-value { background: #ffffff; width: 19.33%; border: 1px solid #ddd; font-size: 11px; }
     
     @media print {
         @page { size: landscape; margin: 0.5cm; }
@@ -48,8 +48,6 @@
         .card { box-shadow: none !important; border: none !important; }
         body { font-size: 9pt; }
         .container-fluid { padding: 0 !important; }
-        .bg-shift { -webkit-print-color-adjust: exact; background-color: #ffb6c1 !important; }
-        .bg-actual { -webkit-print-color-adjust: exact; background-color: #90ee90 !important; }
     }
 </style>
 
@@ -88,14 +86,8 @@
             <tr>
                 <td class="bg-dtr-label">Name</td>
                 <td class="bg-dtr-value fw-bold">{{ $dtr->employee->full_name }}</td>
-                <td colspan="2"></td>
-                <td class="bg-dtr-label">Pay Type</td>
-                <td class="bg-dtr-value">WEEKLY</td>
-            </tr>
-            <tr>
                 <td class="bg-dtr-label">Position</td>
                 <td class="bg-dtr-value">{{ $dtr->employee->position }}</td>
-                <td colspan="2"></td>
                 <td class="bg-dtr-label">Location</td>
                 <td class="bg-dtr-value">MAIN OFFICE</td>
             </tr>
@@ -107,26 +99,30 @@
                 <thead>
                     <tr>
                         <th rowspan="2" style="width: 50px;">Date</th>
-                        <th rowspan="2">Day</th>
-                        <th rowspan="2" class="bg-danger text-white">Shift Time<br><small>IN | OUT</small></th>
-                        <th rowspan="2" class="bg-success text-white">Actual Time<br><small>IN | OUT</small></th>
+                        <th rowspan="2" style="width: 50px;">Day</th>
+                        <th colspan="2">Shift Time</th>
+                        <th colspan="2">Actual Time</th>
                         <th colspan="4">No. of Hours</th>
                         <th colspan="5">Overtime</th>
                         <th colspan="3">Filed Forms</th>
                     </tr>
                     <tr>
-                        <th>Late</th>
-                        <th>Over<br>Break</th>
-                        <th>UT</th>
-                        <th>Reg</th>
-                        <th>RD</th>
-                        <th>Holiday</th>
-                        <th>RD<br>Hol</th>
-                        <th>ND</th>
-                        <th>ATRO</th>
-                        <th>OB</th>
-                        <th>Leave</th>
-                        <th>UT</th>
+                        <th class="bg-shift text-dark" style="width: 50px;">IN</th>
+                        <th class="bg-shift text-dark" style="width: 50px;">OUT</th>
+                        <th class="bg-actual text-dark" style="width: 50px;">IN</th>
+                        <th class="bg-actual text-dark" style="width: 50px;">OUT</th>
+                        <th style="width: 60px;">Late</th>
+                        <th style="width: 60px;">Break</th>
+                        <th style="width: 60px;">UT</th>
+                        <th style="width: 60px;">Reg</th>
+                        <th style="width: 60px;">RD</th>
+                        <th style="width: 60px;">Hol</th>
+                        <th style="width: 60px;">RDH</th>
+                        <th style="width: 60px;">ND</th>
+                        <th style="width: 60px;">OT</th>
+                        <th style="width: 60px;">OB</th>
+                        <th style="width: 60px;">LV</th>
+                        <th style="width: 60px;">UT</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,45 +137,53 @@
                                 return $aDate == $dateStr;
                             });
                             $sched = $dtr->employee->getScheduleForDate($dateStr);
+                            $isAbsent = (!$log && $sched && !$sched->is_rest_day);
+                            $isRestDay = ($sched && $sched->is_rest_day) || (!$sched);
                         @endphp
                         <tr>
                             <td class="fw-bold">{{ $date->format('m-d') }}</td>
                             <td>{{ $date->format('D') }}</td>
-                            <td class="bg-light text-danger">
-                                @if($sched && $sched->time_in)
-                                    {{ \Carbon\Carbon::parse($sched->time_in)->format('H:i') }} - 
-                                    {{ \Carbon\Carbon::parse($sched->time_out)->format('H:i') }}
-                                @else
-                                    <span class="text-muted small">no schedule</span>
-                                @endif
+                            
+                            <!-- SHIFT TIME -->
+                            <td class="bg-shift">
+                                {{ ($sched && $sched->time_in) ? \Carbon\Carbon::parse($sched->time_in)->format('H:i') : '-' }}
                             </td>
-                            <td class="bg-light text-success fw-bold">
-                                {{ ($log && $log->time_in && $log->time_in !== '00:00:00') ? \Carbon\Carbon::parse($log->time_in)->format('H:i') : '--:--' }} - 
-                                {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('H:i') : '--:--' }}
+                            <td class="bg-shift">
+                                {{ ($sched && $sched->time_out) ? \Carbon\Carbon::parse($sched->time_out)->format('H:i') : '-' }}
                             </td>
+                            
+                            <!-- ACTUAL TIME -->
+                            <td class="bg-actual">
+                                {{ ($log && $log->time_in && $log->time_in !== '00:00:00') ? \Carbon\Carbon::parse($log->time_in)->format('H:i') : '-' }}
+                            </td>
+                            <td class="bg-actual">
+                                {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('H:i') : '-' }}
+                            </td>
+
+                            <!-- NO OF HOURS -->
                             <td class="{{ ($log && $log->late_minutes > 0) ? 'text-danger fw-bold' : '' }}">
-                                {{ ($log && $log->late_minutes > 0) ? formatDtrMinutes($log->late_minutes) : '' }}
+                                {{ ($log && $log->late_minutes > 0) ? formatDtrMinutes($log->late_minutes) : '-' }}
                             </td>
-                            <td class="small pe-1">
-                                @if($log && $log->break1_out && $log->break1_out !== '00:00:00')
-                                    <span class="d-block text-info fw-bold" title="Lunch Out">LO: {{ \Carbon\Carbon::parse($log->break1_out)->format('H:i') }}</span>
-                                @endif
-                                @if($log && $log->break1_in && $log->break1_in !== '00:00:00')
-                                    <span class="d-block text-info fw-bold" title="Lunch In">LI: {{ \Carbon\Carbon::parse($log->break1_in)->format('H:i') }}</span>
-                                @endif
-                            </td>
+                            <td>-</td>
                             <td class="{{ ($log && $log->undertime_minutes > 0) ? 'text-warning fw-bold' : '' }}">
-                                {{ ($log && $log->undertime_minutes > 0) ? formatDtrMinutes($log->undertime_minutes) : '' }}
+                                {{ ($log && $log->undertime_minutes > 0) ? formatDtrMinutes($log->undertime_minutes) : '-' }}
                             </td>
-                            <td class="text-primary fw-bold">{{ $log ? number_format($log->total_hours, 2) : '' }}</td>
-                            <td>{{ ($log && $log->overtime_hours > 0) ? number_format($log->overtime_hours, 2) : '' }}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td class="fw-bold">
+                                @if($isAbsent) <span class="text-absent">ABSENT</span> 
+                                @else {{ ($log && $log->total_hours > 0) ? number_format($log->total_hours, 2) : '-' }} @endif
+                            </td>
+
+                            <!-- OVERTIME -->
+                            <td>{{ ($log && $log->overtime_hours > 0 && $isRestDay) ? number_format($log->overtime_hours, 2) : '-' }}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>{{ ($log && $log->overtime_hours > 0 && !$isRestDay) ? number_format($log->overtime_hours, 2) : '-' }}</td>
+
+                            <!-- FILED FORMS -->
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
                         </tr>
                     @endforeach
                 </tbody>
