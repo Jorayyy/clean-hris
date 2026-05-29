@@ -95,8 +95,8 @@
                         <th rowspan="2">Day</th>
                         <th rowspan="2" class="bg-danger text-white">Shift Time<br><small>IN | OUT</small></th>
                         <th rowspan="2" class="bg-success text-white">Actual Time<br><small>IN | OUT</small></th>
-                        <th colspan="3">No. of Hours</th>
-                        <th colspan="6">Overtime</th>
+                        <th colspan="4">No. of Hours</th>
+                        <th colspan="5">Overtime</th>
                         <th colspan="3">Filed Forms</th>
                     </tr>
                     <tr>
