@@ -89,7 +89,21 @@ class DtrController extends Controller
                 ->whereDate('date', '<=', $request->end_date)
                 ->get();
 
-            // Calculate metrics
+            // RECALCULATE STATS to ensure they are up to date with current schedule logic
+            $payrollService = app(\App\Services\PayrollService::class);
+            foreach ($attendances as $attendance) {
+                if ($attendance->time_in && $attendance->time_in !== '00:00:00') {
+                    $stats = $payrollService->calculateAttendanceStats(
+                        $attendance->time_in,
+                        ($attendance->time_out && $attendance->time_out !== '00:00:00') ? $attendance->time_out : null,
+                        $empId,
+                        $attendance->date
+                    );
+                    $attendance->update($stats);
+                }
+            }
+
+            // Calculate metrics after recalculation
             $totalLate = $attendances->sum('late_minutes');
             $totalUT = $attendances->sum('undertime_minutes');
             $totalOT = $attendances->sum('overtime_hours');

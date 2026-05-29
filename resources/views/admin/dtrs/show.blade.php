@@ -6,13 +6,10 @@
         function formatDtrMinutes($totalMinutes) {
             if ($totalMinutes <= 0) return '0m';
             
-            $days = floor($totalMinutes / (8 * 60));
-            $remainingMinutes = $totalMinutes % (8 * 60);
-            $hours = floor($remainingMinutes / 60);
-            $minutes = $remainingMinutes % 60;
+            $hours = floor($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
             
             $parts = [];
-            if ($days > 0) $parts[] = $days . 'd';
             if ($hours > 0) $parts[] = $hours . 'h';
             if ($minutes > 0 || empty($parts)) $parts[] = $minutes . 'm';
             
@@ -128,35 +125,39 @@
                                 $aDate = is_string($a->date) ? $a->date : $a->date->format('Y-m-d');
                                 return $aDate == $dateStr;
                             });
+                            $sched = $dtr->employee->getScheduleForDate($dateStr);
                         @endphp
                         <tr>
                             <td class="fw-bold">{{ $date->format('m-d') }}</td>
                             <td>{{ $date->format('D') }}</td>
                             <td class="bg-light text-danger">
-                                {{ ($log && $log->employee && $log->employee->active_schedule) ? \Carbon\Carbon::parse($log->employee->active_schedule->time_in)->format('h:i A') : '08:00 AM' }} | 
-                                {{ ($log && $log->employee && $log->employee->active_schedule) ? \Carbon\Carbon::parse($log->employee->active_schedule->time_out)->format('h:i A') : '05:00 PM' }}
+                                @if($sched && $sched->time_in)
+                                    {{ \Carbon\Carbon::parse($sched->time_in)->format('G:i') }} - 
+                                    {{ \Carbon\Carbon::parse($sched->time_out)->format('G:i') }}
+                                @else
+                                    <span class="text-muted small">no schedule</span>
+                                @endif
                             </td>
                             <td class="bg-light text-success fw-bold">
-                                {{ ($log && $log->time_in && $log->time_in !== '00:00:00') ? \Carbon\Carbon::parse($log->time_in)->format('h:i A') : '--:--' }} | 
-                                {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('h:i A') : '--:--' }}
+                                {{ ($log && $log->time_in && $log->time_in !== '00:00:00') ? \Carbon\Carbon::parse($log->time_in)->format('G:i') : '--:--' }} - 
+                                {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('G:i') : '--:--' }}
                             </td>
                             <td class="{{ ($log && $log->late_minutes > 0) ? 'text-danger fw-bold' : '' }}">
                                 {{ ($log && $log->late_minutes > 0) ? formatDtrMinutes($log->late_minutes) : '' }}
                             </td>
                             <td class="small pe-1">
                                 @if($log && $log->break1_out && $log->break1_out !== '00:00:00')
-                                    <span class="d-block text-info fw-bold" title="Lunch Out">LO: {{ \Carbon\Carbon::parse($log->break1_out)->format('h:i A') }}</span>
+                                    <span class="d-block text-info fw-bold" title="Lunch Out">LO: {{ \Carbon\Carbon::parse($log->break1_out)->format('G:i') }}</span>
                                 @endif
                                 @if($log && $log->break1_in && $log->break1_in !== '00:00:00')
-                                    <span class="d-block text-info fw-bold" title="Lunch In">LI: {{ \Carbon\Carbon::parse($log->break1_in)->format('h:i A') }}</span>
+                                    <span class="d-block text-info fw-bold" title="Lunch In">LI: {{ \Carbon\Carbon::parse($log->break1_in)->format('G:i') }}</span>
                                 @endif
                             </td>
                             <td class="{{ ($log && $log->undertime_minutes > 0) ? 'text-warning fw-bold' : '' }}">
                                 {{ ($log && $log->undertime_minutes > 0) ? formatDtrMinutes($log->undertime_minutes) : '' }}
                             </td>
-                            </td>
-                            <td class="text-primary fw-bold">{{ $log ? '8.00' : '' }}</td>
-                            <td></td>
+                            <td class="text-primary fw-bold">{{ $log ? number_format($log->total_hours, 2) : '' }}</td>
+                            <td>{{ ($log && $log->overtime_hours > 0) ? number_format($log->overtime_hours, 2) : '' }}</td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -184,8 +185,8 @@
                         </tr>
                         <tr>
                             <td>Totals</td>
-                            <td class="fw-bold">{{ $dtr->total_regular_hours }}</td>
-                            <td>0.00</td>
+                            <td class="fw-bold">{{ number_format($dtr->total_regular_hours, 2) }}</td>
+                            <td>{{ number_format($dtr->total_overtime_hours, 2) }}</td>
                             <td class="text-danger fw-bold">{{ formatDtrMinutes($dtr->total_late_minutes) }}</td>
                             <td class="text-warning fw-bold">{{ formatDtrMinutes($dtr->total_undertime_minutes) }}</td>
                         </tr>

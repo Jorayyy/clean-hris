@@ -141,167 +141,113 @@ class PayrollService
 
     public function calculateAttendanceStats($timeIn, $timeOut, $employeeId = null, $date = null)
     {
-        $in = Carbon::parse($timeIn);
-        $out = Carbon::parse($timeOut);
-
         // Treat 00:00:00 as no punch/invalid for calculations
         $isNoPunchIn = $timeIn === '00:00:00' || !$timeIn;
         $isNoPunchOut = $timeOut === '00:00:00' || !$timeOut;
+
+        $dateStr = $date ?? Carbon::now()->toDateString();
+        $in = Carbon::parse($dateStr . ' ' . $timeIn);
+        $out = $isNoPunchOut ? null : Carbon::parse($dateStr . ' ' . $timeOut);
 
         if ($isNoPunchIn) {
             return [
                 'total_hours' => 0,
                 'late_minutes' => 0,
                 'undertime_minutes' => 0,
+                'overtime_hours' => 0,
             ];
         }
 
-        // Ensure total hours is positive (handles out > in correctly)
-        $totalHours = $isNoPunchOut ? 0 : ($out->diffInMinutes($in) / 60);
-        
+        $dayName = Carbon::parse($dateStr)->format('l');
+
         // Default fallbacks
         $scheduleInTime = '08:00:00';
         $scheduleOutTime = '17:00:00';
+        $isRestDay = false;
 
-        $dateStr = $date ?? $in->toDateString();
-        $dayName = Carbon::parse($dateStr)->format('l');
+        $isNoSchedule = false;
 
         // Try to get actual schedule if employee provided
         if ($employeeId) {
-            $employee = \App\Models\Employee::with(['scheduleGroup', 'site.scheduleGroup'])->find($employeeId);
-            
-            // PRIORITY 1: Check Direct Employee-based Schedule Group
-            if ($employee->schedule_group_id && $employee->scheduleGroup) {
-                $dayConfig = $employee->scheduleGroup->schedule_config[$dayName] ?? null;
-                if ($dayConfig) {
-                    if (isset($dayConfig['is_rest_day']) || $dayConfig === 'OFF') {
-                        return [
-                            'total_hours' => abs(round($totalHours, 2)),
-                            'late_minutes' => 0,
-                            'undertime_minutes' => 0,
-                            'overtime_hours' => round($totalHours, 2),
-                        ];
-                    }
-
-                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
-                    $siteSchedule = \App\Models\Schedule::find($schedId);
-                    
-                    if ($siteSchedule) {
-                        $scheduleInTime = $siteSchedule->time_in;
-                        $scheduleOutTime = $siteSchedule->time_out;
-                        
-                        // Set flag to skip site-based check
-                        goto schedule_found;
-                    }
+            $employee = \App\Models\Employee::find($employeeId);
+            if ($employee) {
+                $sched = $employee->getScheduleForDate($dateStr);
+                if ($sched) {
+                    $scheduleInTime = $sched->time_in;
+                    $scheduleOutTime = $sched->time_out;
+                    if ($sched->is_rest_day) $isRestDay = true;
+                    goto schedule_found;
+                } else {
+                    $isNoSchedule = true;
                 }
             }
+        }
 
-            // PRIORITY 2: Check Site/Account-based Fixed Schedule
-            if ($employee->site_id) {
-                $site = $employee->site;
-                
-                // A: Use Group Schedule if assigned
-                if ($site && $site->schedule_group_id && $site->scheduleGroup) {
-                    $dayConfig = $site->scheduleGroup->schedule_config[$dayName] ?? null;
-                    if ($dayConfig) {
-                        if (isset($dayConfig['is_rest_day']) || $dayConfig === 'OFF') {
-                            return [
-                                'total_hours' => abs(round($totalHours, 2)),
-                                'late_minutes' => 0,
-                                'undertime_minutes' => 0,
-                                'overtime_hours' => round($totalHours, 2),
-                            ];
-                        }
+        schedule_found:
 
-                        $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
-                        $siteSchedule = \App\Models\Schedule::find($schedId);
-                        
-                        if ($siteSchedule) {
-                            $scheduleInTime = $siteSchedule->time_in;
-                            $scheduleOutTime = $siteSchedule->time_out;
-                        }
-                    }
-                } 
-                // B: Fallback to Manual Site Schedule Plotting
-                elseif ($site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
-                    $config = $site->schedule_config[$dayName];
-                    if ($config === 'OFF') {
-                        return [
-                            'total_hours' => abs(round($totalHours, 2)),
-                            'late_minutes' => 0,
-                            'undertime_minutes' => 0,
-                            'overtime_hours' => round($totalHours, 2), // All hours are OT on rest day
-                        ];
-                    }
-                    $siteSchedule = \App\Models\Schedule::find($config);
-                    if ($siteSchedule) {
-                        $scheduleInTime = $siteSchedule->time_in;
-                        $scheduleOutTime = $siteSchedule->time_out;
+        // Handle actual punches crossing midnight
+        if ($out && $out->lessThan($in)) {
+            $out->addDay();
+        }
 
-                        // Special Policy: 1 Hour Schedule Only
-                        if ($site->is_special_1_hour) {
-                            $renderedMinutes = $out->diffInMinutes($in);
-                            if ($renderedMinutes < 60) {
-                                return [ 'total_hours' => 0, 'late_minutes' => 0, 'undertime_minutes' => 480, 'overtime_hours' => 0 ]; // Marked as absent/undertime
-                            }
-                            return [ 'total_hours' => 8, 'late_minutes' => 0, 'undertime_minutes' => 0, 'overtime_hours' => 0 ];
-                        }
-
-                        // Special Policy: Present Policy (Just need In/Out)
-                        if ($site->is_present_policy) {
-                            return [ 'total_hours' => 8, 'late_minutes' => 0, 'undertime_minutes' => 0, 'overtime_hours' => 0 ];
-                        }
-                    }
-                }
-            }
-            
-            schedule_found:
-
-            // PRIORITY 2: Fallback to existing manual/group schedule logic
-            $schedule = $employee?->active_schedule;
-            if ($schedule) {
-                // If specific date provided, check if scheduled for that day
-                if (!$dayName || (is_array($schedule->days) && in_array($dayName, $schedule->days))) {
-                    $scheduleInTime = $schedule->time_in;
-                    $scheduleOutTime = $schedule->time_out;
-                }
-            }
+        if ($isRestDay || $isNoSchedule) {
+            $totalStayMinutes = !$out ? 0 : $out->diffInMinutes($in, true);
+            return [
+                'total_hours' => 0, 
+                'late_minutes' => 0,
+                'undertime_minutes' => 0,
+                'overtime_hours' => round($totalStayMinutes / 60, 2),
+            ];
         }
 
         $scheduleIn = Carbon::parse($dateStr . ' ' . $scheduleInTime);
         $scheduleOut = Carbon::parse($dateStr . ' ' . $scheduleOutTime);
 
-        // Re-parse in/out with the correct date to ensure comparisons work
-        $actualIn = Carbon::parse($dateStr . ' ' . $timeIn);
-        $actualOut = $isNoPunchOut ? null : Carbon::parse($dateStr . ' ' . $timeOut);
-
-        // Handle Night Shift: If schedule OUT is before schedule IN (e.g., 20:00 to 06:00)
+        // Handle Night Shift schedule
         if ($scheduleOut->lessThan($scheduleIn)) {
             $scheduleOut->addDay();
         }
 
-        // Handle actual out if it crossed midnight
-        if ($actualOut && $actualOut->lessThan($actualIn)) {
-            $actualOut->addDay();
-        }
-
         // LATE CALCULATION
-        if ($actualIn->greaterThan($scheduleIn)) {
-             $lateMinutes = $scheduleIn->diffInMinutes($actualIn);
-             if ($lateMinutes > 720) $lateMinutes = 0;
-        } else {
-             $lateMinutes = 0;
+        $lateMinutes = 0;
+        if ($in->greaterThan($scheduleIn)) {
+             $lateMinutes = $scheduleIn->diffInMinutes($in, true);
+             // Cap late minutes to 8 hours (480 mins) to prevent extreme values
+             if ($lateMinutes > 480) $lateMinutes = 480;
         }
         
         // UNDERTIME CALCULATION
-        $undertimeMinutes = ($actualOut && $actualOut->lessThan($scheduleOut)) ? $actualOut->diffInMinutes($scheduleOut) : 0;
+        $undertimeMinutes = 0;
+        if ($out && $out->lessThan($scheduleOut)) {
+             $undertimeMinutes = $out->diffInMinutes($scheduleOut, true);
+        }
 
         // OVERTIME CALCULATION (Minutes beyond schedule out)
-        $overtimeMinutes = ($actualOut && $actualOut->greaterThan($scheduleOut)) ? $scheduleOut->diffInMinutes($actualOut) : 0;
+        $overtimeMinutes = 0;
+        if ($out && $out->greaterThan($scheduleOut)) {
+             $overtimeMinutes = $scheduleOut->diffInMinutes($out, true);
+        }
+
+        // TOTAL REGULAR HOURS WORKED (Based on schedule duration)
+        $scheduleDuration = $scheduleOut->diffInMinutes($scheduleIn, true);
+        // Deduct 1 hour lunch if shift is at least 5 hours
+        $mealBreak = $scheduleDuration >= 300 ? 60 : 0;
+        $expectedWorkMinutes = $scheduleDuration - $mealBreak;
+
+        // Cap late and undertime to the schedule duration to prevent inflated values
+        // when actual punches are on a completely different day/shift
+        if ($lateMinutes > $scheduleDuration) $lateMinutes = $scheduleDuration;
+        if ($undertimeMinutes > $scheduleDuration) $undertimeMinutes = $scheduleDuration;
+
+        $workDurationMinutes = $expectedWorkMinutes - $lateMinutes - $undertimeMinutes;
+        if ($workDurationMinutes < 0) $workDurationMinutes = 0;
+        
+        $totalHours = round($workDurationMinutes / 60, 2);
+        
         $overtimeHours = round($overtimeMinutes / 60, 2);
 
         return [
-            'total_hours' => abs(round($totalHours, 2)),
+            'total_hours' => $totalHours,
             'late_minutes' => $lateMinutes,
             'undertime_minutes' => $undertimeMinutes,
             'overtime_hours' => $overtimeHours,
