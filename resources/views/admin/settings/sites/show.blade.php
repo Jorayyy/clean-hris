@@ -101,7 +101,7 @@
                             <option value="">Select Schedule</option>
                             @foreach($templates as $sched)
                                 <option value="{{ $sched->id }}" {{ (isset($site->schedule_config[$day]) && $site->schedule_config[$day] == $sched->id) ? 'selected' : '' }}>
-                                    {{ $sched->name }} ({{ \Carbon\Carbon::parse($sched->time_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($sched->time_out)->format('h:i A') }})
+                                    {{ $sched->name }} ({{ \Carbon\Carbon::parse($sched->time_in)->format('H:i') }} - {{ \Carbon\Carbon::parse($sched->time_out)->format('H:i') }})
                                 </option>
                             @endforeach
                             <option value="OFF" {{ (isset($site->schedule_config[$day]) && $site->schedule_config[$day] == 'OFF') ? 'selected' : '' }}>REST DAY / OFF</option>

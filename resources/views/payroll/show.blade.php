@@ -13,9 +13,9 @@
     </div>
     <div class="card-body">
         <div class="row text-center border-bottom pb-4 mb-4">
-            <div class="col-md-3"><strong>Start Date:</strong> {{ $payroll->start_date }}</div>
-            <div class="col-md-3"><strong>End Date:</strong> {{ $payroll->end_date }}</div>
-            <div class="col-md-3"><strong>Pay Date:</strong> {{ $payroll->pay_date }}</div>
+            <div class="col-md-3"><strong>Start Date:</strong> {{ \Carbon\Carbon::parse($payroll->start_date)->format('M d, Y') }}</div>
+            <div class="col-md-3"><strong>End Date:</strong> {{ \Carbon\Carbon::parse($payroll->end_date)->format('M d, Y') }}</div>
+            <div class="col-md-3"><strong>Pay Date:</strong> {{ \Carbon\Carbon::parse($payroll->pay_date)->format('M d, Y') }}</div>
             <div class="col-md-3">
                 <strong>Target:</strong> 
                 @if($payroll->payrollGroup)
@@ -31,15 +31,16 @@
         @if($payroll->status == 'draft' || $payroll->status == 'processing' || $payroll->status == 'processed')
         @php
             if ($payroll->payrollGroup) {
-                // Get employees in the group that have finalized DTRs for this period
-                $target_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)
+                // Total active employees in this group
+                $total_group_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)
                     ->where('status', 'active')
                     ->count();
             } else {
-                $target_employees = 1;
+                $total_group_employees = 1;
             }
-            // A batch is only "ready" if there's actually someone to pay AND we've created items for them
-            $is_complete = ($target_employees > 0) && ($item_count >= $target_employees);
+            
+            // We consider it "Ready to Finalize" if we have items AND no more finalized DTRs waiting to be processed
+            $can_approve = ($item_count > 0) && ($finalized_dtr_count == 0);
         @endphp
 
         <div class="row mb-4">
@@ -50,38 +51,66 @@
                             <div class="col-md-4 bg-primary bg-opacity-10 d-flex flex-column align-items-center justify-content-center p-4">
                                 <div class="mb-2">
                                     <span class="display-4 fw-bold text-primary">{{ $item_count }}</span>
-                                    <span class="fs-4 text-muted">/ {{ $target_employees }}</span>
+                                    <span class="fs-4 text-muted">/ {{ $total_group_employees }}</span>
                                 </div>
                                 <div class="text-uppercase small fw-bold text-primary opacity-75">Payslips Created</div>
                                 
-                                @if($is_complete)
+                                @if($can_approve && $item_count == $total_group_employees)
                                     <div class="mt-3 badge bg-success rounded-pill px-3 py-2 shadow-sm">
-                                        <i class="bi bi-check-circle-fill me-1"></i> BATCH COMPLETE
+                                        <i class="bi bi-check-circle-fill me-1"></i> GROUP COMPLETE
+                                    </div>
+                                @elseif($can_approve)
+                                    <div class="mt-3 badge bg-info rounded-pill px-3 py-2 shadow-sm text-dark">
+                                        <i class="bi bi-info-circle-fill me-1"></i> PARTIAL BATCH
                                     </div>
                                 @else
                                     <div class="mt-3 badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm">
-                                        <i class="bi bi-hourglass-split me-1"></i> REMAINING: {{ $target_employees - $item_count }}
+                                        <i class="bi bi-hourglass-split me-1"></i> PENDING DTRs: {{ $finalized_dtr_count }}
                                     </div>
                                 @endif
                             </div>
                             <div class="col-md-8 p-4">
-                                @if($is_complete)
+                                @if($finalized_dtr_count > 0)
+                                    <h5 class="fw-bold mb-2"><i class="bi bi-gear-fill text-info me-2"></i>Batch Ready for Processing</h5>
+                                    <p class="text-muted">
+                                        The system has detected <strong>{{ $finalized_dtr_count }}</strong> additional finalized DTR(s) for this period. 
+                                        Process them to include them in this payroll.
+                                    </p>
+                                    <div class="d-flex gap-2 mt-4">
+                                        <form action="{{ route('payroll.process-batch', $payroll->id) }}" method="POST" class="flex-grow-1">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm fw-bold">
+                                                <i class="bi bi-play-circle-fill me-2"></i> Process {{ $finalized_dtr_count }} Payslips
+                                            </button>
+                                        </form>
+                                        <a href="{{ route('payroll-items.create', ['payroll_id' => $payroll->id]) }}" class="btn btn-outline-dark btn-lg px-4 rounded-pill shadow-sm fw-bold">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Manual
+                                        </a>
+                                    </div>
+                                @elseif($item_count > 0)
                                     <h5 class="fw-bold mb-2"><i class="bi bi-patch-check-fill text-success me-2"></i>Batch Ready for Finalization</h5>
-                                    <p class="text-muted">All expected employees have their payslips prepared. You can now finalize this batch to lock the data and approve it for disbursement.</p>
+                                    <p class="text-muted">
+                                        @if($item_count < $total_group_employees)
+                                            <strong>Note:</strong> Some employees (like Jane Smith) were skipped because they have no finalized DTRs. 
+                                            You can still finalize the batch for those already processed.
+                                        @else
+                                            All expected employees have their payslips prepared.
+                                        @endif
+                                    </p>
                                     <div class="d-flex gap-2 mt-4">
                                         <form action="{{ route('payroll.approve', $payroll->id) }}" method="POST" class="w-100">
                                             @csrf
-                                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm fw-bold">
-                                                <i class="bi bi-check-all me-2"></i> Finalize and Approve Batch
+                                            <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill shadow-sm fw-bold">
+                                                <i class="bi bi-check-all me-2"></i> Finalize and Approve ({{ $item_count }})
                                             </button>
                                         </form>
                                     </div>
                                 @else
-                                    <h5 class="fw-bold mb-2"><i class="bi bi-pencil-square text-info me-2"></i>Manual Entry in Progress</h5>
-                                    <p class="text-muted">Please continue adding payslips for the remaining employees in this group. The finalization option will become available once all payslips are added.</p>
+                                    <h5 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle text-warning me-2"></i>No Items to Process</h5>
+                                    <p class="text-muted">There are no finalized DTRs for this period yet. Please verify and finalize the employee DTRs first before processing payroll.</p>
                                     <div class="d-flex gap-2 mt-4">
-                                        <a href="{{ route('payroll-items.create', ['payroll_id' => $payroll->id]) }}" class="btn btn-dark btn-lg w-100 rounded-pill shadow-sm fw-bold">
-                                            <i class="bi bi-plus-circle me-2"></i> Add Individual Payslip
+                                        <a href="{{ route('admin.dtrs.index') }}" class="btn btn-dark btn-lg w-100 rounded-pill shadow-sm fw-bold">
+                                            <i class="bi bi-arrow-right-circle me-2"></i> Go to DTR Logs
                                         </a>
                                     </div>
                                 @endif

@@ -55,6 +55,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('attendance/{employee}/monthly', [AttendanceController::class, 'getMonthlyAttendance'])->name('attendance.monthly');
     Route::resource('employees', EmployeeController::class);
     Route::resource('payroll', PayrollController::class);
+    Route::post('/payroll/{payroll}/process-batch', [PayrollController::class, 'processBatch'])->name('payroll.process-batch');
     Route::get('/payroll-items/basis', [PayrollItemController::class, 'getEmployeeBasis'])->name('payroll-items.basis');
     Route::resource('payroll-items', PayrollItemController::class);
     Route::get('/api/finalized-dtrs', [PayrollController::class, 'getFinalizedDtrs'])->name('payroll.api.finalized-dtrs');

@@ -43,8 +43,8 @@ class PayrollService
 
                     // Check for finalized DTR
                     $dtr = Dtr::where('employee_id', $employee->id)
-                        ->where('start_date', $payroll->start_date)
-                        ->where('end_date', $payroll->end_date)
+                        ->whereDate('start_date', $payroll->start_date)
+                        ->whereDate('end_date', $payroll->end_date)
                         ->where('status', 'finalized')
                         ->first();
 
@@ -192,12 +192,23 @@ class PayrollService
 
         if ($isRestDay || $isNoSchedule) {
             $totalStayMinutes = !$out ? 0 : $out->diffInMinutes($in, true);
-            // If it's a rest day, all hours are technically Overtime (or Rest Day pay)
+            
+            // Check if OT is authorized even for rest days
+            $isAuthorized = false;
+            if ($employeeId && $date) {
+                $isAuthorized = \App\Models\Attendance::where('employee_id', $employeeId)
+                    ->where('date', $date)
+                    ->where('ot_authorized', true)
+                    ->exists();
+            }
+
+            // If not authorized, rest day work doesn't count as OT (might count as regular? usually it's OT)
+            // But we respect "don't calculate OT unless official"
             return [
                 'total_hours' => 0, 
                 'late_minutes' => 0,
                 'undertime_minutes' => 0,
-                'overtime_hours' => round($totalStayMinutes / 60, 2),
+                'overtime_hours' => $isAuthorized ? round($totalStayMinutes / 60, 2) : 0,
             ];
         }
 
@@ -211,14 +222,14 @@ class PayrollService
 
         // LATE CALCULATION
         $lateMinutes = 0;
-        if ($in->greaterThan($scheduleIn)) {
+        if ($in->format('H:i:s') > $scheduleInTime) {
              $lateMinutes = (int) $scheduleIn->diffInMinutes($in, true);
         }
         
         // UNDERTIME CALCULATION
         $undertimeMinutes = 0;
-        if ($out && $out->notEqualTo($in)) {
-            if ($out->lessThan($scheduleOut)) {
+        if ($out) {
+            if ($out->format('H:i:s') < $scheduleOutTime && $out->lessThan($scheduleOut)) {
                 $undertimeMinutes = (int) $out->diffInMinutes($scheduleOut, true);
             }
         } else {

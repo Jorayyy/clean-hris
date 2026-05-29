@@ -97,8 +97,46 @@ class PayrollController extends Controller
     {
         $items = $payroll->items()->with('employee')->get();
         $item_count = $items->count();
-        return view('payroll.show', compact('payroll', 'items', 'item_count'));
+
+        // Count how many employees have finalized DTRs for this period that AREN'T in the batch yet
+        $query = \App\Models\Dtr::where('status', 'finalized')
+            ->whereDate('start_date', $payroll->start_date)
+            ->whereDate('end_date', $payroll->end_date);
+
+        if ($payroll->payroll_group_id) {
+            $query->whereIn('employee_id', function($q) use ($payroll) {
+                $q->select('id')->from('employees')
+                    ->where('payroll_group_id', $payroll->payroll_group_id)
+                    ->where('status', 'active');
+            });
+        } elseif ($payroll->employee_id) {
+            $query->where('employee_id', $payroll->employee_id);
+        }
+
+        // Subtract those already processed in this batch
+        $finalized_dtr_count = $query->whereNotIn('employee_id', $items->pluck('employee_id'))->count();
+
+        return view('payroll.show', compact('payroll', 'items', 'item_count', 'finalized_dtr_count'));
     }
+
+    public function processBatch(Payroll $payroll)
+    {
+        if ($payroll->status == 'approved') {
+            return back()->with('error', 'Cannot re-process an approved payroll batch.');
+        }
+
+        try {
+            // We call the service directly for immediate feedback (Synchronous)
+            // If the user wants to use the background worker, they'd use ProcessPayrollBatch::dispatch($payroll);
+            $this->payrollService->computePayroll($payroll);
+            
+            return redirect()->route('payroll.show', $payroll->id)
+                ->with('success', 'Payroll batch processed successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error processing batch: ' . $e->getMessage());
+        }
+    }
+
     public function edit(Payroll $payroll)
     {
         // Allow editing regardless of status for flexibility, or you can keep this restricted.
@@ -126,12 +164,11 @@ class PayrollController extends Controller
 
     public function approve(Request $request, Payroll $payroll)
     {
-        // Safety check: ensure all employees are accounted for
-        $total_employees = \App\Models\Employee::where('payroll_group_id', $payroll->payroll_group_id)->where('status', 'active')->count();
+        // Safety check: ensure at least one employee is processed
         $current_items = $payroll->items()->count();
 
-        if ($current_items < $total_employees) {
-            return back()->with('error', 'Cannot finalize. There are still ' . ($total_employees - $current_items) . ' employees missing payslips.');
+        if ($current_items === 0) {
+            return back()->with('error', 'Cannot finalize an empty payroll batch. Please process at least one employee.');
         }
 
         $payroll->update([
@@ -140,7 +177,7 @@ class PayrollController extends Controller
             'approved_at' => now()
         ]);
 
-        return redirect()->route('payroll.index')->with('success', 'Payroll period APPROVED. All payslips are now finalized.');
+        return redirect()->route('payroll.index')->with('success', 'Payroll period APPROVED. ' . $current_items . ' payslips are now finalized.');
     }
 
     public function destroy(Payroll $payroll)

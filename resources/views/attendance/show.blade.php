@@ -169,7 +169,7 @@
                                     <tr>
                                         <td class="ps-4 fw-medium">{{ \Carbon\Carbon::parse($row->date)->format('M d, Y') }}</td>
                                         <td>
-                                            <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ \Carbon\Carbon::parse($row->time_in)->format('h:i A') }}</span>
+                                            <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ \Carbon\Carbon::parse($row->time_in)->format('H:i') }}</span>
                                         </td>
                                         <td>
                                             <div class="small">
@@ -177,8 +177,8 @@
                                                     <div>
                                                         <span class="text-muted small">Lunch Break:</span> 
                                                         <span class="fw-bold text-info">
-                                                            {{ $row->break1_out ? \Carbon\Carbon::parse($row->break1_out)->format('h:i A') : '--:--' }} - 
-                                                            {{ $row->break1_in ? \Carbon\Carbon::parse($row->break1_in)->format('h:i A') : '--:--' }}
+                                                            {{ $row->break1_out ? \Carbon\Carbon::parse($row->break1_out)->format('H:i') : '--:--' }} - 
+                                                            {{ $row->break1_in ? \Carbon\Carbon::parse($row->break1_in)->format('H:i') : '--:--' }}
                                                         </span>
                                                     </div>
                                                 @endif
@@ -186,8 +186,8 @@
                                                     <div>
                                                         <span class="text-muted small">2nd Break:</span> 
                                                         <span class="fw-bold text-info">
-                                                            {{ $row->break2_out ? \Carbon\Carbon::parse($row->break2_out)->format('h:i A') : '--:--' }} - 
-                                                            {{ $row->break2_in ? \Carbon\Carbon::parse($row->break2_in)->format('h:i A') : '--:--' }}
+                                                            {{ $row->break2_out ? \Carbon\Carbon::parse($row->break2_out)->format('H:i') : '--:--' }} - 
+                                                            {{ $row->break2_in ? \Carbon\Carbon::parse($row->break2_in)->format('H:i') : '--:--' }}
                                                         </span>
                                                     </div>
                                                 @endif
@@ -197,7 +197,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('h:i A') : '---' }}</span>
+                                            <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('H:i') : '---' }}</span>
                                         </td>
                                         <td>{{ number_format($row->total_hours, 2) }} hrs</td>
                                         <td class="text-end pe-4">

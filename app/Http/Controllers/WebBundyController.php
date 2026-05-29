@@ -182,7 +182,7 @@ class WebBundyController extends Controller
 
         // Check if already punched
         if ($attendance->{$column} !== null && $attendance->{$column} !== '00:00:00') {
-            $formattedTime = Carbon::parse($attendance->{$column})->format('h:i A');
+            $formattedTime = Carbon::parse($attendance->{$column})->format('H:i');
             return back()->with('bundy_error', 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' for shift starting ' . Carbon::parse($attendance->date)->format('M d') . '.');
         }
 
@@ -219,6 +219,7 @@ class WebBundyController extends Controller
             $attendance->update($stats);
         }
 
-        return back()->with('bundy_success', 'SUCCESS: ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' recorded at ' . $now->format('h:i A') . ' for ' . $employee->full_name);
+        $formattedTime = Carbon::now()->format('H:i');
+        return back()->with('bundy_success', 'SUCCESS: ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' recorded at ' . $formattedTime . ' for ' . $employee->full_name);
     }
 }
