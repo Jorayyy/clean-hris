@@ -246,8 +246,16 @@ class PayrollService
         // Standard logic: Shift Duration - Lunch - Late - Undertime
         $scheduleDuration = $scheduleOut->diffInMinutes($scheduleIn, true);
         
-        // Deduct 1 hour lunch if shift is at least 5 hours
-        $mealBreak = $scheduleDuration >= 300 ? 60 : 0;
+        // Deduct lunch/breaks
+        // If shift is 10 hours or more, deduct 2 hours (8 work + 2 breaks)
+        // If shift is 5 hours or more, deduct 1 hour (standard lunch)
+        $mealBreak = 0;
+        if ($scheduleDuration >= 600) {
+            $mealBreak = 120;
+        } elseif ($scheduleDuration >= 300) {
+            $mealBreak = 60;
+        }
+
         $expectedWorkMinutes = $scheduleDuration - $mealBreak;
 
         // Cap late and undertime to the schedule duration
