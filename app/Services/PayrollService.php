@@ -228,7 +228,17 @@ class PayrollService
 
         // OVERTIME CALCULATION (Minutes beyond schedule out)
         $overtimeMinutes = 0;
-        if ($out && $out->greaterThan($scheduleOut)) {
+        
+        // OT is only calculated if "Official" (ot_authorized is true)
+        $isAuthorized = false;
+        if ($employeeId && $date) {
+            $isAuthorized = \App\Models\Attendance::where('employee_id', $employeeId)
+                ->where('date', $date)
+                ->where('ot_authorized', true)
+                ->exists();
+        }
+
+        if ($isAuthorized && $out && $out->greaterThan($scheduleOut)) {
              $overtimeMinutes = (int) $scheduleOut->diffInMinutes($out, true);
         }
 

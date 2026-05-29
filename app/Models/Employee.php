@@ -94,39 +94,41 @@ class Employee extends Model
 
         // PRIORITY 2: Schedule Group assigned to employee
         if ($this->schedule_group_id && $this->scheduleGroup) {
-            $config = $this->scheduleGroup->schedule_config[$dayName] ?? null;
-            if ($config) {
-                if ($config === 'OFF' || (is_array($config) && ($config['is_rest_day'] ?? false))) return null;
-                $schedId = is_array($config) ? ($config['id'] ?? null) : $config;
-                
-                // Try finding in Schedule first (for legacy)
-                $sched = \App\Models\Schedule::find($schedId);
-                if ($sched) return $sched;
-
-                // Then try finding in Shift (which seems to be the case in your current configs)
-                $shift = \App\Models\Shift::find($schedId);
-                if ($shift) {
-                    // Create a temporary schedule object to return
-                    $temp = new \App\Models\Schedule();
-                    $temp->time_in = $shift->time_in;
-                    $temp->time_out = $shift->time_out;
-                    return $temp;
-                }
-            }
+            $resolved = $this->resolveScheduleFromConfig($this->scheduleGroup->schedule_config[$dayName] ?? null);
+            if ($resolved) return $resolved;
         }
 
         // PRIORITY 3: Site Schedule
         if ($this->site && $this->site->schedule_group_id && $this->site->scheduleGroup) {
-            $config = $this->site->scheduleGroup->schedule_config[$dayName] ?? null;
-            if ($config) {
-                if ($config === 'OFF' || (is_array($config) && ($config['is_rest_day'] ?? false))) return null;
-                $schedId = is_array($config) ? ($config['id'] ?? null) : $config;
-                return \App\Models\Schedule::find($schedId);
-            }
+            $resolved = $this->resolveScheduleFromConfig($this->site->scheduleGroup->schedule_config[$dayName] ?? null);
+            if ($resolved) return $resolved;
         }
 
         // Fallback
         return null;
+    }
+
+    private function resolveScheduleFromConfig($config)
+    {
+        if (!$config || $config === 'OFF') return null;
+        
+        $isRestDay = is_array($config) && ($config['is_rest_day'] ?? false);
+        if ($isRestDay) return null;
+
+        $id = is_array($config) ? ($config['id'] ?? null) : $config;
+        if (!$id) return null;
+
+        // Try Shift first
+        $shift = \App\Models\Shift::find($id);
+        if ($shift) {
+            $temp = new \App\Models\Schedule();
+            $temp->time_in = $shift->time_in;
+            $temp->time_out = $shift->time_out;
+            return $temp;
+        }
+
+        // Fallback to Schedule (Legacy)
+        return \App\Models\Schedule::find($id);
     }
 
     public function getFullNameAttribute()

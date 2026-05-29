@@ -221,4 +221,42 @@ class AttendanceController extends Controller
         $attendance->delete();
         return redirect()->route('attendance.index');
     }
+
+    public function toggleOt(Attendance $attendance)
+    {
+        $attendance->update([
+            'ot_authorized' => !$attendance->ot_authorized
+        ]);
+
+        // Recalculate stats since OT might have changed
+        $stats = $this->payrollService->calculateAttendanceStats(
+            $attendance->time_in,
+            $attendance->time_out,
+            $attendance->employee_id,
+            $attendance->date
+        );
+        $attendance->update($stats);
+
+        // Find linked DTR and update totals
+        $dtr = \App\Models\Dtr::where('employee_id', $attendance->employee_id)
+            ->whereDate('start_date', '<=', $attendance->date)
+            ->whereDate('end_date', '>=', $attendance->date)
+            ->first();
+        
+        if ($dtr) {
+            $attendances = Attendance::where('employee_id', $dtr->employee_id)
+                ->whereDate('date', '>=', $dtr->start_date)
+                ->whereDate('date', '<=', $dtr->end_date)
+                ->get();
+            
+            $dtr->update([
+                'total_overtime_hours' => $attendances->sum('overtime_hours'),
+                'total_regular_hours' => $attendances->sum('total_hours'),
+                'total_late_minutes' => (int)$attendances->sum('late_minutes'),
+                'total_undertime_minutes' => (int)$attendances->sum('undertime_minutes'),
+            ]);
+        }
+
+        return back()->with('success', 'Overtime authorization updated.');
+    }
 }

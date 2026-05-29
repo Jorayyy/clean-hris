@@ -107,7 +107,7 @@
                         <th colspan="2">Actual Time</th>
                         <th colspan="4">No. of Hours</th>
                         <th colspan="5">Overtime</th>
-                        <th colspan="3">Filed Forms</th>
+                        <th colspan="4">Filed Forms</th>
                     </tr>
                     <tr>
                         <th class="bg-shift text-dark" style="width: 50px;">IN</th>
@@ -126,6 +126,7 @@
                         <th style="width: 60px;">OB</th>
                         <th style="width: 60px;">LV</th>
                         <th style="width: 60px;">UT</th>
+                        <th style="width: 60px;">OT</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -187,6 +188,17 @@
                             <td>-</td>
                             <td>-</td>
                             <td>-</td>
+                            <td>
+                                @if($log)
+                                    <form action="{{ route('admin.attendances.toggle-ot', $log->id) }}" method="POST" class="no-print d-inline">
+                                        @csrf @method('PATCH')
+                                        <input type="checkbox" class="form-check-input" onChange="this.form.submit()" {{ $log->ot_authorized ? 'checked' : '' }}>
+                                    </form>
+                                    <span class="d-none d-print-inline">{{ $log->ot_authorized ? 'YES' : '-' }}</span>
+                                @else
+                                    -
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

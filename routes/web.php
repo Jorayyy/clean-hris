@@ -51,6 +51,7 @@ Route::get('/', function () {
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('attendance', AttendanceController::class);
+    Route::patch('attendance/{attendance}/toggle-ot', [AttendanceController::class, 'toggleOt'])->name('admin.attendances.toggle-ot');
     Route::get('attendance/{employee}/monthly', [AttendanceController::class, 'getMonthlyAttendance'])->name('attendance.monthly');
     Route::resource('employees', EmployeeController::class);
     Route::resource('payroll', PayrollController::class);

@@ -21,7 +21,8 @@ class Attendance extends Model
         'total_hours',
         'late_minutes',
         'undertime_minutes',
-        'overtime_hours'
+        'overtime_hours',
+        'ot_authorized'
     ];
 
     public function employee()
