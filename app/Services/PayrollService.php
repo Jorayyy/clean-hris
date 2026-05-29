@@ -211,21 +211,19 @@ class PayrollService
 
         // LATE CALCULATION
         $lateMinutes = 0;
-        // Only count as late if they timed in AFTER the schedule
-        // AND before the schedule ends
-        if ($in->greaterThan($scheduleIn) && $in->lessThan($scheduleOut)) {
+        // Grace period or exact: If they timed in AFTER the schedule
+        if ($in->greaterThan($scheduleIn)) {
              $lateMinutes = $scheduleIn->diffInMinutes($in, true);
         }
         
         // UNDERTIME CALCULATION
         $undertimeMinutes = 0;
-        if ($out) {
+        if ($out && $out->notEqualTo($in)) { // ignore 00:00 or same-time
             if ($out->lessThan($scheduleOut)) {
-                // If they timed out before the shift ends
                 $undertimeMinutes = $out->diffInMinutes($scheduleOut, true);
             }
         } else {
-            // Missing out punch - assume full undertime for the shift
+            // Missing out punch - full undertime
             $undertimeMinutes = $scheduleOut->diffInMinutes($scheduleIn, true);
         }
 
