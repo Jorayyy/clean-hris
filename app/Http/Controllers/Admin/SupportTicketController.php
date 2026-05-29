@@ -29,7 +29,15 @@ class SupportTicketController extends Controller
     public function show($id)
     {
         $ticket = SupportTicket::with('employee')->findOrFail($id);
-        return view('admin.tickets.show', compact('ticket'));
+        
+        $currentAttendance = null;
+        if ($ticket->type === 'DTR Correction' && $ticket->correction_date) {
+            $currentAttendance = \App\Models\Attendance::where('employee_id', $ticket->employee_id)
+                ->where('date', $ticket->correction_date)
+                ->first();
+        }
+
+        return view('admin.tickets.show', compact('ticket', 'currentAttendance'));
     }
 
     public function update(Request $request, $id)

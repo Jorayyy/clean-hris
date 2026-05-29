@@ -2,131 +2,213 @@
 
 @section('content')
 <div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Respond to Ticket: #{{ str_pad($ticket->id, 5, '0', STR_PAD_LEFT) }}</h5>
-                <a href="{{ route('admin.tickets.index') }}" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i> Back to Tickets</a>
+    <div class="col-md-10">
+        {{-- Breadcrumb/Header --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">Ticket #{{ str_pad($ticket->id, 5, '0', STR_PAD_LEFT) }}</h3>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ route('admin.tickets.index') }}">Support Center</a></li>
+                        <li class="breadcrumb-item active">{{ $ticket->type }}</li>
+                    </ol>
+                </nav>
             </div>
-            <div class="card-body p-4">
-                <div class="row mb-4">
-                    <div class="col-md-6 border-end">
-                        <small class="text-muted fw-bold d-block mb-1">Employee Name</small>
-                        <h5 class="fw-bold mb-3">{{ $ticket->employee->full_name }} ({{ $ticket->employee->employee_id }})</h5>
-                        <small class="text-muted fw-bold d-block mb-1">Concern Type</small>
-                        <span class="badge bg-light text-dark shadow-sm px-3 mb-3">{{ $ticket->type }}</span>
-                        
-                        @php
-                            $resolutionLink = null;
-                            $linkText = "";
-                            $icon = "bi-box-arrow-up-right";
+            <a href="{{ route('admin.tickets.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-2"></i> Back to List
+            </a>
+        </div>
 
-                            switch($ticket->type) {
-                                case 'DTR Correction':
-                                case 'Forgot Punch':
-                                    $resolutionLink = route('attendance.index', ['employee' => $ticket->employee_id]);
-                                    $linkText = "Go to Attendance Logs";
-                                    $icon = "bi-calendar-check";
-                                    break;
-                                case 'Salary Discrepancy':
-                                case 'Payslip Issue':
-                                case '13th Month/Bonus':
-                                    $resolutionLink = route('payroll.index');
-                                    $linkText = "Go to Payroll Management";
-                                    $icon = "bi-cash-stack";
-                                    break;
-                                case 'Leave Application':
-                                    // Assuming leave is handled under employees or a specific route if exists
-                                    $resolutionLink = route('employees.show', $ticket->employee_id);
-                                    $linkText = "View Employee Profile";
-                                    $icon = "bi-person-badge";
-                                    break;
-                                case 'Technical Support':
-                                    $resolutionLink = route('admin.settings.index');
-                                    $linkText = "System Settings";
-                                    $icon = "bi-gear";
-                                    break;
-                                default:
-                                    $resolutionLink = route('employees.show', $ticket->employee_id);
-                                    $linkText = "View Employee Profile";
-                                    $icon = "bi-person";
-                            }
-                        @endphp
+        <div class="row g-4">
+            {{-- Left Column: Ticket Details & Message --}}
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-person-fill fs-3"></i>
+                                </div>
+                            </div>
+                            <div class="ms-3">
+                                <h5 class="fw-bold mb-0 text-dark">{{ $ticket->employee->full_name }}</h5>
+                                <span class="text-muted small">Employee ID: {{ $ticket->employee->employee_id }} • {{ $ticket->employee->position }}</span>
+                            </div>
+                            <div class="ms-auto">
+                                @php
+                                    $priorityColors = ['low' => 'success', 'normal' => 'primary', 'high' => 'danger'];
+                                    $pColor = $priorityColors[$ticket->priority] ?? 'primary';
+                                @endphp
+                                <span class="badge bg-{{ $pColor }} rounded-pill px-3">{{ strtoupper($ticket->priority) }} PRIORITY</span>
+                            </div>
+                        </div>
 
-                        @if($resolutionLink)
-                        <div class="mt-2">
-                            <a href="{{ $resolutionLink }}" class="btn btn-sm btn-outline-primary shadow-sm">
-                                <i class="bi {{ $icon }} me-1"></i> Resolve: {{ $linkText }}
-                            </a>
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-muted text-uppercase small mb-2">Subject</h6>
+                            <p class="fs-5 fw-bold text-dark">{{ $ticket->subject }}</p>
+                        </div>
+
+                        <div class="bg-light rounded-4 p-4 mb-4">
+                            <h6 class="fw-bold text-muted text-uppercase small mb-3">Employee Message</h6>
+                            <p class="mb-0 text-dark lead" style="white-space: pre-line;">{{ $ticket->description }}</p>
+                        </div>
+
+                        @if($ticket->type === 'DTR Correction' && $ticket->correction_date)
+                        <div class="border rounded-4 overflow-hidden mb-4">
+                            <div class="bg-info bg-opacity-10 p-3 border-bottom">
+                                <h6 class="fw-bold mb-0 text-info"><i class="bi bi-clock-history me-2"></i> Requested DTR Change</h6>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0 align-middle">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-4">Metric</th>
+                                            <th>Current Records</th>
+                                            <th>Correction Request</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="ps-4 text-muted small">Target Date</td>
+                                            <td colspan="2" class="fw-bold">{{ \Carbon\Carbon::parse($ticket->correction_date)->format('M d, Y') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="ps-4 text-muted small">Time In</td>
+                                            <td>
+                                                @if($currentAttendance && $currentAttendance->time_in)
+                                                    <span class="badge bg-light text-dark fw-normal">{{ \Carbon\Carbon::parse($currentAttendance->time_in)->format('H:i') }}</span>
+                                                @else
+                                                    <span class="text-muted small italic">No Punch</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success-subtle text-success fw-bold px-3">
+                                                    {{ \Carbon\Carbon::parse($ticket->correction_time_in)->format('H:i') }}
+                                                    <small class="d-block text-muted" style="font-size: 0.7rem">
+                                                        {{ \Carbon\Carbon::parse($ticket->correction_time_in)->format('M d') }}
+                                                    </small>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="ps-4 text-muted small">Time Out</td>
+                                            <td>
+                                                @if($currentAttendance && $currentAttendance->time_out)
+                                                    <span class="badge bg-light text-dark fw-normal">{{ \Carbon\Carbon::parse($currentAttendance->time_out)->format('H:i') }}</span>
+                                                @else
+                                                    <span class="text-muted small italic">No Punch</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-danger-subtle text-danger fw-bold px-3">
+                                                    {{ \Carbon\Carbon::parse($ticket->correction_time_out)->format('H:i') }}
+                                                    <small class="d-block text-muted" style="font-size: 0.7rem">
+                                                        {{ \Carbon\Carbon::parse($ticket->correction_time_out)->format('M d') }}
+                                                    </small>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         @endif
                     </div>
-                    <div class="col-md-6 ps-4">
-                         <small class="text-muted fw-bold d-block mb-1">Priority</small>
-                        <span class="badge {{ $ticket->priority == 'high' ? 'bg-danger' : 'bg-info' }}">{{ strtoupper($ticket->priority) }}</span>
-                        <div class="mt-3">
-                             <small class="text-muted fw-bold d-block mb-1">Original Date Submitted</small>
-                            <span class="small">{{ $ticket->created_at->format('M d, Y h:i A') }}</span>
-                        </div>
+                </div>
+            </div>
+
+            {{-- Right Column: Admin Response & Actions --}}
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4">Resolution Action</h5>
+                        
+                        <form action="{{ route('admin.tickets.update', $ticket->id) }}" method="POST" id="ticketForm">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="mb-4">
+                                <label class="fw-bold text-muted small text-uppercase mb-2">Update Ticket Status</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="status" id="status_pending" value="pending" {{ $ticket->status == 'pending' ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-warning w-100 rounded-3 py-2" for="status_pending">Pending</label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="status" id="status_ongoing" value="ongoing" {{ $ticket->status == 'ongoing' ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-primary w-100 rounded-3 py-2" for="status_ongoing">Investigate</label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="status" id="status_resolved" value="resolved" {{ $ticket->status == 'resolved' ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-success w-100 rounded-3 py-2" for="status_resolved">Approve</label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="status" id="status_closed" value="closed" {{ $ticket->status == 'closed' ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-danger w-100 rounded-3 py-2" for="status_closed">Deny/Close</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="fw-bold text-muted small text-uppercase mb-2">Admin Remarks / Reply</label>
+                                <textarea name="admin_reply" class="form-control border shadow-none rounded-4 p-3" rows="8" placeholder="Type your response here..." required>{{ $ticket->admin_reply }}</textarea>
+                            </div>
+
+                            @if($ticket->status !== 'resolved' && $ticket->type === 'DTR Correction')
+                            <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-dark small rounded-4 p-3 mb-4">
+                                <i class="bi bi-info-circle-fill me-2 text-warning"></i>
+                                Clicking <strong>Approve</strong> will automatically update the attendance logs for {{ \Carbon\Carbon::parse($ticket->correction_date)->format('M d') }}.
+                            </div>
+                            @endif
+
+                            <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill shadow-sm py-3">
+                                Save Resolution Details
+                            </button>
+                        </form>
                     </div>
                 </div>
 
-                <div class="bg-light p-3 rounded mb-4 shadow-sm border-start border-4 border-primary">
-                    <small class="text-muted fw-bold mb-2 d-block">Employee's Message:</small>
-                    <p class="mb-0 text-dark" style="white-space: pre-line;">{{ $ticket->description }}</p>
+                {{-- Quick Links Sidebar --}}
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-3 small text-uppercase">Resolution Tools</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ route('attendance.index', ['employee' => $ticket->employee_id]) }}" class="btn btn-light rounded-3 text-start border-0 py-2">
+                                <i class="bi bi-calendar-check me-2 text-primary"></i> View Full Attendance Logs
+                            </a>
+                            <a href="{{ route('employees.show', $ticket->employee_id) }}" class="btn btn-light rounded-3 text-start border-0 py-2">
+                                <i class="bi bi-person-badge me-2 text-info"></i> Employee Profile
+                            </a>
+                            <a href="{{ route('dtr.show', $ticket->employee_id) }}" class="btn btn-light rounded-3 text-start border-0 py-2">
+                                <i class="bi bi-file-earmark-text me-2 text-success"></i> View Current Month DTR
+                            </a>
+                        </div>
+                    </div>
                 </div>
-
-                @if($ticket->type === 'DTR Correction' && $ticket->correction_date)
-                <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
-                    <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill me-2"></i> Structured DTR Request</h6>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Target Date</small>
-                            <span class="fw-bold text-primary">{{ \Carbon\Carbon::parse($ticket->correction_date)->format('M d, Y') }}</span>
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Time IN</small>
-                            <span class="fw-bold text-success">{{ \Carbon\Carbon::parse($ticket->correction_time_in)->format('M d, Y H:i') }}</span>
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Time OUT</small>
-                            <span class="fw-bold text-danger">{{ \Carbon\Carbon::parse($ticket->correction_time_out)->format('M d, Y H:i') }}</span>
-                        </div>
-                    </div>
-                    @if($ticket->status !== 'resolved')
-                    <div class="mt-3 small text-muted font-italic">
-                        <i class="bi bi-exclamation-triangle me-1"></i> Marking this as <strong>Resolved</strong> will automatically update the employee's attendance record for this date.
-                    </div>
-                    @endif
-                </div>
-                @endif
-
-                <h5 class="fw-bold mb-3">Post a Reply / Change Status</h5>
-                <form action="{{ route('admin.tickets.update', $ticket->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-muted small">Update Status</label>
-                        <select name="status" class="form-select border-0 shadow-sm bg-light" required>
-                            <option value="pending" {{ $ticket->status == 'pending' ? 'selected' : '' }}>Pending (Needs Attention)</option>
-                            <option value="ongoing" {{ $ticket->status == 'ongoing' ? 'selected' : '' }}>Ongoing (Currently Reviewing)</option>
-                            <option value="resolved" {{ $ticket->status == 'resolved' ? 'selected' : '' }}>Resolved (Problem Solved)</option>
-                            <option value="closed" {{ $ticket->status == 'closed' ? 'selected' : '' }}>Closed (Archived)</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-muted small">Admin Reply / Resolution Notes</label>
-                        <textarea name="admin_reply" class="form-control border-0 shadow-sm bg-light" rows="6" placeholder="Provide explanation or steps taken to resolve the issue..." required>{{ $ticket->admin_reply }}</textarea>
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg shadow">Update Ticket Resolution</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "•";
+    }
+    .btn-check:checked + .btn-outline-success {
+        background-color: #198754;
+        color: white;
+    }
+    .btn-check:checked + .btn-outline-primary {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .btn-check:checked + .btn-outline-warning {
+        background-color: #ffc107;
+        color: white;
+    }
+    .btn-check:checked + .btn-outline-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
 @endsection
