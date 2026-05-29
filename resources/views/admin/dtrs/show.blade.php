@@ -18,23 +18,38 @@
     }
 @endphp
 <style>
-    .dtr-header { background: #003366; color: white; font-size: 0.8rem; }
-    .dtr-table th { background: #005a9c; color: white; font-size: 0.75rem; text-transform: uppercase; border: 1px solid #dee2e6; vertical-align: middle; text-align: center; }
-    .dtr-table td { font-size: 0.75rem; border: 1px solid #dee2e6; vertical-align: middle; padding: 4px; }
-    .bg-dtr-label { background: #f8f9fa; font-weight: bold; width: 15%; }
-    .bg-dtr-value { background: #ffffff; width: 18%; }
-    .footer-summary { background: #e9ecef; border-top: 2px solid #003366; }
-
+    .dtr-table th { 
+        background: #002b5c !important; 
+        color: white !important; 
+        font-size: 11px; 
+        font-weight: bold; 
+        border: 1px solid #ddd; 
+        vertical-align: middle; 
+        text-align: center; 
+        padding: 4px;
+        -webkit-print-color-adjust: exact;
+    }
+    .dtr-table td { 
+        font-size: 11px; 
+        border: 1px solid #ddd; 
+        vertical-align: middle; 
+        padding: 4px; 
+        text-align: center;
+    }
+    .bg-shift { background-color: #ffb6c1 !important; } /* Soft Pink */
+    .bg-actual { background-color: #90ee90 !important; } /* Soft Green */
+    .text-absent { color: red; font-weight: bold; }
+    .bg-dtr-label { background: #002b5c !important; color: white !important; font-weight: bold; width: 12%; border: 1px solid #ddd; }
+    .bg-dtr-value { background: #ffffff; width: 21%; border: 1px solid #ddd; }
+    
     @media print {
         @page { size: landscape; margin: 0.5cm; }
-        .dtr-header { background: #003366 !important; color: white !important; -webkit-print-color-adjust: exact; }
-        .dtr-table th { background: #005a9c !important; color: white !important; -webkit-print-color-adjust: exact; }
-        .bg-dtr-label { background: #f8f9fa !important; -webkit-print-color-adjust: exact; }
-        .footer-summary { background: #e9ecef !important; -webkit-print-color-adjust: exact; }
-        .btn, .no-print, .mb-3.d-flex { display: none !important; }
-        .card { box-shadow: none !important; border: 1px solid #ddd !important; }
-        body { font-size: 10pt; }
+        .no-print, .btn, .mb-3.d-flex { display: none !important; }
+        .card { box-shadow: none !important; border: none !important; }
+        body { font-size: 9pt; }
         .container-fluid { padding: 0 !important; }
+        .bg-shift { -webkit-print-color-adjust: exact; background-color: #ffb6c1 !important; }
+        .bg-actual { -webkit-print-color-adjust: exact; background-color: #90ee90 !important; }
     }
 </style>
 
