@@ -211,26 +211,25 @@ class PayrollService
 
         // LATE CALCULATION
         $lateMinutes = 0;
-        // Grace period or exact: If they timed in AFTER the schedule
         if ($in->greaterThan($scheduleIn)) {
-             $lateMinutes = $scheduleIn->diffInMinutes($in, true);
+             $lateMinutes = (int) $scheduleIn->diffInMinutes($in, true);
         }
         
         // UNDERTIME CALCULATION
         $undertimeMinutes = 0;
-        if ($out && $out->notEqualTo($in)) { // ignore 00:00 or same-time
+        if ($out && $out->notEqualTo($in)) {
             if ($out->lessThan($scheduleOut)) {
-                $undertimeMinutes = $out->diffInMinutes($scheduleOut, true);
+                $undertimeMinutes = (int) $out->diffInMinutes($scheduleOut, true);
             }
         } else {
             // Missing out punch - full undertime
-            $undertimeMinutes = $scheduleOut->diffInMinutes($scheduleIn, true);
+            $undertimeMinutes = (int) $scheduleOut->diffInMinutes($scheduleIn, true);
         }
 
         // OVERTIME CALCULATION (Minutes beyond schedule out)
         $overtimeMinutes = 0;
         if ($out && $out->greaterThan($scheduleOut)) {
-             $overtimeMinutes = $scheduleOut->diffInMinutes($out, true);
+             $overtimeMinutes = (int) $scheduleOut->diffInMinutes($out, true);
         }
 
         // TOTAL REGULAR HOURS WORKED

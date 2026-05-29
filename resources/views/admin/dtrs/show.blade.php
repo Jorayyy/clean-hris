@@ -4,7 +4,8 @@
 @php
     if (!function_exists('formatDtrMinutes')) {
         function formatDtrMinutes($totalMinutes) {
-            if ($totalMinutes <= 0) return '0m';
+            $totalMinutes = (int) $totalMinutes;
+            if ($totalMinutes <= 0) return '-';
             
             $hours = floor($totalMinutes / 60);
             $minutes = $totalMinutes % 60;
@@ -201,13 +202,13 @@
                             <td>Description</td>
                             <td>Regular</td>
                             <td>OT</td>
-                            <td>Late (m)</td>
-                            <td>UT (m)</td>
+                            <td>Late</td>
+                            <td>UT</td>
                         </tr>
                         <tr>
                             <td>Totals</td>
                             <td class="fw-bold">{{ number_format($dtr->total_regular_hours, 2) }}</td>
-                            <td>{{ number_format($dtr->total_overtime_hours, 2) }}</td>
+                            <td class="fw-bold">{{ number_format($dtr->total_overtime_hours, 2) }}</td>
                             <td class="text-danger fw-bold">{{ formatDtrMinutes($dtr->total_late_minutes) }}</td>
                             <td class="text-warning fw-bold">{{ formatDtrMinutes($dtr->total_undertime_minutes) }}</td>
                         </tr>
