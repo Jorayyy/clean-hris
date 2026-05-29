@@ -30,17 +30,19 @@
         -webkit-print-color-adjust: exact;
     }
     .dtr-table td { 
-        font-size: 11px; 
+        font-size: 12px; 
+        font-weight: 600; 
         border: 1px solid #ddd; 
         vertical-align: middle; 
-        padding: 4px; 
+        padding: 5px; 
         text-align: center;
+        color: #2c3e50;
     }
-    .bg-shift { background-color: #ffe4e1 !important; } /* Very Soft Pink */
-    .bg-actual { background-color: #e0f2f1 !important; } /* Very Soft Teal/Green */
-    .text-absent { color: #e74c3c; font-weight: bold; font-size: 10px; }
-    .bg-dtr-label { background: #3498db !important; color: white !important; font-weight: bold; width: 14%; border: 1px solid #ddd; font-size: 11px; }
-    .bg-dtr-value { background: #ffffff; width: 19.33%; border: 1px solid #ddd; font-size: 11px; }
+    .bg-shift { background-color: #ffe4e1 !important; color: #2c3e50 !important; } /* Very Soft Pink */
+    .bg-actual { background-color: #e0f2f1 !important; color: #2c3e50 !important; } /* Very Soft Teal/Green */
+    .text-absent { color: #e74c3c; font-weight: 800; font-size: 10px; }
+    .bg-dtr-label { background: #3498db !important; color: white !important; font-weight: bold; width: 14%; border: 1px solid #ddd; font-size: 12px; }
+    .bg-dtr-value { background: #ffffff; width: 19.33%; border: 1px solid #ddd; font-size: 12px; font-weight: 600; color: #2c3e50; }
     
     @media print {
         @page { size: landscape; margin: 0.5cm; }
