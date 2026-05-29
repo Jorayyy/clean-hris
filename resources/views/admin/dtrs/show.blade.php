@@ -132,25 +132,25 @@
                             <td>{{ $date->format('D') }}</td>
                             <td class="bg-light text-danger">
                                 @if($sched && $sched->time_in)
-                                    {{ \Carbon\Carbon::parse($sched->time_in)->format('G:i') }} - 
-                                    {{ \Carbon\Carbon::parse($sched->time_out)->format('G:i') }}
+                                    {{ \Carbon\Carbon::parse($sched->time_in)->format('H:i') }} - 
+                                    {{ \Carbon\Carbon::parse($sched->time_out)->format('H:i') }}
                                 @else
                                     <span class="text-muted small">no schedule</span>
                                 @endif
                             </td>
                             <td class="bg-light text-success fw-bold">
-                                {{ ($log && $log->time_in && $log->time_in !== '00:00:00') ? \Carbon\Carbon::parse($log->time_in)->format('G:i') : '--:--' }} - 
-                                {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('G:i') : '--:--' }}
+                                {{ ($log && $log->time_in && $log->time_in !== '00:00:00') ? \Carbon\Carbon::parse($log->time_in)->format('H:i') : '--:--' }} - 
+                                {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('H:i') : '--:--' }}
                             </td>
                             <td class="{{ ($log && $log->late_minutes > 0) ? 'text-danger fw-bold' : '' }}">
                                 {{ ($log && $log->late_minutes > 0) ? formatDtrMinutes($log->late_minutes) : '' }}
                             </td>
                             <td class="small pe-1">
                                 @if($log && $log->break1_out && $log->break1_out !== '00:00:00')
-                                    <span class="d-block text-info fw-bold" title="Lunch Out">LO: {{ \Carbon\Carbon::parse($log->break1_out)->format('G:i') }}</span>
+                                    <span class="d-block text-info fw-bold" title="Lunch Out">LO: {{ \Carbon\Carbon::parse($log->break1_out)->format('H:i') }}</span>
                                 @endif
                                 @if($log && $log->break1_in && $log->break1_in !== '00:00:00')
-                                    <span class="d-block text-info fw-bold" title="Lunch In">LI: {{ \Carbon\Carbon::parse($log->break1_in)->format('G:i') }}</span>
+                                    <span class="d-block text-info fw-bold" title="Lunch In">LI: {{ \Carbon\Carbon::parse($log->break1_in)->format('H:i') }}</span>
                                 @endif
                             </td>
                             <td class="{{ ($log && $log->undertime_minutes > 0) ? 'text-warning fw-bold' : '' }}">

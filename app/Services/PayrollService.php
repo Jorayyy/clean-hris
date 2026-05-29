@@ -192,6 +192,7 @@ class PayrollService
 
         if ($isRestDay || $isNoSchedule) {
             $totalStayMinutes = !$out ? 0 : $out->diffInMinutes($in, true);
+            // If it's a rest day, all hours are technically Overtime (or Rest Day pay)
             return [
                 'total_hours' => 0, 
                 'late_minutes' => 0,
@@ -210,16 +211,22 @@ class PayrollService
 
         // LATE CALCULATION
         $lateMinutes = 0;
-        if ($in->greaterThan($scheduleIn)) {
+        // Only count as late if they timed in AFTER the schedule
+        // AND before the schedule ends
+        if ($in->greaterThan($scheduleIn) && $in->lessThan($scheduleOut)) {
              $lateMinutes = $scheduleIn->diffInMinutes($in, true);
-             // Cap late minutes to 8 hours (480 mins) to prevent extreme values
-             if ($lateMinutes > 480) $lateMinutes = 480;
         }
         
         // UNDERTIME CALCULATION
         $undertimeMinutes = 0;
-        if ($out && $out->lessThan($scheduleOut)) {
-             $undertimeMinutes = $out->diffInMinutes($scheduleOut, true);
+        if ($out) {
+            if ($out->lessThan($scheduleOut)) {
+                // If they timed out before the shift ends
+                $undertimeMinutes = $out->diffInMinutes($scheduleOut, true);
+            }
+        } else {
+            // Missing out punch - assume full undertime for the shift
+            $undertimeMinutes = $scheduleOut->diffInMinutes($scheduleIn, true);
         }
 
         // OVERTIME CALCULATION (Minutes beyond schedule out)
@@ -228,19 +235,25 @@ class PayrollService
              $overtimeMinutes = $scheduleOut->diffInMinutes($out, true);
         }
 
-        // TOTAL REGULAR HOURS WORKED (Based on schedule duration)
+        // TOTAL REGULAR HOURS WORKED
+        // Standard logic: Shift Duration - Lunch - Late - Undertime
         $scheduleDuration = $scheduleOut->diffInMinutes($scheduleIn, true);
+        
         // Deduct 1 hour lunch if shift is at least 5 hours
         $mealBreak = $scheduleDuration >= 300 ? 60 : 0;
         $expectedWorkMinutes = $scheduleDuration - $mealBreak;
 
-        // Cap late and undertime to the schedule duration to prevent inflated values
-        // when actual punches are on a completely different day/shift
+        // Cap late and undertime to the schedule duration
         if ($lateMinutes > $scheduleDuration) $lateMinutes = $scheduleDuration;
         if ($undertimeMinutes > $scheduleDuration) $undertimeMinutes = $scheduleDuration;
 
+        // Calculated worked minutes
         $workDurationMinutes = $expectedWorkMinutes - $lateMinutes - $undertimeMinutes;
+        
+        // If they worked more than the schedule, it's OT, not Regular
+        // So Reg Hours is capped at expectedWorkMinutes
         if ($workDurationMinutes < 0) $workDurationMinutes = 0;
+        if ($workDurationMinutes > $expectedWorkMinutes) $workDurationMinutes = $expectedWorkMinutes;
         
         $totalHours = round($workDurationMinutes / 60, 2);
         
