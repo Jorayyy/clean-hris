@@ -53,6 +53,7 @@ class WebBundyController extends Controller
 
         $today = Carbon::today()->toDateString();
         $now = Carbon::now();
+        $schedule = $employee->active_schedule;
 
         // Check if employee has a schedule for today
         $dayName = $now->format('l');
