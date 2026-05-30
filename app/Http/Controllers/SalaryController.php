@@ -56,6 +56,17 @@ class SalaryController extends Controller
         $deductions = $data['deductions_sss'] + $data['deductions_pagibig'] + $data['deductions_philhealth'] + $data['other_deductions'];
         $data['net_pay'] = $earnings - $deductions;
 
+        // Sync deductions_json for consistency with payslip view
+        $data['deductions_json'] = [
+            ['type' => 'SSS', 'amount' => $data['deductions_sss']],
+            ['type' => 'PAGIBIG', 'amount' => $data['deductions_pagibig']],
+            ['type' => 'PHILHEALTH', 'amount' => $data['deductions_philhealth']],
+        ];
+        
+        if ($data['other_deductions'] > 0) {
+            $data['deductions_json'][] = ['type' => 'OTHER', 'amount' => $data['other_deductions']];
+        }
+
         $salary->update($data);
 
         return redirect()->route('salaries.index')->with('success', 'Salary record updated successfully.');

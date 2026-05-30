@@ -49,12 +49,12 @@
                         </td>
                         <td class="text-center">
                             <span class="badge bg-light text-success fw-normal border">
-                                <i class="bi bi-plus-circle me-1"></i>P{{ number_format($item->basic_pay + $item->overtime_pay + $item->bonuses + $item->night_diff, 2) }}
+                                <i class="bi bi-plus-circle me-1"></i>P{{ number_format($item->total_earnings, 2) }}
                             </span>
                         </td>
                         <td class="text-center">
                             <span class="badge bg-light text-danger fw-normal border">
-                                <i class="bi bi-dash-circle me-1"></i>P{{ number_format($item->deductions_sss + $item->deductions_pagibig + $item->deductions_philhealth + $item->other_deductions, 2) }}
+                                <i class="bi bi-dash-circle me-1"></i>P{{ number_format($item->total_deductions, 2) }}
                             </span>
                         </td>
                         <td class="text-center">

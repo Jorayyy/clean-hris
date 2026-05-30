@@ -191,9 +191,9 @@
                             @endphp
                             <span class="text-success">+{{ number_format($total_addons, 2) }}</span>
                         </td>
-                        <td class="text-danger">-{{ number_format($item->deductions_sss, 2) }}</td>
-                        <td class="text-danger">-{{ number_format($item->deductions_pagibig, 2) }}</td>
-                        <td class="text-danger">-{{ number_format($item->deductions_philhealth, 2) }}</td>
+                        <td class="text-danger">-{{ number_format($item->sss_deduction, 2) }}</td>
+                        <td class="text-danger">-{{ number_format($item->pagibig_deduction, 2) }}</td>
+                        <td class="text-danger">-{{ number_format($item->philhealth_deduction, 2) }}</td>
                         <td class="bg-light text-primary"><strong>{{ number_format($item->net_pay, 2) }}</strong></td>
                         <td>
                             <div class="btn-group">

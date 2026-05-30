@@ -83,19 +83,27 @@ class PayrollService
 
                     // Deductions logic
                     $deductions = [];
+                    $sssAmt = 0;
+                    $pagibigAmt = 0;
+                    $philhealthAmt = 0;
+                    $otherDeductions = 0;
 
                     // Late/UT Deductions
                     if ($dtr->total_late_minutes > 0) {
+                        $amt = floor(($dtr->total_late_minutes / 60) * $hourlyRate);
                         $deductions[] = [
                             'type' => 'LATE', 
-                            'amount' => floor(($dtr->total_late_minutes / 60) * $hourlyRate)
+                            'amount' => $amt
                         ];
+                        $otherDeductions += $amt;
                     }
                     if ($dtr->total_undertime_minutes > 0) {
+                        $amt = floor(($dtr->total_undertime_minutes / 60) * $hourlyRate);
                         $deductions[] = [
                             'type' => 'UT', 
-                            'amount' => floor(($dtr->total_undertime_minutes / 60) * $hourlyRate)
+                            'amount' => $amt
                         ];
+                        $otherDeductions += $amt;
                     }
 
                     foreach (['sss', 'pagibig', 'philhealth'] as $type) {
@@ -103,6 +111,9 @@ class PayrollService
                         $amt = floor($basicPay * $rate);
                         if ($amt > 0) {
                             $deductions[] = ['type' => strtoupper($type), 'amount' => $amt];
+                            if ($type === 'sss') $sssAmt = $amt;
+                            if ($type === 'pagibig') $pagibigAmt = $amt;
+                            if ($type === 'philhealth') $philhealthAmt = $amt;
                         }
                     }
 
@@ -123,6 +134,10 @@ class PayrollService
                             'night_diff' => $nightDiff,
                             'bonuses' => $bonuses,
                             'deductions_json' => $deductions,
+                            'deductions_sss' => $sssAmt,
+                            'deductions_pagibig' => $pagibigAmt,
+                            'deductions_philhealth' => $philhealthAmt,
+                            'other_deductions' => $otherDeductions,
                             'net_pay' => $netPay,
                         ]
                     );

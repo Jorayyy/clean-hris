@@ -289,7 +289,7 @@
                                     </td>
                                     <td class="fw-medium font-monospace">₱{{ number_format($salary->basic_pay, 2) }}</td>
                                     <td class="fw-medium font-monospace text-primary">+₱{{ number_format($salary->overtime_pay, 2) }}</td>
-                                    <td class="fw-medium font-monospace text-danger">-₱{{ number_format($salary->deductions_sss + $salary->deductions_pagibig + $salary->deductions_philhealth + $salary->other_deductions, 2) }}</td>
+                                    <td class="fw-medium font-monospace text-danger">-₱{{ number_format($salary->total_deductions, 2) }}</td>
                                     <td class="fw-800 text-success font-monospace">₱{{ number_format($salary->net_pay, 2) }}</td>
                                     <td class="text-end pe-4">
                                         <a href="{{ route('employee.payslip', $salary->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" target="_blank">
