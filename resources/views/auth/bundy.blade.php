@@ -41,11 +41,15 @@
                 <div class="alert alert-danger small mb-4">{{ session('bundy_error') }}</div>
             @endif
 
-            <form action="{{ route('bundy.punch') }}" method="POST">
+            <form id="bundyForm" action="{{ route('bundy.punch') }}" method="POST">
                 @csrf
+                <!-- Default catch for Enter key -->
+                <button type="submit" name="punch_type" value="none" style="display:none;"></button>
+
                 <div class="mb-3 text-start">
                     <label class="form-label small fw-bold">Employee ID</label>
-                    <input type="text" name="employee_id_string" class="form-control form-control-lg" placeholder="e.g. EMP-001" required autofocus>
+                    <input type="text" id="employee_id" name="employee_id_string" class="form-control form-control-lg" placeholder="e.g. EMP-001" required autofocus autocomplete="off">
+                    <div id="employee_name" class="small fw-bold text-primary mt-1" style="display:none;"></div>
                 </div>
                 <div class="mb-4 text-start">
                     <label class="form-label small fw-bold">Bundy Passcode</label>
@@ -54,18 +58,18 @@
 
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="am_in" class="btn btn-success w-100 btn-punch shadow-sm">START SHIFT</button>
+                        <button type="submit" id="btn_am_in" name="punch_type" value="am_in" class="btn btn-success w-100 btn-punch shadow-sm">START SHIFT</button>
                     </div>
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="am_out" class="btn btn-outline-success w-100 btn-punch text-nowrap">LUNCH OUT</button>
+                        <button type="submit" id="btn_am_out" name="punch_type" value="am_out" class="btn btn-outline-success w-100 btn-punch text-nowrap">LUNCH OUT</button>
                     </div>
                 </div>
                 <div class="row g-2">
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="pm_in" class="btn btn-outline-primary w-100 btn-punch text-nowrap">LUNCH IN</button>
+                        <button type="submit" id="btn_pm_in" name="punch_type" value="pm_in" class="btn btn-outline-primary w-100 btn-punch text-nowrap">LUNCH IN</button>
                     </div>
                     <div class="col-6">
-                        <button type="submit" name="punch_type" value="pm_out" class="btn btn-primary w-100 btn-punch shadow-sm">END SHIFT</button>
+                        <button type="submit" id="btn_pm_out" name="punch_type" value="pm_out" class="btn btn-primary w-100 btn-punch shadow-sm">END SHIFT</button>
                     </div>
                 </div>
 
@@ -89,6 +93,88 @@
     }
     setInterval(updateTime, 1000);
     updateTime();
+
+    // Employee Status Awareness
+    const empInput = document.getElementById('employee_id');
+    const empName = document.getElementById('employee_name');
+    const btnIn = document.getElementById('btn_am_in');
+    const btnLOut = document.getElementById('btn_am_out');
+    const btnLIn = document.getElementById('btn_pm_in');
+    const btnOut = document.getElementById('btn_pm_out');
+
+    let debounceTimer;
+
+    empInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const id = this.value.trim();
+        
+        if (id.length < 3) {
+            resetButtons();
+            empName.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`/web-bundy/status/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        resetButtons();
+                        empName.textContent = 'Invalid ID';
+                        empName.classList.replace('text-primary', 'text-danger');
+                        empName.style.display = 'block';
+                    } else {
+                        empName.textContent = `Hello, ${data.full_name}`;
+                        empName.classList.replace('text-danger', 'text-primary');
+                        empName.style.display = 'block';
+
+                        // Disable buttons based on status
+                        btnIn.disabled = data.is_in;
+                        btnLOut.disabled = !data.is_in || data.is_break1_out;
+                        btnLIn.disabled = !data.is_break1_out || data.is_break1_in;
+                        btnOut.disabled = !data.is_in || data.is_out;
+
+                        // Add visual feedback
+                        if (data.is_in) btnIn.innerHTML = 'ALREADY IN';
+                        else btnIn.innerHTML = 'START SHIFT';
+
+                        if (data.is_out) btnOut.innerHTML = 'ALREADY OUT';
+                        else btnOut.innerHTML = 'END SHIFT';
+                    }
+                })
+                .catch(() => {
+                    resetButtons();
+                });
+        }, 500);
+    });
+
+    function resetButtons() {
+        btnIn.disabled = false;
+        btnLOut.disabled = false;
+        btnLIn.disabled = false;
+        btnOut.disabled = false;
+        btnIn.innerHTML = 'START SHIFT';
+        btnOut.innerHTML = 'END SHIFT';
+    }
+
+    // Stop Enter key from submitting if it's the "none" action
+    document.getElementById('bundyForm').addEventListener('submit', function(e) {
+        const action = e.submitter ? e.submitter.value : 'none';
+        if (action === 'none') {
+            e.preventDefault();
+            alert('Please click a specific punch button (START, LUNCH, or END).');
+            return;
+        }
+
+        // Disable all buttons to prevent double-click race conditions
+        const buttons = this.querySelectorAll('.btn-punch');
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            if (btn === e.submitter) {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> PROCESSING...';
+            }
+        });
+    });
 </script>
 
 </body>

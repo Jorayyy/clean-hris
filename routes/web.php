@@ -41,7 +41,8 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/web-bundy', [WebBundyController::class, 'showBundy'])->name('bundy.show');
-Route::post('/web-bundy/punch', [WebBundyController::class, 'punch'])->name('bundy.punch');
+Route::get('/web-bundy/status/{employee_id}', [WebBundyController::class, 'checkStatus'])->name('bundy.status');
+Route::post('/web-bundy/punch', [WebBundyController::class, 'punch'])->middleware('throttle:15,1')->name('bundy.punch');
 
 Route::get('/', function () {
     return redirect('/login');

@@ -156,6 +156,14 @@ class PayrollService
 
     public function calculateAttendanceStats($timeIn, $timeOut, $employeeId = null, $date = null)
     {
+        // Fetch the specific attendance record to check for breaks
+        $attendance = null;
+        if ($employeeId && $date) {
+            $attendance = \App\Models\Attendance::where('employee_id', $employeeId)
+                ->where('date', $date)
+                ->first();
+        }
+
         // Treat 00:00:00 as no punch/invalid for calculations
         $isNoPunchIn = $timeIn === '00:00:00' || !$timeIn;
         $isNoPunchOut = $timeOut === '00:00:00' || !$timeOut;
@@ -268,21 +276,48 @@ class PayrollService
              $overtimeMinutes = (int) $scheduleOut->diffInMinutes($out, true);
         }
 
-        // TOTAL REGULAR HOURS WORKED
-        // Standard logic: Shift Duration - Lunch - Late - Undertime
-        $scheduleDuration = $scheduleOut->diffInMinutes($scheduleIn, true);
+        // Calculate actual break durations if they exist
+        $actualBreakMinutes = 0;
         
-        // Deduct lunch/breaks
-        // If shift is 10 hours or more, deduct 2 hours (8 work + 2 breaks)
-        // If shift is 5 hours or more, deduct 1 hour (standard lunch)
-        $mealBreak = 0;
-        if ($scheduleDuration >= 600) {
-            $mealBreak = 120;
-        } elseif ($scheduleDuration >= 300) {
-            $mealBreak = 60;
+        // Break 1 (Lunch)
+        if ($attendance && $attendance->break1_out && $attendance->break1_in && 
+            $attendance->break1_out !== '00:00:00' && $attendance->break1_in !== '00:00:00') {
+            
+            $b1out = Carbon::parse($dateStr . ' ' . $attendance->break1_out);
+            $b1in = Carbon::parse($dateStr . ' ' . $attendance->break1_in);
+            
+            if ($b1in->lessThan($b1out)) $b1in->addDay();
+            $actualBreakMinutes += $b1in->diffInMinutes($b1out, true);
         }
 
-        $expectedWorkMinutes = $scheduleDuration - $mealBreak;
+        // Break 2 (Optional/Coffee)
+        if ($attendance && $attendance->break2_out && $attendance->break2_in && 
+            $attendance->break2_out !== '00:00:00' && $attendance->break2_in !== '00:00:00') {
+            
+            $b2out = Carbon::parse($dateStr . ' ' . $attendance->break2_out);
+            $b2in = Carbon::parse($dateStr . ' ' . $attendance->break2_in);
+            
+            if ($b2in->lessThan($b2out)) $b2in->addDay();
+            $actualBreakMinutes += $b2in->diffInMinutes($b2out, true);
+        }
+
+        // TOTAL REGULAR HOURS WORKED
+        // Standard logic: Shift Duration - Actual Breaks - Late - Undertime
+        $scheduleDuration = $scheduleOut->diffInMinutes($scheduleIn, true);
+        
+        // Use actual break minutes if they exist, otherwise fallback to standard deductions
+        $mealBreak = 0;
+        if ($actualBreakMinutes > 0) {
+            $mealBreak = $actualBreakMinutes;
+        } else {
+            if ($scheduleDuration >= 600) {
+                $mealBreak = 120;
+            } elseif ($scheduleDuration >= 300) {
+                $mealBreak = 60;
+            }
+        }
+
+        $expectedWorkMinutes = $scheduleDuration - ($actualBreakMinutes > 0 ? $actualBreakMinutes : $mealBreak);
 
         // Cap late and undertime to the schedule duration
         if ($lateMinutes > $scheduleDuration) $lateMinutes = $scheduleDuration;

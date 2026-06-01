@@ -25,7 +25,7 @@ class WebBundyPunchRequest extends FormRequest
         return [
             'employee_id_string' => 'required|string',
             'web_bundy_code' => 'required|string',
-            'punch_type' => 'required|in:am_in,am_out,pm_in,pm_out,break1_out,break1_in,break2_out,break2_in'
+            'punch_type' => 'required|in:am_in,am_out,pm_in,pm_out,break1_out,break1_in,break2_out,break2_in,none'
         ];
     }
 }

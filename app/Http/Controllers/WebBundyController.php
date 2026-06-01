@@ -23,8 +23,56 @@ class WebBundyController extends Controller
         return view('auth.bundy');
     }
 
+    public function checkStatus($employee_id)
+    {
+        $employee = Employee::where('employee_id', $employee_id)->first();
+        if (!$employee) {
+            return response()->json(['error' => 'Invalid ID'], 404);
+        }
+
+        $today = Carbon::today()->toDateString();
+        $now = Carbon::now();
+        $targetDate = $today;
+
+        // Check for open shift from yesterday (for night shifts)
+        $yesterday = Carbon::yesterday()->toDateString();
+        $yesterdayAttendance = Attendance::where('employee_id', $employee->id)
+            ->where('date', $yesterday)
+            ->where(function ($q) {
+                $q->where('time_in', '!=', '00:00:00')->whereNotNull('time_in');
+            })
+            ->where(function ($q) {
+                $q->where('time_out', '00:00:00')->orWhereNull('time_out');
+            })
+            ->first();
+
+        $todayAttendance = Attendance::where('employee_id', $employee->id)
+            ->where('date', $today)
+            ->first();
+
+        // If yesterday is open and today hasn't started, priority is yesterday
+        if ($yesterdayAttendance && (!$todayAttendance || $todayAttendance->time_in === '00:00:00')) {
+            $targetDate = $yesterday;
+        }
+
+        $attendance = $targetDate === $yesterday ? $yesterdayAttendance : $todayAttendance;
+
+        return response()->json([
+            'full_name' => $employee->full_name,
+            'date' => $targetDate,
+            'is_in' => $attendance && $attendance->time_in && $attendance->time_in !== '00:00:00',
+            'is_break1_out' => $attendance && $attendance->break1_out && $attendance->break1_out !== '00:00:00',
+            'is_break1_in' => $attendance && $attendance->break1_in && $attendance->break1_in !== '00:00:00',
+            'is_out' => $attendance && $attendance->time_out && $attendance->time_out !== '00:00:00',
+        ]);
+    }
+
     public function punch(WebBundyPunchRequest $request)
     {
+        if ($request->punch_type === 'none') {
+            return back()->with('bundy_error', 'Invalid action. Please click one of the punch buttons.');
+        }
+
         // Global IP Lockdown: Stop punches if not on an authorized network
         $isAuthorized = AuthorizedNetwork::isAuthorized($request->ip());
 
@@ -126,24 +174,31 @@ class WebBundyController extends Controller
             // For now, let's just proceed but log it.
         }
 
-        // NIGHT SHIFT LOGIC: Determine if we should look for yesterday's record
+        // NIGHT SHIFT LOGIC: Intelligent Target Date Detection
         $targetDate = $today;
-        $isEarlyMorning = $now->hour < 10; // Assuming night shifts end before 10 AM
-
-        if ($isEarlyMorning && in_array($request->punch_type, ['am_out', 'pm_in', 'pm_out'])) {
-            $yesterday = Carbon::yesterday()->toDateString();
-            $yesterdayAttendance = Attendance::where('employee_id', $employee->id)
-                ->where('date', $yesterday)
-                ->where(function($q) {
-                    $q->where('time_in', '!=', '00:00:00')->whereNotNull('time_in');
-                })
-                ->where(function($q) {
-                    $q->where('time_out', '00:00:00')->orWhereNull('time_out');
-                })
+        
+        // If they are punching anything EXCEPT 'am_in', check if they have an open shift from yesterday
+        if ($request->punch_type !== 'am_in') {
+            $todayAttendance = Attendance::where('employee_id', $employee->id)
+                ->where('date', $today)
                 ->first();
-            
-            if ($yesterdayAttendance) {
-                $targetDate = $yesterday;
+
+            // If no record today, OR today's record is empty but yesterday has an open shift, use yesterday
+            if (!$todayAttendance || ($todayAttendance->time_in === '00:00:00' || !$todayAttendance->time_in)) {
+                $yesterday = Carbon::yesterday()->toDateString();
+                $yesterdayAttendance = Attendance::where('employee_id', $employee->id)
+                    ->where('date', $yesterday)
+                    ->where(function($q) {
+                        $q->where('time_in', '!=', '00:00:00')->whereNotNull('time_in');
+                    })
+                    ->where(function($q) {
+                        $q->where('time_out', '00:00:00')->orWhereNull('time_out');
+                    })
+                    ->first();
+                
+                if ($yesterdayAttendance) {
+                    $targetDate = $yesterday;
+                }
             }
         }
 
