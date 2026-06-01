@@ -16,83 +16,59 @@ class ScheduleCalendarController extends Controller
     {
         $employee = Employee::find(Auth::user()->employee_id);
         if (!$employee) {
-            return redirect()->route('employee.dashboard')->with('error', 'Employee record not found.');
+            return redirect()->back()->with('error', 'Employee record not found.');
         }
 
         $month = $request->get('month', Carbon::now()->month);
         $year = $request->get('year', Carbon::now()->year);
         $selectedDate = Carbon::createFromDate($year, $month, 1);
 
-        // Logic to determine daily schedule (matching PayrollService & WebBundy logic)
-        $scheduleData = $this->getMonthlySchedule($employee, $month, $year);
-
-        return view('employee.schedule', compact('scheduleData', 'selectedDate', 'employee'));
-    }
-
-    private function getMonthlySchedule($employee, $month, $year)
-    {
-        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+        $daysInMonth = $selectedDate->daysInMonth;
         $scheduleData = [];
-
-        // Pre-fetch Site & Groups
-        $employee->load(['scheduleGroup', 'site.scheduleGroup']);
-        $site = $employee->site;
-        $activeSchedule = $employee->active_schedule;
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $date = Carbon::createFromDate($year, $month, $day);
-            $dayName = $date->format('l');
             $dateStr = $date->toDateString();
 
-            $dailySched = null;
+            // Use the centralized robust logic from Employee model
+            $sched = $employee->getScheduleForDate($dateStr);
+            
             $isRestDay = false;
-
-            // 1. Direct Employee Group Schedule
-            if ($employee->schedule_group_id && $employee->scheduleGroup) {
-                $dayConfig = $employee->scheduleGroup->schedule_config[$dayName] ?? null;
-                if ($dayConfig === 'OFF' || (isset($dayConfig['is_rest_day']) && $dayConfig['is_rest_day'])) {
+            if (!$sched) {
+                // Check if it's explicitly a rest day
+                $manual = $employee->schedules()->whereDate('schedule_date', $dateStr)->first();
+                if ($manual && $manual->is_rest_day) {
                     $isRestDay = true;
                 } else {
-                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
-                    $dailySched = Schedule::find($schedId);
+                    $phpDayOfWeek = $date->dayOfWeek;
+                    $pattern = $employee->schedules()
+                        ->whereNull('schedule_date')
+                        ->where('day_of_week', $phpDayOfWeek)
+                        ->first();
+                    if ($pattern && $pattern->is_rest_day) $isRestDay = true;
                 }
-            }
-
-            // 2. Site Group Schedule
-            if (!$dailySched && !$isRestDay && $site && $site->schedule_group_id && $site->scheduleGroup) {
-                $dayConfig = $site->scheduleGroup->schedule_config[$dayName] ?? null;
-                if ($dayConfig === 'OFF' || (isset($dayConfig['is_rest_day']) && $dayConfig['is_rest_day'])) {
-                    $isRestDay = true;
-                } else {
-                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
-                    $dailySched = Schedule::find($schedId);
-                }
-            } 
-            // 3. Site Manual Config
-            elseif (!$dailySched && !$isRestDay && $site && $site->schedule_config && isset($site->schedule_config[$dayName])) {
-                $config = $site->schedule_config[$dayName];
-                if ($config === 'OFF') {
-                    $isRestDay = true;
-                } else {
-                    $dailySched = Schedule::find($config);
-                }
-            }
-
-            // 3. Fallback to Active Schedule (Individual or Payroll Group)
-            if (!$dailySched && !$isRestDay && $activeSchedule) {
-                if (is_array($activeSchedule->days) && in_array($dayName, $activeSchedule->days)) {
-                    $dailySched = $activeSchedule;
-                } else {
-                    $isRestDay = true;
+                
+                // If still not determined, check group configs
+                if (!$isRestDay) {
+                    $dayName = $date->format('l');
+                    $group = $employee->scheduleGroup ?? $employee->site?->scheduleGroup;
+                    if ($group) {
+                        $config = $group->schedule_config[$dayName] ?? null;
+                        if ($config === 'OFF' || (isset($config['is_rest_day']) && $config['is_rest_day'])) {
+                            $isRestDay = true;
+                        }
+                    }
                 }
             }
 
             $scheduleData[$dateStr] = [
-                'schedule' => $dailySched,
+                'schedule' => $sched,
                 'is_rest_day' => $isRestDay,
             ];
         }
 
-        return $scheduleData;
+        return view('employee.schedule', compact('scheduleData', 'selectedDate', 'employee'));
     }
+
+    // Removed getMonthlySchedule to favor decentralized/Employee model logic
 }
