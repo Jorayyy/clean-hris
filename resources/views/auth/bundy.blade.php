@@ -58,18 +58,46 @@
 
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <button type="submit" id="btn_am_in" name="punch_type" value="am_in" class="btn btn-success w-100 btn-punch shadow-sm">START SHIFT</button>
+                        <button type="submit" id="btn_am_in" name="punch_type" value="am_in" class="btn btn-primary w-100 btn-punch shadow-sm">AM IN (START)</button>
                     </div>
                     <div class="col-6">
-                        <button type="submit" id="btn_am_out" name="punch_type" value="am_out" class="btn btn-outline-success w-100 btn-punch text-nowrap">LUNCH OUT</button>
+                        <button type="submit" id="btn_pm_out" name="punch_type" value="pm_out" class="btn btn-dark w-100 btn-punch shadow-sm">PM OUT (END)</button>
                     </div>
                 </div>
-                <div class="row g-2">
-                    <div class="col-6">
-                        <button type="submit" id="btn_pm_in" name="punch_type" value="pm_in" class="btn btn-outline-primary w-100 btn-punch text-nowrap">LUNCH IN</button>
+
+                <div class="mb-3">
+                    <h6 class="text-danger fw-bold small text-uppercase">Lunch Break</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="submit" id="btn_lunch_out" name="punch_type" value="lunch_out" class="btn btn-outline-danger w-100 btn-punch btn-sm">LUNCH OUT</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" id="btn_lunch_in" name="punch_type" value="lunch_in" class="btn btn-outline-danger w-100 btn-punch btn-sm">LUNCH IN</button>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <button type="submit" id="btn_pm_out" name="punch_type" value="pm_out" class="btn btn-primary w-100 btn-punch shadow-sm">END SHIFT</button>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-warning fw-bold small text-uppercase">1st Break</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="submit" id="btn_break1_out" name="punch_type" value="break1_out" class="btn btn-outline-warning w-100 btn-punch btn-sm">1st BREAK OUT</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" id="btn_break1_in" name="punch_type" value="break1_in" class="btn btn-outline-warning w-100 btn-punch btn-sm">1st BREAK IN</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-success fw-bold small text-uppercase">2nd Break</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="submit" id="btn_break2_out" name="punch_type" value="break2_out" class="btn btn-outline-success w-100 btn-punch btn-sm">2nd BREAK OUT</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" id="btn_break2_in" name="punch_type" value="break2_in" class="btn btn-outline-success w-100 btn-punch btn-sm">2nd BREAK IN</button>
+                        </div>
                     </div>
                 </div>
 
@@ -98,9 +126,13 @@
     const empInput = document.getElementById('employee_id');
     const empName = document.getElementById('employee_name');
     const btnIn = document.getElementById('btn_am_in');
-    const btnLOut = document.getElementById('btn_am_out');
-    const btnLIn = document.getElementById('btn_pm_in');
     const btnOut = document.getElementById('btn_pm_out');
+    const btnLunchOut = document.getElementById('btn_lunch_out');
+    const btnLunchIn = document.getElementById('btn_lunch_in');
+    const btnB1Out = document.getElementById('btn_break1_out');
+    const btnB1In = document.getElementById('btn_break1_in');
+    const btnB2Out = document.getElementById('btn_break2_out');
+    const btnB2In = document.getElementById('btn_break2_in');
 
     let debounceTimer;
 
@@ -130,13 +162,20 @@
 
                         // Disable buttons based on status
                         btnIn.disabled = data.is_in;
-                        btnLOut.disabled = !data.is_in || data.is_break1_out;
-                        btnLIn.disabled = !data.is_break1_out || data.is_break1_in;
                         btnOut.disabled = !data.is_in || data.is_out;
+                        
+                        btnLunchOut.disabled = !data.is_in || data.is_lunch_out;
+                        btnLunchIn.disabled = !data.is_lunch_out || data.is_lunch_in;
+                        
+                        btnB1Out.disabled = !data.is_in || data.is_break1_out;
+                        btnB1In.disabled = !data.is_break1_out || data.is_break1_in;
+                        
+                        btnB2Out.disabled = !data.is_in || data.is_break2_out;
+                        btnB2In.disabled = !data.is_break2_out || data.is_break2_in;
 
                         // Add visual feedback
                         if (data.is_in) btnIn.innerHTML = 'ALREADY IN';
-                        else btnIn.innerHTML = 'START SHIFT';
+                        else btnIn.innerHTML = 'AM IN (START)';
 
                         if (data.is_out) btnOut.innerHTML = 'ALREADY OUT';
                         else btnOut.innerHTML = 'END SHIFT';
@@ -149,12 +188,15 @@
     });
 
     function resetButtons() {
-        btnIn.disabled = false;
-        btnLOut.disabled = false;
-        btnLIn.disabled = false;
-        btnOut.disabled = false;
-        btnIn.innerHTML = 'START SHIFT';
-        btnOut.innerHTML = 'END SHIFT';
+        [btnIn, btnOut, btnLunchOut, btnLunchIn, btnB1Out, btnB1In, btnB2Out, btnB2In].forEach(btn => btn.disabled = false);
+        btnIn.innerHTML = 'AM IN (START)';
+        btnOut.innerHTML = 'PM OUT (END)';
+        btnLunchOut.innerHTML = 'LUNCH OUT';
+        btnLunchIn.innerHTML = 'LUNCH IN';
+        btnB1Out.innerHTML = '1st BREAK OUT';
+        btnB1In.innerHTML = '1st BREAK IN';
+        btnB2Out.innerHTML = '2nd BREAK OUT';
+        btnB2In.innerHTML = '2nd BREAK IN';
     }
 
     // Stop Enter key from submitting if it's the "none" action

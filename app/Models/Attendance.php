@@ -18,6 +18,8 @@ class Attendance extends Model
         'break1_in',
         'break2_out',
         'break2_in',
+        'lunch_out',
+        'lunch_in',
         'total_hours',
         'late_minutes',
         'undertime_minutes',

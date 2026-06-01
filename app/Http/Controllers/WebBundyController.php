@@ -61,8 +61,12 @@ class WebBundyController extends Controller
             'full_name' => $employee->full_name,
             'date' => $targetDate,
             'is_in' => $attendance && $attendance->time_in && $attendance->time_in !== '00:00:00',
+            'is_lunch_out' => $attendance && $attendance->lunch_out && $attendance->lunch_out !== '00:00:00',
+            'is_lunch_in' => $attendance && $attendance->lunch_in && $attendance->lunch_in !== '00:00:00',
             'is_break1_out' => $attendance && $attendance->break1_out && $attendance->break1_out !== '00:00:00',
             'is_break1_in' => $attendance && $attendance->break1_in && $attendance->break1_in !== '00:00:00',
+            'is_break2_out' => $attendance && $attendance->break2_out && $attendance->break2_out !== '00:00:00',
+            'is_break2_in' => $attendance && $attendance->break2_in && $attendance->break2_in !== '00:00:00',
             'is_out' => $attendance && $attendance->time_out && $attendance->time_out !== '00:00:00',
         ]);
     }
@@ -232,6 +236,12 @@ class WebBundyController extends Controller
             'am_out' => 'break1_out',
             'pm_in' => 'break1_in',
             'pm_out' => 'time_out',
+            'lunch_out' => 'lunch_out',
+            'lunch_in' => 'lunch_in',
+            'break1_out' => 'break1_out',
+            'break1_in' => 'break1_in',
+            'break2_out' => 'break2_out',
+            'break2_in' => 'break2_in',
         ];
 
         $column = $typeMap[$request->punch_type] ?? $request->punch_type;
@@ -242,17 +252,21 @@ class WebBundyController extends Controller
             return back()->with('bundy_error', 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' for shift starting ' . Carbon::parse($attendance->date)->format('M d') . '.');
         }
 
-        // Strict Sequence Validations
-        if ($request->punch_type == 'am_out' && ($attendance->time_in === '00:00:00' || !$attendance->time_in)) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH OUT because you haven\'t punched START SHIFT.');
+        // Strict Sequence Validations (Independent for each break type)
+        if ($request->punch_type !== 'am_in' && ($attendance->time_in === '00:00:00' || !$attendance->time_in)) {
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You must punch START SHIFT first.');
         }
 
-        if ($request->punch_type == 'pm_in' && ($attendance->break1_out === '00:00:00' || !$attendance->break1_out)) {
+        if ($request->punch_type == 'lunch_in' && ($attendance->lunch_out === '00:00:00' || !$attendance->lunch_out)) {
             return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH IN because you haven\'t punched LUNCH OUT.');
         }
 
-        if ($request->punch_type == 'pm_out' && ($attendance->time_in === '00:00:00' || !$attendance->time_in)) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch END SHIFT because you haven\'t punched START SHIFT.');
+        if ($request->punch_type == 'break1_in' && ($attendance->break1_out === '00:00:00' || !$attendance->break1_out)) {
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch 1st BREAK IN because you haven\'t punched 1st BREAK OUT.');
+        }
+
+        if ($request->punch_type == 'break2_in' && ($attendance->break2_out === '00:00:00' || !$attendance->break2_out)) {
+            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch 2nd BREAK IN because you haven\'t punched 2nd BREAK OUT.');
         }
 
         // Update the specific punch column

@@ -279,7 +279,18 @@ class PayrollService
         // Calculate actual break durations if they exist
         $actualBreakMinutes = 0;
         
-        // Break 1 (Lunch)
+        // Lunch Break
+        if ($attendance && $attendance->lunch_out && $attendance->lunch_in && 
+            $attendance->lunch_out !== '00:00:00' && $attendance->lunch_in !== '00:00:00') {
+            
+            $lout = Carbon::parse($dateStr . ' ' . $attendance->lunch_out);
+            $lin = Carbon::parse($dateStr . ' ' . $attendance->lunch_in);
+            
+            if ($lin->lessThan($lout)) $lin->addDay();
+            $actualBreakMinutes += $lin->diffInMinutes($lout, true);
+        }
+
+        // Break 1 (1st Break)
         if ($attendance && $attendance->break1_out && $attendance->break1_in && 
             $attendance->break1_out !== '00:00:00' && $attendance->break1_in !== '00:00:00') {
             
