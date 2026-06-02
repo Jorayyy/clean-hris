@@ -180,11 +180,20 @@
                 <div class="alert bg-white bg-opacity-10 border-0 text-white mb-0 p-3 rounded-4">
                     <div class="d-flex justify-content-between mb-2">
                         <span class="small fw-bold">Actual Punch In</span>
-                        <span class="small fw-bold">{{ $todayAttendance && $todayAttendance->time_in ? date('h:i A', strtotime($todayAttendance->time_in)) : 'NOT YET' }}</span>
+                        <span class="small fw-bold">
+                            @if($todayAttendance && $todayAttendance->time_in && $todayAttendance->time_in !== '00:00:00')
+                                {{ date('h:i A', strtotime($todayAttendance->time_in)) }}
+                                @if(Carbon\Carbon::parse($todayAttendance->date)->toDateString() !== $displayDate->toDateString())
+                                    <span class="opacity-75" style="font-size: 0.7rem;">(Record: {{ date('M d', strtotime($todayAttendance->date)) }})</span>
+                                @endif
+                            @else
+                                NOT YET
+                            @endif
+                        </span>
                     </div>
                     <div class="progress bg-dark bg-opacity-25" style="height: 8px;">
                         @php
-                            $progVal = ($todayAttendance && $todayAttendance->time_in) ? 100 : 0;
+                            $progVal = ($todayAttendance && $todayAttendance->time_in && $todayAttendance->time_in !== '00:00:00') ? 100 : 0;
                         @endphp
                         <div class="progress-bar bg-white border-0" role="progressbar" style="width: {{ $progVal }}%"></div>
                     </div>

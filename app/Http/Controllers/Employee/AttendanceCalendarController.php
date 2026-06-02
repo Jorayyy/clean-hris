@@ -12,7 +12,7 @@ class AttendanceCalendarController extends Controller
 {
     public function index(Request $request)
     {
-        $employee = \App\Models\Employee::find(Auth::user()->employee_id);
+        $employee = \App\Models\Employee::with(['scheduleGroup', 'site.scheduleGroup'])->find(Auth::user()->employee_id);
         if (!$employee) {
             // Instead of redirecting back (which might cause a loop if the referral is the same page),
             // show a dashboard with an error or a message.
@@ -29,8 +29,21 @@ class AttendanceCalendarController extends Controller
             ->get()
             ->keyBy('date');
 
+        // Pre-fetch schedules for the visible calendar days to avoid N+1 in blade
+        $startOfMonth = $selectedDate->copy()->startOfMonth();
+        $endOfMonth = $selectedDate->copy()->endOfMonth();
+        $startOfCalendar = $startOfMonth->copy()->startOfWeek(Carbon::MONDAY);
+        $endOfCalendar = $endOfMonth->copy()->endOfWeek(Carbon::SUNDAY);
+        
+        $daySchedules = [];
+        $tempDate = $startOfCalendar->copy();
+        while ($tempDate <= $endOfCalendar) {
+            $daySchedules[$tempDate->toDateString()] = $employee->getScheduleForDate($tempDate);
+            $tempDate->addDay();
+        }
+
         $schedule = $employee->active_schedule;
 
-        return view('employee.attendance', compact('attendances', 'selectedDate', 'schedule', 'employee'));
+        return view('employee.attendance', compact('attendances', 'selectedDate', 'schedule', 'employee', 'daySchedules'));
     }
 }

@@ -16,7 +16,7 @@
     @if($schedule)
     <div class="col-md-12 mb-3">
         <div class="alert alert-info py-2 shadow-sm border-0">
-            <strong>Active Schedule:</strong> {{ $schedule->name ?? 'Regular' }} ({{ $schedule->time_in }} - {{ $schedule->time_out }}) on {{ is_array($schedule->days) ? implode(', ', $schedule->days) : $schedule->days }}
+            <strong>Active Schedule:</strong> {{ $schedule->name ?? 'Regular' }} ({{ date('h:i A', strtotime($schedule->time_in)) }} - {{ date('h:i A', strtotime($schedule->time_out)) }}) on {{ is_array($schedule->days) ? implode(', ', $schedule->days) : $schedule->days }}
         </div>
     </div>
     @endif
@@ -52,17 +52,25 @@
                         @php
                             $dateStr = $current->format('Y-m-d');
                             $record = $attendances->get($dateStr);
+                            $daySched = $daySchedules[$dateStr] ?? null;
                             $isToday = $current->isToday();
                             $isOtherMonth = $current->month != $selectedDate->month;
                         @endphp
                         
                         <div class="calendar-day {{ $isOtherMonth ? 'other-month' : '' }} {{ $isToday ? 'today' : '' }}">
-                            <span class="day-number {{ $isToday ? 'text-primary' : '' }}">{{ $current->day }}</span>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="day-number {{ $isToday ? 'text-primary' : '' }}">{{ $current->day }}</span>
+                                @if($daySched && !$daySched->is_rest_day)
+                                    <span class="text-muted" style="font-size: 0.6rem; font-weight: normal;">
+                                        {{ date('h:i A', strtotime($daySched->time_in)) }} - {{ date('h:i A', strtotime($daySched->time_out)) }}
+                                    </span>
+                                @endif
+                            </div>
                             
                             @if($record)
                                 <div class="attendance-info">
                                     @php
-                                        $isRestDay = $schedule && is_array($schedule->days) && !in_array($current->format('l'), $schedule->days);
+                                        $isRestDay = !$daySched || $daySched->is_rest_day;
                                         $hasOT = isset($record->overtime_hours) && $record->overtime_hours > 0;
                                     @endphp
 
@@ -98,14 +106,12 @@
                                 </div>
                             @else
                                 @php
-                                    $isRestDay = $schedule && is_array($schedule->days) && !in_array($current->format('l'), $schedule->days);
+                                    $isRestDay = !$daySched || $daySched->is_rest_day;
                                 @endphp
                                 
                                 @if(!$isOtherMonth)
                                     @if($isRestDay)
                                         <div class="text-muted small italic opacity-75" style="font-size: 0.7rem;">Rest Day</div>
-                                    @elseif($schedule && is_array($schedule->days) && in_array($current->format('l'), $schedule->days))
-                                        <div class="text-muted small italic" style="font-size: 0.7rem;">Scheduled</div>
                                     @endif
                                 @endif
                             @endif

@@ -50,9 +50,21 @@ class WebBundyController extends Controller
             ->where('date', $today)
             ->first();
 
-        // If yesterday is open and today hasn't started, priority is yesterday
-        if ($yesterdayAttendance && (!$todayAttendance || $todayAttendance->time_in === '00:00:00')) {
-            $targetDate = $yesterday;
+        // If it's early morning (before 9 AM), be smart:
+        if ($now->hour < 9) {
+            // Priority 1: If yesterday has an open shift, use it
+            if ($yesterdayAttendance) {
+                $targetDate = $yesterday;
+            } 
+            // Priority 2: If no punch yet today, but yesterday HAD a night shift,
+            // we might want the next punch (START SHIFT) to stay on yesterday.
+            // But checkStatus just reports what IS, not what WILL BE.
+            elseif (!$todayAttendance) {
+                $yesterdaySched = $employee->getScheduleForDate($yesterday);
+                if ($yesterdaySched && Carbon::parse($yesterdaySched->time_in)->hour >= 18) {
+                    $targetDate = $yesterday;
+                }
+            }
         }
 
         $attendance = $targetDate === $yesterday ? $yesterdayAttendance : $todayAttendance;
