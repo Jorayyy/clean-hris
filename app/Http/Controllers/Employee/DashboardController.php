@@ -82,13 +82,27 @@ class DashboardController extends Controller
         $currentAttendance = null;
         $displayDate = Carbon::today();
 
-        // If it's early morning, prioritize yesterday's session if it's still open OR if today's record is empty
+        // If it's early morning, be very smart about identifying the active session
         if ($now->hour < 9) {
+            // Case 1: Yesterday's shift is explicitly open
             if ($yesterdayAttendance && (!$yesterdayAttendance->time_out || $yesterdayAttendance->time_out == '00:00:00')) {
                 $currentAttendance = $yesterdayAttendance;
                 $displayDate = Carbon::yesterday();
-            } elseif (!$todayAttendance && $yesterdayAttendance) {
-                // If today is empty but yesterday exists, maybe they just finished?
+            } 
+            // Case 2: Today has a punch, but is it a morning punch for yesterday's shift?
+            elseif ($todayAttendance && $todayAttendance->time_in && Carbon::parse($todayAttendance->time_in)->hour < 6) {
+                // If today's rostered shift starts at night (e.g. >= 6 PM), then a 1 AM punch is definitely for yesterday
+                $todaySched = $employee->getScheduleForDate(Carbon::today());
+                if ($todaySched && Carbon::parse($todaySched->time_in)->hour >= 18) {
+                    $currentAttendance = $todayAttendance;
+                    $displayDate = Carbon::yesterday(); // Display the roster for yesterday
+                } else {
+                    $currentAttendance = $todayAttendance;
+                    $displayDate = Carbon::today();
+                }
+            }
+            // Case 3: No today punch, yesterday exists (maybe just finished)
+            elseif (!$todayAttendance && $yesterdayAttendance) {
                 $currentAttendance = $yesterdayAttendance;
                 $displayDate = Carbon::yesterday();
             } else {
@@ -101,21 +115,9 @@ class DashboardController extends Controller
             $displayDate = Carbon::today();
         }
 
-        // SPECIAL OVERRIDE: If today's record exists but it was punched very early (e.g. before 6 AM)
-        // and today's roster starts late (e.g. at night), then this record likely belongs to "Yesterday"
-        if ($todayAttendance && !$currentAttendance && $now->hour < 9) {
-             $todaySched = $employee->getScheduleForDate(Carbon::today());
-             if ($todaySched && Carbon::parse($todaySched->time_in)->hour >= 18) {
-                 // The punch is at 1 AM, but shift starts at 8 PM. This is definitely for yesterday.
-                 $currentAttendance = $todayAttendance;
-                 // We still show the display date as the day it was actually recorded for visual consistency if needed,
-                 // but the schedule we compare it to should be Yesterday's.
-                 // Actually, if it's recorded as Today, but it's for Yesterday's shift, it's messy.
-             }
-        }
-
-        // Final decision: if we have a currentAttendance, we use its date for the roster
-        if ($currentAttendance) {
+        // Final decision: if we have a currentAttendance and we haven't set displayDate yet
+        // we use its date for the roster
+        if ($currentAttendance && !isset($displayDate)) {
             $displayDate = Carbon::parse($currentAttendance->date);
         }
 

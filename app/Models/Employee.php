@@ -74,13 +74,14 @@ class Employee extends Model
         $manual = $this->schedules()->whereDate('schedule_date', $dateStr)->first();
         if ($manual) return $manual;
 
-        // PRIORITY 1.5: Individual 7-Day Pattern (Matching day of week)
+        // PRIORITY 1.5: Individual 7-Day Pattern (Matching day of week OR day name in 'days' array)
         $phpDayOfWeek = \Carbon\Carbon::parse($date)->dayOfWeek; // 0 (Sun) to 6 (Sat)
-        // Convert to our model's logic if needed (Laravel's Carbon dayOfWeek is 0=Sun, 6=Sat)
-        // The form sends 0=Mon, 6=Sun or 0=Sun? Let's assume matches 0-6.
         $pattern = $this->schedules()
             ->whereNull('schedule_date')
-            ->where('day_of_week', $phpDayOfWeek)
+            ->where(function($q) use ($phpDayOfWeek, $dayName) {
+                $q->where('day_of_week', $phpDayOfWeek)
+                  ->orWhereJsonContains('days', $dayName);
+            })
             ->first();
 
         if ($pattern && !$pattern->is_rest_day) {
