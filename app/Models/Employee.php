@@ -69,20 +69,29 @@ class Employee extends Model
     {
         $dateStr = \Carbon\Carbon::parse($date)->toDateString();
         $dayName = \Carbon\Carbon::parse($date)->format('l');
+        $phpDayOfWeek = \Carbon\Carbon::parse($date)->dayOfWeek; // 0 (Sun) to 6 (Sat)
 
         // PRIORITY 1: Individual Override for this date
         $manual = $this->schedules()->whereDate('schedule_date', $dateStr)->first();
         if ($manual) return $manual;
 
-        // PRIORITY 1.5: Individual 7-Day Pattern (Matching day of week OR day name in 'days' array)
-        $phpDayOfWeek = \Carbon\Carbon::parse($date)->dayOfWeek; // 0 (Sun) to 6 (Sat)
-        $pattern = $this->schedules()
-            ->whereNull('schedule_date')
-            ->where(function($q) use ($phpDayOfWeek, $dayName) {
-                $q->where('day_of_week', $phpDayOfWeek)
-                  ->orWhereJsonContains('days', $dayName);
-            })
-            ->first();
+        // PRIORITY 1.5: Individual 7-Day Pattern
+        // We fetch all patterns for this employee and filter in PHP to ensure database compatibility (SQLite/MySQL)
+        $patterns = $this->schedules()->whereNull('schedule_date')->get();
+        
+        $pattern = $patterns->first(function($p) use ($phpDayOfWeek, $dayName) {
+            // Check day_of_week integer match
+            if ($p->day_of_week !== null && (int)$p->day_of_week === $phpDayOfWeek) {
+                return true;
+            }
+            
+            // Check days JSON array match
+            if ($p->days && is_array($p->days)) {
+                return in_array($dayName, $p->days);
+            }
+            
+            return false;
+        });
 
         if ($pattern && !$pattern->is_rest_day) {
             // Load times from the linked shift if it exists

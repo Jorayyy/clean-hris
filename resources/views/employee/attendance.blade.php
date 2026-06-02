@@ -58,11 +58,11 @@
                         @endphp
                         
                         <div class="calendar-day {{ $isOtherMonth ? 'other-month' : '' }} {{ $isToday ? 'today' : '' }}">
-                            <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
                                 <span class="day-number {{ $isToday ? 'text-primary' : '' }}">{{ $current->day }}</span>
                                 @if($daySched && !$daySched->is_rest_day)
-                                    <span class="text-muted" style="font-size: 0.6rem; font-weight: normal;">
-                                        {{ date('h:i A', strtotime($daySched->time_in)) }} - {{ date('h:i A', strtotime($daySched->time_out)) }}
+                                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.55rem; letter-spacing: 0.05em;">
+                                        {{ date('h:iA', strtotime($daySched->time_in)) }}-{{ date('h:iA', strtotime($daySched->time_out)) }}
                                     </span>
                                 @endif
                             </div>
@@ -72,23 +72,36 @@
                                     @php
                                         $isRestDay = !$daySched || $daySched->is_rest_day;
                                         $hasOT = isset($record->overtime_hours) && $record->overtime_hours > 0;
+                                        $isLate = isset($record->late_minutes) && $record->late_minutes > 0;
+                                        $isUT = isset($record->undertime_minutes) && $record->undertime_minutes > 0;
                                     @endphp
 
                                     @if($isRestDay && !$hasOT)
-                                        <div class="text-muted small italic mb-1" style="font-size: 0.65rem;">Rest Day (Worked)</div>
+                                        <div class="text-muted small italic mb-1" style="font-size: 0.6rem;">Rest Day (Worked)</div>
                                     @elseif($isRestDay && $hasOT)
-                                        <div class="text-primary small fw-bold mb-1" style="font-size: 0.65rem;">Rest Day (OT)</div>
+                                        <div class="text-primary small fw-bold mb-1" style="font-size: 0.6rem;">Rest Day (OT)</div>
                                     @endif
 
                                     @if($record->time_in && $record->time_in !== '00:00:00')
                                         <div class="d-flex flex-wrap gap-1 mb-1">
-                                            <span class="badge bg-success badge-time flex-grow-1" title="In: {{ date('h:i A', strtotime($record->time_in)) }}">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle badge-time flex-grow-1" style="font-size: 0.65rem;" title="In: {{ date('h:i A', strtotime($record->time_in)) }}">
                                                 <i class="bi bi-box-arrow-in-right"></i> {{ date('h:i A', strtotime($record->time_in)) }}
                                             </span>
                                             @if($record->time_out && $record->time_out !== '00:00:00')
-                                                <span class="badge bg-secondary badge-time flex-grow-1" title="Out: {{ date('h:i A', strtotime($record->time_out)) }}">
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-time flex-grow-1" style="font-size: 0.65rem;" title="Out: {{ date('h:i A', strtotime($record->time_out)) }}">
                                                     <i class="bi bi-box-arrow-left"></i> {{ date('h:i A', strtotime($record->time_out)) }}
                                                 </span>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    @if($isLate || $isUT)
+                                        <div class="d-flex gap-1 mb-1">
+                                            @if($isLate)
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-1" style="font-size: 0.55rem;" title="{{ $record->late_minutes }}m late">LATE: {{ $record->late_minutes }}m</span>
+                                            @endif
+                                            @if($isUT)
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-1" style="font-size: 0.55rem;" title="{{ $record->undertime_minutes }}m undertime">UT: {{ $record->undertime_minutes }}m</span>
                                             @endif
                                         </div>
                                     @endif
@@ -96,20 +109,20 @@
                                     @if(($record->break1_out && $record->break1_out !== '00:00:00') || ($record->lunch_out && $record->lunch_out !== '00:00:00'))
                                         <div class="border-top mt-1 pt-1 d-flex flex-column gap-1">
                                             @if($record->lunch_out && $record->lunch_out !== '00:00:00')
-                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.65rem;">
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.6rem;">
                                                     <span class="text-muted">Lunch:</span>
                                                     <span class="fw-bold text-info">{{ date('h:i', strtotime($record->lunch_out)) }}-{{ $record->lunch_in && $record->lunch_in !== '00:00:00' ? date('h:i', strtotime($record->lunch_in)) : '??' }}</span>
                                                 </div>
                                             @endif
                                             @if($record->break1_out && $record->break1_out !== '00:00:00')
-                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.65rem;">
-                                                    <span class="text-muted">Break 1:</span>
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.6rem;">
+                                                    <span class="text-muted">B1:</span>
                                                     <span class="fw-bold text-info">{{ date('h:i', strtotime($record->break1_out)) }}-{{ $record->break1_in && $record->break1_in !== '00:00:00' ? date('h:i', strtotime($record->break1_in)) : '??' }}</span>
                                                 </div>
                                             @endif
                                             @if($record->break2_out && $record->break2_out !== '00:00:00')
-                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.65rem;">
-                                                    <span class="text-muted">Break 2:</span>
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.6rem;">
+                                                    <span class="text-muted">B2:</span>
                                                     <span class="fw-bold text-info">{{ date('h:i', strtotime($record->break2_out)) }}-{{ $record->break2_in && $record->break2_in !== '00:00:00' ? date('h:i', strtotime($record->break2_in)) : '??' }}</span>
                                                 </div>
                                             @endif
@@ -117,7 +130,12 @@
                                     @endif
 
                                     @if(isset($record->total_hours) && $record->total_hours > 0)
-                                        <div class="text-end mt-1" style="font-size: 0.65rem;">
+                                        <div class="text-end mt-1 d-flex justify-content-between align-items-center" style="font-size: 0.6rem;">
+                                            @if($hasOT)
+                                                <span class="text-primary fw-bold">OT: {{ number_format($record->overtime_hours, 1) }}</span>
+                                            @else
+                                                <span></span>
+                                            @endif
                                             <span class="fw-bold text-dark">{{ number_format($record->total_hours, 1) }} hrs</span>
                                         </div>
                                     @endif
