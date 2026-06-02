@@ -117,7 +117,11 @@ class Employee extends Model
         if (!$config || $config === 'OFF') return null;
         
         $isRestDay = is_array($config) && ($config['is_rest_day'] ?? false);
-        if ($isRestDay) return null;
+        if ($isRestDay) {
+            $temp = new \App\Models\Schedule();
+            $temp->is_rest_day = true;
+            return $temp;
+        }
 
         $id = is_array($config) ? ($config['id'] ?? null) : $config;
         if (!$id) return null;
@@ -128,6 +132,7 @@ class Employee extends Model
             $temp = new \App\Models\Schedule();
             $temp->time_in = $shift->time_in;
             $temp->time_out = $shift->time_out;
+            $temp->name = $shift->name;
             return $temp;
         }
 
@@ -137,11 +142,22 @@ class Employee extends Model
             $temp = new \App\Models\Schedule();
             $temp->time_in = $custom->start_time;
             $temp->time_out = $custom->end_time;
+            $temp->name = $custom->title;
             return $temp;
         }
 
         // Fallback to Schedule (Legacy)
-        return \App\Models\Schedule::find($id);
+        $legacy = \App\Models\Schedule::find($id);
+        if ($legacy) {
+            // Ensure values are copied if it's acting as a template
+            $temp = new \App\Models\Schedule();
+            $temp->time_in = $legacy->time_in;
+            $temp->time_out = $legacy->time_out;
+            $temp->name = $legacy->name;
+            return $temp;
+        }
+
+        return null;
     }
 
     public function getFullNameAttribute()

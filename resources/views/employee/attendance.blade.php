@@ -81,27 +81,45 @@
                                     @endif
 
                                     @if($record->time_in && $record->time_in !== '00:00:00')
-                                        <span class="badge bg-success badge-time text-truncate" title="In: {{ date('h:i A', strtotime($record->time_in)) }}">
-                                            In: {{ date('h:i A', strtotime($record->time_in)) }}
-                                        </span>
+                                        <div class="d-flex flex-wrap gap-1 mb-1">
+                                            <span class="badge bg-success badge-time flex-grow-1" title="In: {{ date('h:i A', strtotime($record->time_in)) }}">
+                                                <i class="bi bi-box-arrow-in-right"></i> {{ date('h:i A', strtotime($record->time_in)) }}
+                                            </span>
+                                            @if($record->time_out && $record->time_out !== '00:00:00')
+                                                <span class="badge bg-secondary badge-time flex-grow-1" title="Out: {{ date('h:i A', strtotime($record->time_out)) }}">
+                                                    <i class="bi bi-box-arrow-left"></i> {{ date('h:i A', strtotime($record->time_out)) }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     @endif
 
-                                    @if($record->break1_out && $record->break1_out !== '00:00:00')
-                                        <span class="badge bg-info badge-time text-truncate" title="Lunch Out: {{ date('h:i A', strtotime($record->break1_out)) }}">
-                                            L-Out: {{ date('h:i A', strtotime($record->break1_out)) }}
-                                        </span>
+                                    @if(($record->break1_out && $record->break1_out !== '00:00:00') || ($record->lunch_out && $record->lunch_out !== '00:00:00'))
+                                        <div class="border-top mt-1 pt-1 d-flex flex-column gap-1">
+                                            @if($record->lunch_out && $record->lunch_out !== '00:00:00')
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.65rem;">
+                                                    <span class="text-muted">Lunch:</span>
+                                                    <span class="fw-bold text-info">{{ date('h:i', strtotime($record->lunch_out)) }}-{{ $record->lunch_in && $record->lunch_in !== '00:00:00' ? date('h:i', strtotime($record->lunch_in)) : '??' }}</span>
+                                                </div>
+                                            @endif
+                                            @if($record->break1_out && $record->break1_out !== '00:00:00')
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.65rem;">
+                                                    <span class="text-muted">Break 1:</span>
+                                                    <span class="fw-bold text-info">{{ date('h:i', strtotime($record->break1_out)) }}-{{ $record->break1_in && $record->break1_in !== '00:00:00' ? date('h:i', strtotime($record->break1_in)) : '??' }}</span>
+                                                </div>
+                                            @endif
+                                            @if($record->break2_out && $record->break2_out !== '00:00:00')
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.65rem;">
+                                                    <span class="text-muted">Break 2:</span>
+                                                    <span class="fw-bold text-info">{{ date('h:i', strtotime($record->break2_out)) }}-{{ $record->break2_in && $record->break2_in !== '00:00:00' ? date('h:i', strtotime($record->break2_in)) : '??' }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
                                     @endif
 
-                                    @if($record->break1_in && $record->break1_in !== '00:00:00')
-                                        <span class="badge bg-info badge-time text-truncate" title="Lunch In: {{ date('h:i A', strtotime($record->break1_in)) }}">
-                                            L-In: {{ date('h:i A', strtotime($record->break1_in)) }}
-                                        </span>
-                                    @endif
-
-                                    @if($record->time_out && $record->time_out !== '00:00:00')
-                                        <span class="badge bg-secondary badge-time text-truncate" title="Out: {{ date('h:i A', strtotime($record->time_out)) }}">
-                                            Out: {{ date('h:i A', strtotime($record->time_out)) }}
-                                        </span>
+                                    @if(isset($record->total_hours) && $record->total_hours > 0)
+                                        <div class="text-end mt-1" style="font-size: 0.65rem;">
+                                            <span class="fw-bold text-dark">{{ number_format($record->total_hours, 1) }} hrs</span>
+                                        </div>
                                     @endif
                                 </div>
                             @else
