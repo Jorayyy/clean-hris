@@ -14,7 +14,7 @@ class ScheduleCalendarController extends Controller
 {
     public function index(Request $request)
     {
-        $employee = Employee::find(Auth::user()->employee_id);
+        $employee = Employee::with(['scheduleGroup', 'site.scheduleGroup'])->find(Auth::user()->employee_id);
         if (!$employee) {
             return redirect()->back()->with('error', 'Employee record not found.');
         }
@@ -23,48 +23,32 @@ class ScheduleCalendarController extends Controller
         $year = $request->get('year', Carbon::now()->year);
         $selectedDate = Carbon::createFromDate($year, $month, 1);
 
-        $daysInMonth = $selectedDate->daysInMonth;
+        // Pre-fetch schedules for the full calendar view (including buffer days)
+        $startOfMonth = $selectedDate->copy()->startOfMonth();
+        $endOfMonth = $selectedDate->copy()->endOfMonth();
+        $startOfCalendar = $startOfMonth->copy()->startOfWeek(Carbon::MONDAY);
+        $endOfCalendar = $endOfMonth->copy()->endOfWeek(Carbon::SUNDAY);
+
         $scheduleData = [];
-
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $date = Carbon::createFromDate($year, $month, $day);
-            $dateStr = $date->toDateString();
-
-            // Use the centralized robust logic from Employee model
+        $tempDate = $startOfCalendar->copy();
+        
+        while ($tempDate <= $endOfCalendar) {
+            $dateStr = $tempDate->toDateString();
             $sched = $employee->getScheduleForDate($dateStr);
             
             $isRestDay = false;
-            if (!$sched) {
-                // Check if it's explicitly a rest day
-                $manual = $employee->schedules()->whereDate('schedule_date', $dateStr)->first();
-                if ($manual && $manual->is_rest_day) {
-                    $isRestDay = true;
-                } else {
-                    $phpDayOfWeek = $date->dayOfWeek;
-                    $pattern = $employee->schedules()
-                        ->whereNull('schedule_date')
-                        ->where('day_of_week', $phpDayOfWeek)
-                        ->first();
-                    if ($pattern && $pattern->is_rest_day) $isRestDay = true;
-                }
-                
-                // If still not determined, check group configs
-                if (!$isRestDay) {
-                    $dayName = $date->format('l');
-                    $group = $employee->scheduleGroup ?? $employee->site?->scheduleGroup;
-                    if ($group) {
-                        $config = $group->schedule_config[$dayName] ?? null;
-                        if ($config === 'OFF' || (isset($config['is_rest_day']) && $config['is_rest_day'])) {
-                            $isRestDay = true;
-                        }
-                    }
-                }
+            if ($sched && $sched->is_rest_day) {
+                $isRestDay = true;
+            } elseif (!$sched) {
+                $isRestDay = true; // No schedule found is treated as a rest day for the roster view
             }
 
             $scheduleData[$dateStr] = [
                 'schedule' => $sched,
                 'is_rest_day' => $isRestDay,
             ];
+            
+            $tempDate->addDay();
         }
 
         return view('employee.schedule', compact('scheduleData', 'selectedDate', 'employee'));

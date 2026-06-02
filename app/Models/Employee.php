@@ -57,12 +57,32 @@ class Employee extends Model
 
     public function getActiveScheduleAttribute()
     {
-        // Check for specific individual schedule first (regardless of date, for simple display)
-        $individual = $this->schedules()->whereNotNull('time_in')->first();
-        if ($individual) return $individual;
+        // 1. Check for specific individual override for TODAY
+        $today = \Carbon\Carbon::now()->toDateString();
+        $manual = $this->schedules()->whereDate('schedule_date', $today)->first();
+        if ($manual) return $manual;
 
-        // Otherwise, use group schedule
-        return $this->payrollGroup?->schedules()->first();
+        // 2. Check for individual pattern
+        $dayName = \Carbon\Carbon::now()->format('l');
+        $patterns = $this->schedules()->whereNull('schedule_date')->get();
+        $pattern = $patterns->first(function($p) use ($dayName) {
+            return $p->days && is_array($p->days) && in_array($dayName, $p->days);
+        });
+        if ($pattern) return $pattern;
+
+        // 3. Use group schedule
+        if ($this->schedule_group_id && $this->scheduleGroup) {
+            $resolved = $this->resolveScheduleFromConfig($this->scheduleGroup->schedule_config[$dayName] ?? $this->scheduleGroup->schedule_config[strtoupper($dayName)] ?? null);
+            if ($resolved) return $resolved;
+        }
+
+        // 4. Use site schedule
+        if ($this->site && $this->site->schedule_group_id && $this->site->scheduleGroup) {
+            $resolved = $this->resolveScheduleFromConfig($this->site->scheduleGroup->schedule_config[$dayName] ?? $this->site->scheduleGroup->schedule_config[strtoupper($dayName)] ?? null);
+            if ($resolved) return $resolved;
+        }
+
+        return null;
     }
 
     public function getScheduleForDate($date)
@@ -71,53 +91,52 @@ class Employee extends Model
         $dayName = \Carbon\Carbon::parse($date)->format('l');
         $phpDayOfWeek = \Carbon\Carbon::parse($date)->dayOfWeek; // 0 (Sun) to 6 (Sat)
 
-        // PRIORITY 1: Individual Override for this date
+        // PRIORITY 1: Individual Override for this date (Manual Plotting)
         $manual = $this->schedules()->whereDate('schedule_date', $dateStr)->first();
-        if ($manual) return $manual;
+        if ($manual) {
+            // Even if it's a rest day, return it so we know it's a rest day
+            return $manual;
+        }
 
         // PRIORITY 1.5: Individual 7-Day Pattern
-        // We fetch all patterns for this employee and filter in PHP to ensure database compatibility (SQLite/MySQL)
         $patterns = $this->schedules()->whereNull('schedule_date')->get();
         
         $pattern = $patterns->first(function($p) use ($phpDayOfWeek, $dayName) {
-            // Check day_of_week integer match
-            if ($p->day_of_week !== null && (int)$p->day_of_week === $phpDayOfWeek) {
-                return true;
-            }
-            
-            // Check days JSON array match
-            if ($p->days && is_array($p->days)) {
-                return in_array($dayName, $p->days);
-            }
-            
+            if ($p->day_of_week !== null && (int)$p->day_of_week === $phpDayOfWeek) return true;
+            if ($p->days && is_array($p->days)) return in_array($dayName, $p->days);
             return false;
         });
 
-        if ($pattern && !$pattern->is_rest_day) {
-            // Load times from the linked shift if it exists
-            if ($pattern->shift_id && $pattern->shift) {
-                $pattern->time_in = $pattern->shift->time_in;
-                $pattern->time_out = $pattern->shift->time_out;
-            } elseif ($pattern->custom_shift_id && $pattern->customShift) {
-                $pattern->time_in = $pattern->customShift->start_time;
-                $pattern->time_out = $pattern->customShift->end_time;
+        if ($pattern) {
+            if (!$pattern->is_rest_day) {
+                if ($pattern->shift_id && $pattern->shift) {
+                    $pattern->time_in = $pattern->shift->time_in;
+                    $pattern->time_out = $pattern->shift->time_out;
+                    $pattern->name = $pattern->shift->name;
+                } elseif ($pattern->custom_shift_id && $pattern->customShift) {
+                    $pattern->time_in = $pattern->customShift->start_time;
+                    $pattern->time_out = $pattern->customShift->end_time;
+                    $pattern->name = $pattern->customShift->title;
+                }
             }
             return $pattern;
         }
 
         // PRIORITY 2: Schedule Group assigned to employee
         if ($this->schedule_group_id && $this->scheduleGroup) {
-            $resolved = $this->resolveScheduleFromConfig($this->scheduleGroup->schedule_config[$dayName] ?? null);
+            // Try both Title Case and UPPERCASE for day names to handle different DB formats
+            $config = $this->scheduleGroup->schedule_config[$dayName] ?? $this->scheduleGroup->schedule_config[strtoupper($dayName)] ?? null;
+            $resolved = $this->resolveScheduleFromConfig($config);
             if ($resolved) return $resolved;
         }
 
         // PRIORITY 3: Site Schedule
         if ($this->site && $this->site->schedule_group_id && $this->site->scheduleGroup) {
-            $resolved = $this->resolveScheduleFromConfig($this->site->scheduleGroup->schedule_config[$dayName] ?? null);
+            $config = $this->site->scheduleGroup->schedule_config[$dayName] ?? $this->site->scheduleGroup->schedule_config[strtoupper($dayName)] ?? null;
+            $resolved = $this->resolveScheduleFromConfig($config);
             if ($resolved) return $resolved;
         }
 
-        // Fallback
         return null;
     }
 

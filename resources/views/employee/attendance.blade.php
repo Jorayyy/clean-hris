@@ -14,9 +14,38 @@
     </div>
 
     @if($schedule)
-    <div class="col-md-12 mb-3">
-        <div class="alert alert-info py-2 shadow-sm border-0">
-            <strong>Active Schedule:</strong> {{ $schedule->name ?? 'Regular' }} ({{ date('h:i A', strtotime($schedule->time_in)) }} - {{ date('h:i A', strtotime($schedule->time_out)) }}) on {{ is_array($schedule->days) ? implode(', ', $schedule->days) : $schedule->days }}
+    <div class="col-md-12 mb-4">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="alert alert-info py-3 shadow-sm border-0 mb-0 h-100 d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-1 text-primary fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Active Schedule Pattern</h6>
+                        <strong>{{ $schedule->name ?? 'Regular Shift' }}</strong> 
+                        ({{ date('h:i A', strtotime($schedule->time_in)) }} - {{ date('h:i A', strtotime($schedule->time_out)) }})
+                        <span class="ms-1 opacity-75">on {{ is_array($schedule->days) ? implode(', ', $schedule->days) : $schedule->days }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-2 d-flex justify-content-around align-items-center text-center">
+                        <div>
+                            <div class="text-muted small">Lates</div>
+                            <div class="fw-bold text-danger h5 mb-0">{{ $attendances->where('late_minutes', '>', 0)->count() }}</div>
+                        </div>
+                        <div class="vr mx-2"></div>
+                        <div>
+                            <div class="text-muted small">UT</div>
+                            <div class="fw-bold text-warning h5 mb-0">{{ $attendances->where('undertime_minutes', '>', 0)->count() }}</div>
+                        </div>
+                        <div class="vr mx-2"></div>
+                        <div>
+                            <div class="text-muted small">Worked</div>
+                            <div class="fw-bold text-success h5 mb-0">{{ $attendances->count() }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     @endif

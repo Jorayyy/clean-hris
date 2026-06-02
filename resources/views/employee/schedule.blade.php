@@ -17,19 +17,46 @@
         $activeSched = $employee->active_schedule;
     @endphp
 
-    @if($activeSched)
-        <div class="col-md-12 mb-3">
-            <div class="alert alert-info py-2 shadow-sm border-0 d-flex justify-content-between align-items-center">
-                <div>
-                    <i class="bi bi-info-circle-fill me-2"></i>
-                    <strong>Active Schedule:</strong> {{ $activeSched->name ?? 'Regular' }} 
-                    ({{ date('h:i A', strtotime($activeSched->time_in)) }} - {{ date('h:i A', strtotime($activeSched->time_out)) }})
-                    on {{ is_array($activeSched->days) ? implode(', ', $activeSched->days) : ($activeSched->day_of_week !== null ? \Carbon\Carbon::create()->dayOfWeek((int)$activeSched->day_of_week)->format('l') : 'All Days') }}
+    <div class="col-md-12 mb-4">
+        <div class="row g-3">
+            <div class="col-md-7">
+                <div class="card border-0 shadow-sm h-100 bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 small text-uppercase fw-bold mb-2">Primary Assignment</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white bg-opacity-25 rounded p-2 me-3">
+                                <i class="bi bi-building h3 mb-0"></i>
+                            </div>
+                            <div>
+                                <div class="h5 mb-0 fw-bold">{{ $employee->site->name ?? 'No Site Assigned' }}</div>
+                                <div class="small opacity-75">{{ $employee->scheduleGroup->name ?? 'General Schedule' }} Group</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="small opacity-75 fw-bold">PROCESSED</div>
+            </div>
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted small text-uppercase fw-bold mb-2">Default Shift</h6>
+                        @if($activeSched)
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">{{ $activeSched->name ?? 'Regular Shift' }}</div>
+                                    <div class="text-primary small fw-bold">{{ date('h:i A', strtotime($activeSched->time_in)) }} - {{ date('h:i A', strtotime($activeSched->time_out)) }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">ACTIVE</span>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-muted small">No active schedule pattern found.</div>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
-    @endif
+    </div>
 
     <div class="col-md-12">
         <div class="card shadow border-0 overflow-hidden">
