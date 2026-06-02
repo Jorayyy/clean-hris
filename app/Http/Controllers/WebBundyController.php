@@ -181,6 +181,31 @@ class WebBundyController extends Controller
         // NIGHT SHIFT LOGIC: Intelligent Target Date Detection
         $targetDate = $today;
         
+        // If they are punching 'am_in' early in the morning (before 6 AM), 
+        // they might be punching in late for a shift that started yesterday (night shift).
+        if ($request->punch_type === 'am_in' && $now->hour < 6) {
+            $yesterday = Carbon::yesterday()->toDateString();
+            $yesterdaySched = $employee->getScheduleForDate($yesterday);
+            
+            if ($yesterdaySched) {
+                // If yesterday's shift starts at night (e.g. > 18:00)
+                $yesterdayIn = Carbon::parse($yesterdaySched->time_in);
+                if ($yesterdayIn->hour >= 18 || $yesterdayIn->hour < 4) {
+                    // Check if they already punched for yesterday
+                    $exists = Attendance::where('employee_id', $employee->id)
+                        ->where('date', $yesterday)
+                        ->where(function($q) {
+                             $q->where('time_in', '!=', '00:00:00')->whereNotNull('time_in');
+                        })
+                        ->exists();
+                    
+                    if (!$exists) {
+                        $targetDate = $yesterday;
+                    }
+                }
+            }
+        }
+
         // If they are punching anything EXCEPT 'am_in', check if they have an open shift from yesterday
         if ($request->punch_type !== 'am_in') {
             $todayAttendance = Attendance::where('employee_id', $employee->id)

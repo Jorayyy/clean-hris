@@ -155,40 +155,26 @@
                         <i class="bi bi-clock-fill fs-3"></i>
                     </div>
                     @php
-                        // Reuse the schedule logic from controller (or simply fetch today's active schedule for visual)
-                        $todayObj = \Carbon\Carbon::today();
-                        $site = $employee->site_id ? \App\Models\Site::with('scheduleGroup')->find($employee->site_id) : null;
-                        $activeSched = $employee->active_schedule;
-                        $todayName = $todayObj->format('l');
                         $todaySchedStr = 'Rest Day';
-                        $showSched = null;
-
-                        if ($site && $site->schedule_group_id && $site->scheduleGroup) {
-                            $dayCfg = $site->scheduleGroup->schedule_config[$todayName] ?? null;
-                            if ($dayCfg !== 'OFF' && !isset($dayCfg['is_rest_day'])) {
-                                $sid = is_array($dayCfg) ? ($dayCfg['id'] ?? null) : $dayCfg;
-                                $showSched = \App\Models\Schedule::find($sid);
-                            }
-                        } elseif ($site && $site->schedule_config && isset($site->schedule_config[$todayName])) {
-                            $cfg = $site->schedule_config[$todayName];
-                            if ($cfg !== 'OFF') {
-                                $showSched = \App\Models\Schedule::find($cfg);
-                            }
-                        }
-
-                        if (!$showSched && $activeSched && is_array($activeSched->days) && in_array($todayName, $activeSched->days)) {
-                             $showSched = $activeSched;
-                        }
-
-                        if ($showSched) {
-                            $todaySchedStr = date('h:i A', strtotime($showSched->time_in)) . ' - ' . date('h:i A', strtotime($showSched->time_out));
+                        if ($displaySchedule) {
+                            $todaySchedStr = date('h:i A', strtotime($displaySchedule->time_in)) . ' - ' . date('h:i A', strtotime($displaySchedule->time_out));
+                            
+                            // Check if this looks like a night shift (e.g. 10 PM to 6 AM)
+                            // If time_out < time_in, it's definitely overnight.
+                            // But usually strtotime will handle the formatting fine as long as the data is correct.
                         }
                     @endphp
                     <div class="ms-3">
                         <h5 class="fw-800 mb-0 font-monospace">
                             {{ $todaySchedStr }}
                         </h5>
-                        <span class="small opacity-75">Your rostered shift today</span>
+                        <span class="small opacity-75">
+                            @if($displayDate->isToday())
+                                Your rostered shift today
+                            @else
+                                Your rostered shift ({{ $displayDate->format('M d') }})
+                            @endif
+                        </span>
                     </div>
                 </div>
                 <div class="alert bg-white bg-opacity-10 border-0 text-white mb-0 p-3 rounded-4">

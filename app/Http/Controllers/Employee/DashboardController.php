@@ -67,10 +67,38 @@ class DashboardController extends Controller
         $latestSalary = (clone $query)->latest()->first();
         $salaries = $query->latest()->get();
 
-        // New real data
+        // New real data: Improved Night Shift detection for Dashboard display
+        $now = Carbon::now();
+        
+        // Find the most relevant attendance record for the "Current Status" card
+        // We look for today's OR yesterday's (if today hasn't ended and yesterday was night shift)
         $todayAttendance = Attendance::where('employee_id', $employee->id)
             ->whereDate('date', Carbon::today())
             ->first();
+            
+        $yesterdayAttendance = Attendance::where('employee_id', $employee->id)
+            ->whereDate('date', Carbon::yesterday())
+            ->first();
+
+        // Logic to determine which one is "Current"
+        $currentAttendance = null;
+        $displayDate = Carbon::today();
+
+        if ($todayAttendance) {
+            $currentAttendance = $todayAttendance;
+            $displayDate = Carbon::today();
+            
+            // SPECIAL CASE: If today's punch is very early (e.g. < 4 AM) and it has no schedule match today
+            // but yesterday HAD a night shift, it's possible this punch belongs to yesterday's logic.
+            // However, with the WebBundyController fix, this should happen less.
+        } elseif ($yesterdayAttendance && (!$yesterdayAttendance->time_out || $yesterdayAttendance->time_out == '00:00:00')) {
+            // If we have an open shift from yesterday, that is our current one
+            $currentAttendance = $yesterdayAttendance;
+            $displayDate = Carbon::yesterday();
+        }
+
+        $displaySchedule = $employee->getScheduleForDate($displayDate);
+        $todayAttendance = $currentAttendance; // For compact compatibility
 
         $recentAttendance = Attendance::where('employee_id', $employee->id)
             ->whereDate('date', '<=', Carbon::today())
@@ -104,7 +132,9 @@ class DashboardController extends Controller
             'announcements',
             'leaveBalance',
             'payrollPeriods',
-            'employee'
+            'employee',
+            'displaySchedule',
+            'displayDate'
         ));
     }
 

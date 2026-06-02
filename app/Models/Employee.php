@@ -88,6 +88,9 @@ class Employee extends Model
             if ($pattern->shift_id && $pattern->shift) {
                 $pattern->time_in = $pattern->shift->time_in;
                 $pattern->time_out = $pattern->shift->time_out;
+            } elseif ($pattern->custom_shift_id && $pattern->customShift) {
+                $pattern->time_in = $pattern->customShift->start_time;
+                $pattern->time_out = $pattern->customShift->end_time;
             }
             return $pattern;
         }
@@ -124,6 +127,15 @@ class Employee extends Model
             $temp = new \App\Models\Schedule();
             $temp->time_in = $shift->time_in;
             $temp->time_out = $shift->time_out;
+            return $temp;
+        }
+
+        // Try CustomShift
+        $custom = \App\Models\CustomShift::find($id);
+        if ($custom) {
+            $temp = new \App\Models\Schedule();
+            $temp->time_in = $custom->start_time;
+            $temp->time_out = $custom->end_time;
             return $temp;
         }
 
