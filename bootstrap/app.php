@@ -13,7 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'prevent_back_history' => \App\Http\Middleware\PreventBackHistory::class,
         ]);
+
+        $middleware->appendToGroup('web', \App\Http\Middleware\PreventBackHistory::class);
+        $middleware->appendToGroup('web', \App\Http\Middleware\ForceSecureCookies::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->time('lunch_out')->nullable()->after('break2_in');
-            $table->time('lunch_in')->nullable()->after('lunch_out');
+        Schema::table('users', function (Blueprint $table) {
+            if (Schema::hasColumn('users', 'plain_password')) {
+                $table->dropColumn('plain_password');
+            }
         });
     }
 
@@ -22,8 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->dropColumn(['lunch_out', 'lunch_in']);
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('plain_password')->nullable();
         });
     }
 };

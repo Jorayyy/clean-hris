@@ -11,6 +11,7 @@ use App\Models\AppSetting;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -109,9 +110,34 @@ class DtrController extends Controller
             $totalOT = $attendances->sum('overtime_hours');
             $totalHours = $attendances->sum('total_hours');
 
-            // If there's no attendance at all, we should still account for the "deficit" 
-            // of being absent. Currently, empty attendance results in 0 late/UT.
-            // We'll keep the raw sums but ensure the record is created.
+            // Industrial Logic: Calculate missing punches and absent days
+            $period = \Carbon\CarbonPeriod::create($request->start_date, $request->end_date);
+            $workingDaysCount = 0;
+            $daysWithLogs = $attendances->pluck('date')->map(fn($d) => is_string($d) ? $d : $d->format('Y-m-d'))->toArray();
+            $incompleteCount = 0;
+            $absentCount = 0;
+
+            $employee = Employee::find($empId);
+            foreach ($period as $date) {
+                $dateStr = $date->format('Y-m-d');
+                $sched = $employee->getScheduleForDate($dateStr);
+                
+                if ($sched && !$sched->is_rest_day) {
+                    $workingDaysCount++;
+                    if (!in_array($dateStr, $daysWithLogs)) {
+                        $absentCount++;
+                    }
+                }
+
+                $log = $attendances->first(function($a) use ($dateStr) {
+                    $aDate = is_string($a->date) ? $a->date : $a->date->format('Y-m-d');
+                    return $aDate == $dateStr;
+                });
+
+                if ($log && $log->time_in && (!$log->time_out || $log->time_out == '00:00:00')) {
+                    $incompleteCount++;
+                }
+            }
 
             Dtr::updateOrCreate(
                 [
@@ -124,6 +150,8 @@ class DtrController extends Controller
                     'total_undertime_minutes' => $totalUT,
                     'total_overtime_hours' => $totalOT,
                     'total_regular_hours' => $totalHours,
+                    'total_absent_days' => $absentCount,
+                    'admin_notes' => $incompleteCount > 0 ? "Contains $incompleteCount incomplete logs." : null,
                     'status' => 'draft',
                 ]
             );
@@ -133,6 +161,17 @@ class DtrController extends Controller
         $message = $generatedCount . ' DTR(s) generated successfully.';
         if ($skippedCount > 0) {
             $message .= " (" . $skippedCount . " skipped because they are already finalized)";
+        }
+
+        // Check if any newly generated records have 0 hours or incomplete logs
+        $zeroHoursCount = Dtr::where('start_date', $request->start_date)
+            ->where('end_date', $request->end_date)
+            ->where('total_regular_hours', '<=', 0)
+            ->where('status', 'draft')
+            ->count();
+
+        if ($zeroHoursCount > 0) {
+            session()->flash('warning', "Warning: $zeroHoursCount DTR(s) have 0 regular hours. This usually happens due to missing punches or shift mismatches (e.g. punching at 1AM for an 8AM shift).");
         }
 
         return redirect()->route('admin.dtrs.index')->with('success', $message);
@@ -169,6 +208,21 @@ class DtrController extends Controller
 
         if ($dtr->total_regular_hours <= 0) {
             return back()->with('error', 'Cannot verify a DTR with zero regular hours. Please check attendance logs first.');
+        }
+
+        // Check for incomplete logs (Missing Out punches)
+        $hasIncomplete = Attendance::where('employee_id', $dtr->employee_id)
+            ->whereDate('date', '>=', $dtr->start_date)
+            ->whereDate('date', '<=', $dtr->end_date)
+            ->whereNotNull('time_in')
+            ->where('time_in', '!=', '00:00:00')
+            ->where(function($q) {
+                $q->whereNull('time_out')->orWhere('time_out', '00:00:00');
+            })
+            ->exists();
+
+        if ($hasIncomplete) {
+            return back()->with('error', 'Cannot verify: One or more logs are incomplete (missing OUT punch). Please fix attendance records first.');
         }
 
         $dtr->update([
@@ -227,6 +281,20 @@ class DtrController extends Controller
         $count = Dtr::whereIn('id', $request->ids)
             ->where('status', 'draft')
             ->where('total_regular_hours', '>', 0)
+            ->where(function($q) {
+                // Ensure no incomplete logs for any date in the DTR range
+                $q->whereNotExists(function($query) {
+                    $query->select(DB::raw(1))
+                        ->from('attendances')
+                        ->whereColumn('attendances.employee_id', 'dtrs.employee_id')
+                        ->whereRaw('attendances.date BETWEEN dtrs.start_date AND dtrs.end_date')
+                        ->whereNotNull('time_in')
+                        ->where('time_in', '!=', '00:00:00')
+                        ->where(function($sub) {
+                            $sub->whereNull('time_out')->orWhere('time_out', '00:00:00');
+                        });
+                });
+            })
             ->update([
                 'status' => 'verified',
                 'verified_by' => Auth::id(),
@@ -236,7 +304,8 @@ class DtrController extends Controller
         $skipped = count($request->ids) - $count;
         $msg = $count . ' DTR record(s) verified successfully.';
         if ($skipped > 0) {
-            $msg .= " (" . $skipped . " skipped due to zero hours or invalid status)";
+            $msg .= " (" . $skipped . " skipped: records with 0 hours or missing OUT punches are blocked for payroll safety)";
+            session()->flash('warning', "Check the 'Deficit' column for INCOMPLETE LOGS to see which records need fixing.");
         }
 
         return back()->with('success', $msg);

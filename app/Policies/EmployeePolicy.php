@@ -45,6 +45,11 @@ class EmployeePolicy
      */
     public function delete(User $user, Employee $employee): bool
     {
+        // Prevent deletion if employee has any payroll items to preserve financial history
+        if ($employee->payrollItems()->exists()) {
+            return false;
+        }
+
         return $user->hasPermissionTo('delete employees') || in_array($user->role, ['super-admin', 'admin']);
     }
 

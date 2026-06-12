@@ -75,8 +75,8 @@ class WebBundyScheduleTest extends TestCase
         // Late calculation: 09:30 - 09:00 = 30 minutes
         $this->assertEquals(30, $attendance->late_minutes);
         
-        // Total Hours: 09:30 to 18:30 = 9 hours
-        $this->assertEquals(9, $attendance->total_hours);
+        // Total Hours: (8 hours expected - 0.5 late) = 7.5 hours
+        $this->assertEquals(7.5, $attendance->total_hours);
 
         Carbon::setTestNow(); // Reset
     }
@@ -110,8 +110,8 @@ class WebBundyScheduleTest extends TestCase
         // Undertime: 18:00 - 17:30 = 30 minutes
         $this->assertEquals(30, $attendance->undertime_minutes);
         
-        // Total Hours: 8:30 to 17:30 = 9 hours
-        $this->assertEquals(9, $attendance->total_hours);
+        // Total Hours: (8 hours expected - 0.5 undertime) = 7.5 hours
+        $this->assertEquals(7.5, $attendance->total_hours);
 
         Carbon::setTestNow(); // Reset
     }

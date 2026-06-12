@@ -56,12 +56,19 @@
                     <input type="password" name="web_bundy_code" class="form-control form-control-lg text-center" maxlength="4" placeholder="••••" required>
                 </div>
 
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <button type="submit" id="btn_am_in" name="punch_type" value="am_in" class="btn btn-primary w-100 btn-punch shadow-sm">AM IN (START)</button>
-                    </div>
-                    <div class="col-6">
-                        <button type="submit" id="btn_pm_out" name="punch_type" value="pm_out" class="btn btn-dark w-100 btn-punch shadow-sm">PM OUT (END)</button>
+                <div class="mb-3">
+                    <button type="submit" id="btn_am_in" name="punch_type" value="am_in" class="btn btn-primary w-100 btn-punch shadow-sm">AM IN (START)</button>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-warning fw-bold small text-uppercase">1st Break</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="submit" id="btn_break1_out" name="punch_type" value="break1_out" class="btn btn-outline-warning w-100 btn-punch btn-sm">1st BREAK OUT</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" id="btn_break1_in" name="punch_type" value="break1_in" class="btn btn-outline-warning w-100 btn-punch btn-sm">1st BREAK IN</button>
+                        </div>
                     </div>
                 </div>
 
@@ -78,18 +85,6 @@
                 </div>
 
                 <div class="mb-3">
-                    <h6 class="text-warning fw-bold small text-uppercase">1st Break</h6>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <button type="submit" id="btn_break1_out" name="punch_type" value="break1_out" class="btn btn-outline-warning w-100 btn-punch btn-sm">1st BREAK OUT</button>
-                        </div>
-                        <div class="col-6">
-                            <button type="submit" id="btn_break1_in" name="punch_type" value="break1_in" class="btn btn-outline-warning w-100 btn-punch btn-sm">1st BREAK IN</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
                     <h6 class="text-success fw-bold small text-uppercase">2nd Break</h6>
                     <div class="row g-2">
                         <div class="col-6">
@@ -99,6 +94,10 @@
                             <button type="submit" id="btn_break2_in" name="punch_type" value="break2_in" class="btn btn-outline-success w-100 btn-punch btn-sm">2nd BREAK IN</button>
                         </div>
                     </div>
+                </div>
+
+                <div class="mb-4">
+                    <button type="submit" id="btn_pm_out" name="punch_type" value="pm_out" class="btn btn-dark w-100 btn-punch shadow-sm">PM OUT (END)</button>
                 </div>
 
                 <div class="mt-4">

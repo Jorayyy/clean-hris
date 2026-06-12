@@ -160,8 +160,12 @@
                             <td class="bg-actual">
                                 {{ ($log && $log->time_in && $log->time_in !== '00:00:00') ? \Carbon\Carbon::parse($log->time_in)->format('H:i') : '-' }}
                             </td>
-                            <td class="bg-actual">
-                                {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('H:i') : '-' }}
+                            <td class="bg-actual {{ ($log && $log->time_in && $log->time_in !== '00:00:00' && (!$log->time_out || $log->time_out == '00:00:00')) ? 'bg-danger-subtle text-danger fw-bold' : '' }}">
+                                @if($log && $log->time_in && $log->time_in !== '00:00:00' && (!$log->time_out || $log->time_out == '00:00:00'))
+                                    <i class="bi bi-exclamation-triangle-fill"></i> MISSING
+                                @else
+                                    {{ ($log && $log->time_out && $log->time_out !== '00:00:00') ? \Carbon\Carbon::parse($log->time_out)->format('H:i') : '-' }}
+                                @endif
                             </td>
 
                             <!-- NO OF HOURS -->

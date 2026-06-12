@@ -50,21 +50,9 @@ class WebBundyController extends Controller
             ->where('date', $today)
             ->first();
 
-        // If it's early morning (before 9 AM), be smart:
-        if ($now->hour < 9) {
-            // Priority 1: If yesterday has an open shift, use it
-            if ($yesterdayAttendance) {
-                $targetDate = $yesterday;
-            } 
-            // Priority 2: If no punch yet today, but yesterday HAD a night shift,
-            // we might want the next punch (START SHIFT) to stay on yesterday.
-            // But checkStatus just reports what IS, not what WILL BE.
-            elseif (!$todayAttendance) {
-                $yesterdaySched = $employee->getScheduleForDate($yesterday);
-                if ($yesterdaySched && Carbon::parse($yesterdaySched->time_in)->hour >= 18) {
-                    $targetDate = $yesterday;
-                }
-            }
+        // If yesterday has an open shift, we should prioritize it unless today already has a punch
+        if ($yesterdayAttendance && (!$todayAttendance || !$todayAttendance->time_in || $todayAttendance->time_in === '00:00:00')) {
+            $targetDate = $yesterday;
         }
 
         $attendance = $targetDate === $yesterday ? $yesterdayAttendance : $todayAttendance;
@@ -193,6 +181,46 @@ class WebBundyController extends Controller
         // NIGHT SHIFT LOGIC: Intelligent Target Date Detection
         $targetDate = $today;
         
+        // If they are punching 'am_in', check if they forgot to clock out from a previous shift
+        if ($request->punch_type === 'am_in') {
+            $yesterday = Carbon::yesterday()->toDateString();
+            $openShift = Attendance::where('employee_id', $employee->id)
+                ->where('date', $yesterday)
+                ->where(function($q) {
+                     $q->where('time_in', '!=', '00:00:00')->whereNotNull('time_in');
+                })
+                ->where(function($q) {
+                    $q->where('time_out', '00:00:00')->orWhereNull('time_out');
+                })
+                ->first();
+
+            if ($openShift) {
+                // If it's a NIGHT SHIFT (starts late or early) and it's currently early morning, use it
+                $nightShiftThreshold = 6; // 6 AM
+                if ($now->hour < $nightShiftThreshold) {
+                    $yesterdaySched = $employee->getScheduleForDate($yesterday);
+                    if ($yesterdaySched) {
+                        $yesterdayIn = Carbon::parse($yesterdaySched->time_in);
+                        if ($yesterdayIn->hour >= 18 || $yesterdayIn->hour < 4) {
+                            // This is likely a continuation of yesterday's night shift.
+                            // We don't auto-clockout here, but targetDate might need to be yesterday
+                            // actually if they are punching 'am_in' and they already have 'am_in' for yesterday,
+                            // they probably want to punch something else or they are double-punching.
+                        }
+                    }
+                } else {
+                    // AUTO-CLOCKOUT: Close the previous open shift since they are starting a new one today
+                    $yesterdaySched = $employee->getScheduleForDate($yesterday);
+                    $autoOutTime = $yesterdaySched ? $yesterdaySched->time_out : '17:00:00';
+                    $openShift->update([
+                        'time_out' => $autoOutTime,
+                        'total_hours' => 0, // Flag as needing review or calculate based on auto-out
+                        'remarks' => ($openShift->remarks ? $openShift->remarks . ' ' : '') . 'Auto-Clockout (Forgot to punch)'
+                    ]);
+                }
+            }
+        }
+
         // If they are punching 'am_in' early in the morning (before 6 AM), 
         // they might be punching in late for a shift that started yesterday (night shift).
         if ($request->punch_type === 'am_in' && $now->hour < 6) {
@@ -258,6 +286,8 @@ class WebBundyController extends Controller
                     'break1_in' => '00:00:00',
                     'break2_out' => '00:00:00',
                     'break2_in' => '00:00:00',
+                    'lunch_out' => '00:00:00',
+                    'lunch_in' => '00:00:00',
                     'total_hours' => 0,
                     'late_minutes' => 0,
                     'undertime_minutes' => 0,
@@ -270,8 +300,8 @@ class WebBundyController extends Controller
         // Map punch types to database columns
         $typeMap = [
             'am_in' => 'time_in',
-            'am_out' => 'break1_out',
-            'pm_in' => 'break1_in',
+            'am_out' => 'lunch_out', // Changed from break1_out to lunch_out for standard 4-punch support
+            'pm_in' => 'lunch_in',   // Changed from break1_in to lunch_in for standard 4-punch support
             'pm_out' => 'time_out',
             'lunch_out' => 'lunch_out',
             'lunch_in' => 'lunch_in',
@@ -294,16 +324,52 @@ class WebBundyController extends Controller
             return back()->with('bundy_error', 'SEQUENCE ERROR: You must punch START SHIFT first.');
         }
 
-        if ($request->punch_type == 'lunch_in' && ($attendance->lunch_out === '00:00:00' || !$attendance->lunch_out)) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch LUNCH IN because you haven\'t punched LUNCH OUT.');
+        // BLOCK PUNCHING IF ALREADY TIMED OUT (PM OUT)
+        if ($request->punch_type !== 'pm_out' && ($attendance->time_out !== '00:00:00' && $attendance->time_out !== null)) {
+            return back()->with('bundy_error', 'ACTION NOT POSSIBLE: You have already punched PM OUT (END) for this shift. You cannot record more activities for this period.');
         }
 
-        if ($request->punch_type == 'break1_in' && ($attendance->break1_out === '00:00:00' || !$attendance->break1_out)) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch 1st BREAK IN because you haven\'t punched 1st BREAK OUT.');
+        // Time-based sequence checks (Ensure currently punched time is after previous relevant punch)
+        $punchTime = $now;
+        
+        if ($request->punch_type === 'lunch_out' || $request->punch_type === 'am_out') {
+            $inTime = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
+            if ($punchTime->lessThan($inTime)) {
+                return back()->with('bundy_error', 'SEQUENCE ERROR: Lunch Out cannot be earlier than Start Shift.');
+            }
         }
 
-        if ($request->punch_type == 'break2_in' && ($attendance->break2_out === '00:00:00' || !$attendance->break2_out)) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You cannot punch 2nd BREAK IN because you haven\'t punched 2nd BREAK OUT.');
+        if ($request->punch_type === 'pm_out') {
+            $inTime = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
+            if ($punchTime->lessThan($inTime)) {
+                return back()->with('bundy_error', 'SEQUENCE ERROR: PM Out cannot be earlier than Start Shift.');
+            }
+            
+            // If lunch in exists, pm out must be after it
+            if ($attendance->lunch_in && $attendance->lunch_in !== '00:00:00') {
+                $lInTime = Carbon::parse($attendance->date . ' ' . $attendance->lunch_in);
+                if ($lInTime->greaterThan($punchTime)) $lInTime->subDay(); // Handle overnight
+                if ($punchTime->lessThan($lInTime)) {
+                     return back()->with('bundy_error', 'SEQUENCE ERROR: PM Out cannot be earlier than Lunch In.');
+                }
+            }
+        }
+
+        // Fix: Use target columns for sequence checks to handle aliases (am_out/pm_in)
+        if (in_array($column, ['lunch_in', 'break1_in', 'break2_in'])) {
+            $outColumn = str_replace('_in', '_out', $column);
+            if ($attendance->{$outColumn} === '00:00:00' || !$attendance->{$outColumn}) {
+                $typeName = str_replace('_', ' ', strtoupper($column));
+                $outName = str_replace('_', ' ', strtoupper($outColumn));
+                return back()->with('bundy_error', "SEQUENCE ERROR: You cannot punch $typeName because you haven't punched $outName.");
+            }
+
+            // Time comparison for break in
+            $outTime = Carbon::parse($attendance->date . ' ' . $attendance->{$outColumn});
+            if ($punchTime->lessThan($outTime)) {
+                $typeName = str_replace('_', ' ', strtoupper($column));
+                return back()->with('bundy_error', "SEQUENCE ERROR: $typeName cannot be earlier than the corresponding OUT punch.");
+            }
         }
 
         // Update the specific punch column

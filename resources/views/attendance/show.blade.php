@@ -175,24 +175,33 @@
                                             <div class="small">
                                                 @if($row->break1_out || $row->break1_in)
                                                     <div>
-                                                        <span class="text-muted small">Lunch Break:</span> 
-                                                        <span class="fw-bold text-info">
+                                                        <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.65rem;">1st:</span> 
+                                                        <span class="text-info">
                                                             {{ $row->break1_out ? \Carbon\Carbon::parse($row->break1_out)->format('H:i') : '--:--' }} - 
                                                             {{ $row->break1_in ? \Carbon\Carbon::parse($row->break1_in)->format('H:i') : '--:--' }}
                                                         </span>
                                                     </div>
                                                 @endif
+                                                @if($row->lunch_out || $row->lunch_in)
+                                                    <div>
+                                                        <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.65rem;">Lunch:</span> 
+                                                        <span class="text-info">
+                                                            {{ $row->lunch_out ? \Carbon\Carbon::parse($row->lunch_out)->format('H:i') : '--:--' }} - 
+                                                            {{ $row->lunch_in ? \Carbon\Carbon::parse($row->lunch_in)->format('H:i') : '--:--' }}
+                                                        </span>
+                                                    </div>
+                                                @endif
                                                 @if($row->break2_out || $row->break2_in)
                                                     <div>
-                                                        <span class="text-muted small">2nd Break:</span> 
-                                                        <span class="fw-bold text-info">
+                                                        <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.65rem;">2nd:</span> 
+                                                        <span class="text-info">
                                                             {{ $row->break2_out ? \Carbon\Carbon::parse($row->break2_out)->format('H:i') : '--:--' }} - 
                                                             {{ $row->break2_in ? \Carbon\Carbon::parse($row->break2_in)->format('H:i') : '--:--' }}
                                                         </span>
                                                     </div>
                                                 @endif
-                                                @if(!$row->break1_out && !$row->break1_in && !$row->break2_out && !$row->break2_in)
-                                                    <span class="text-muted small">-- | --</span>
+                                                @if(!$row->break1_out && !$row->break1_in && !$row->lunch_out && !$row->lunch_in && !$row->break2_out && !$row->break2_in)
+                                                    <span class="text-muted small">No breaks recorded</span>
                                                 @endif
                                             </div>
                                         </td>

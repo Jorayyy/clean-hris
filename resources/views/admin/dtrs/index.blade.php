@@ -121,7 +121,13 @@
                         </td>
                         <td>
                             @if($dtr->total_regular_hours == 0)
-                                <span class="badge bg-secondary small">ABSENT / NO LOGS</span>
+                                @if($dtr->admin_notes && str_contains($dtr->admin_notes, 'incomplete'))
+                                    <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 small fw-bold">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> INCOMPLETE LOGS
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary small">ABSENT / NO LOGS</span>
+                                @endif
                             @else
                                 @if($dtr->total_late_minutes > 0)
                                     <span class="text-danger small fw-bold">Late: {{ formatDtrMinutes($dtr->total_late_minutes) }}</span><br/>

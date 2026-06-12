@@ -92,23 +92,55 @@
                         <!-- Breaks Grid -->
                         <div class="mb-4">
                             <p class="fw-semibold small text-muted text-uppercase mb-3 mt-2"><i class="bi bi-cup-hot me-2"></i>Break Times</p>
-                            <div class="card bg-light border-0">
-                                <div class="card-body">
+                            <div class="card bg-light border-0 rounded-3">
+                                <div class="card-body p-4">
                                     <div class="row g-4">
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted mb-2">Lunch Break (Out - Return)</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="time" name="break1_out" class="form-control" value="{{ old('break1_out') }}">
-                                                <span class="input-group-text">to</span>
-                                                <input type="time" name="break1_in" class="form-control" value="{{ old('break1_in') }}">
+                                        <!-- Each Break Category -->
+                                        <div class="col-12">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-4 mb-2 mb-md-0">
+                                                    <span class="fw-bold small text-dark d-block">1st Break (Out - In)</span>
+                                                    <span class="text-muted extra-small">Morning coffee/rest break</span>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <div class="input-group shadow-sm">
+                                                        <input type="time" name="break1_out" class="form-control border-end-0 bg-white" value="{{ old('break1_out') }}">
+                                                        <span class="input-group-text bg-white border-start-0 border-end-0 text-muted px-2">to</span>
+                                                        <input type="time" name="break1_in" class="form-control border-start-0 bg-white" value="{{ old('break1_in') }}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted mb-2">2nd Break (Out - Return)</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="time" name="break2_out" class="form-control" value="{{ old('break2_out') }}">
-                                                <span class="input-group-text">to</span>
-                                                <input type="time" name="break2_in" class="form-control" value="{{ old('break2_in') }}">
+
+                                        <div class="col-12 border-top pt-3 border-secondary border-opacity-10">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-4 mb-2 mb-md-0">
+                                                    <span class="fw-bold small text-dark d-block">Lunch Break (Out - In)</span>
+                                                    <span class="text-muted extra-small">Mid-day meal break</span>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <div class="input-group shadow-sm">
+                                                        <input type="time" name="lunch_out" class="form-control border-end-0 bg-white" value="{{ old('lunch_out') }}">
+                                                        <span class="input-group-text bg-white border-start-0 border-end-0 text-muted px-2">to</span>
+                                                        <input type="time" name="lunch_in" class="form-control border-start-0 bg-white" value="{{ old('lunch_in') }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 border-top pt-3 border-secondary border-opacity-10">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-4 mb-2 mb-md-0">
+                                                    <span class="fw-bold small text-dark d-block">2nd Break (Out - In)</span>
+                                                    <span class="text-muted extra-small">Afternoon rest break</span>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <div class="input-group shadow-sm">
+                                                        <input type="time" name="break2_out" class="form-control border-end-0 bg-white" value="{{ old('break2_out') }}">
+                                                        <span class="input-group-text bg-white border-start-0 border-end-0 text-muted px-2">to</span>
+                                                        <input type="time" name="break2_in" class="form-control border-start-0 bg-white" value="{{ old('break2_in') }}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

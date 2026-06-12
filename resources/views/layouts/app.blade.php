@@ -252,6 +252,11 @@
             @if(session('error'))
                 <div class="alert alert-danger border-0 shadow-sm mb-4">{{ session('error') }}</div>
             @endif
+            @if(session('warning'))
+                <div class="alert alert-warning border-0 shadow-sm mb-4">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('warning') }}
+                </div>
+            @endif
 
             @yield('content')
         </div>

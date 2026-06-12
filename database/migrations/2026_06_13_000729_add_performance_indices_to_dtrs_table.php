@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->time('lunch_out')->nullable()->after('break2_in');
-            $table->time('lunch_in')->nullable()->after('lunch_out');
+        Schema::table('dtrs', function (Blueprint $table) {
+            $table->index(['employee_id', 'start_date', 'end_date']);
+            $table->index('status');
         });
     }
 
@@ -22,8 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->dropColumn(['lunch_out', 'lunch_in']);
+        Schema::table('dtrs', function (Blueprint $table) {
+            $table->dropIndex(['employee_id', 'start_date', 'end_date']);
+            $table->dropIndex(['status']);
         });
     }
 };

@@ -24,7 +24,7 @@ class AdminDashboardController extends Controller
         // Stats Cards
         $totalEmployees = Employee::where('status', 'active')->count();
         $totalAttendanceToday = Attendance::whereDate('date', Carbon::today())->count();
-        $pendingTickets = SupportTicket::whereIn('status', ['open', 'in_progress'])->count();
+        $pendingTickets = SupportTicket::whereIn('status', ['pending', 'open', 'in_progress'])->count();
         $totalPayrollDisbursed = PayrollItem::sum('net_pay');
 
         // Distribution Data for Charts
@@ -56,7 +56,7 @@ class AdminDashboardController extends Controller
             ->get();
 
         // Recent Activity / Critical Tasks
-        $pendingDtrs = Dtr::where('status', 'pending')->count();
+        $pendingDtrs = Dtr::where('status', 'draft')->count();
         $unprocessedPayrolls = Payroll::where('status', 'draft')->count();
 
         // Chart Data: Attendance & Payroll Trends
@@ -99,10 +99,10 @@ class AdminDashboardController extends Controller
         $groups = PayrollGroup::withCount('employees')->get();
 
         // Site Distribution
-        $siteDistribution = Employee::select('sites.name as site_name', DB::raw('count(employees.id) as total'))
-            ->join('sites', 'employees.site_id', '=', 'sites.id')
+        $siteDistribution = Employee::select(DB::raw('COALESCE(sites.name, "Unassigned") as site_name'), DB::raw('count(employees.id) as total'))
+            ->leftJoin('sites', 'employees.site_id', '=', 'sites.id')
             ->where('employees.status', 'active')
-            ->groupBy('sites.name')
+            ->groupBy('site_name')
             ->get();
 
         // Yield vs Overtime (Current Month)

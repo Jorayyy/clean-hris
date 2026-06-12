@@ -170,6 +170,8 @@ class AttendanceController extends Controller
             'date' => 'required',
             'time_in' => 'required',
             'time_out' => 'required',
+            'lunch_out' => 'nullable',
+            'lunch_in' => 'nullable',
             'break1_out' => 'nullable',
             'break1_in' => 'nullable',
             'break2_out' => 'nullable',
@@ -200,6 +202,8 @@ class AttendanceController extends Controller
             'date' => 'required',
             'time_in' => 'required',
             'time_out' => 'required',
+            'lunch_out' => 'nullable',
+            'lunch_in' => 'nullable',
             'break1_out' => 'nullable',
             'break1_in' => 'nullable',
             'break2_out' => 'nullable',
@@ -212,8 +216,23 @@ class AttendanceController extends Controller
             $request->employee_id, 
             $request->date
         );
+
         $attendance->update(array_merge($request->all(), $stats));
-        return redirect()->route('attendance.index');
+
+        $warnings = [];
+        if ($stats['total_hours'] <= 0) {
+            $warnings[] = "Note: Calculated Regular Hours is 0. Check if the punch times (1:10 AM) are outside the scheduled shift (e.g. 8:00 AM) or if breaks exceed the stay duration.";
+        }
+        
+        if (empty($request->time_out) || $request->time_out === '00:00:00') {
+            $warnings[] = "Note: Missing Time Out punch. DTR will remain unverified until fixed.";
+        }
+
+        if (!empty($warnings)) {
+            session()->flash('warning', implode(' ', $warnings));
+        }
+
+        return redirect()->route('attendance.index')->with('success', 'Attendance record updated successfully.');
     }
 
     public function destroy(Attendance $attendance)

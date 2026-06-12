@@ -38,7 +38,19 @@ class PayrollCalculationTest extends TestCase
             'start_date' => '2026-04-01',
             'end_date' => '2026-04-05',
             'pay_date' => '2026-04-10',
-            'status' => 'pending'
+            'status' => 'draft'
+        ]);
+
+        // Create a finalized DTR
+        \App\Models\Dtr::create([
+            'employee_id' => $employee->id,
+            'start_date' => '2026-04-01',
+            'end_date' => '2026-04-05',
+            'total_regular_hours' => 8,
+            'total_late_minutes' => 0,
+            'total_undertime_minutes' => 0,
+            'total_overtime_hours' => 0,
+            'status' => 'finalized'
         ]);
 
         // Mock 1 day of attendance (8 hours)

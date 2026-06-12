@@ -16,15 +16,20 @@ class PayrollService
     {
         try {
             return DB::transaction(function () use ($payroll) {
-            // Allow processing if draft or processing
-            if (!in_array($payroll->status, ['draft', 'processing'])) {
-                return false; 
-            }
+                // ATOMIC LOCK: Use database-level lock to prevent double-processing
+                $affected = DB::table('payrolls')
+                    ->where('id', $payroll->id)
+                    ->whereIn('status', ['draft', 'pending'])
+                    ->update([
+                        'status' => 'processing',
+                        'updated_at' => now()
+                    ]);
 
-            // Set to processing
-            $payroll->update(['status' => 'processing']);
+                if (!$affected && $payroll->status !== 'processing') {
+                    return false;
+                }
 
-            $query = Employee::where('status', 'active');
+                $query = Employee::where('status', 'active');
                 
                 if ($payroll->payroll_group_id) {
                     $query->where('payroll_group_id', $payroll->payroll_group_id);
@@ -33,6 +38,21 @@ class PayrollService
                 }
 
                 $employees = $query->get();
+                
+                // PERFORMANCE: Eager load DTRs to avoid N+1 query problem
+                $dtrs = Dtr::whereIn('employee_id', $employees->pluck('id'))
+                    ->whereDate('start_date', $payroll->start_date)
+                    ->whereDate('end_date', $payroll->end_date)
+                    ->where('status', 'finalized')
+                    ->get()
+                    ->keyBy('employee_id');
+
+                // CONSISTENCY: Fetch settings once before the loop (Agent 1 simulation fix)
+                $settings = \App\Models\AppSetting::first();
+                $sssRate = $settings->sss_rate ?? 0.05;
+                $pagibigRate = $settings->pagibig_rate ?? 0.02;
+                $philhealthRate = $settings->philhealth_rate ?? 0.03;
+
                 $items = [];
 
                 foreach ($employees as $employee) {
@@ -42,11 +62,7 @@ class PayrollService
                     }
 
                     // Check for finalized DTR
-                    $dtr = Dtr::where('employee_id', $employee->id)
-                        ->whereDate('start_date', $payroll->start_date)
-                        ->whereDate('end_date', $payroll->end_date)
-                        ->where('status', 'finalized')
-                        ->first();
+                    $dtr = $dtrs->get($employee->id);
 
                     // If NO finalized DTR, we skip them from the automated batch.
                     // This prevents unverified attendance from being paid out.
@@ -74,12 +90,6 @@ class PayrollService
                     // Bonuses & Night Diff (simplified as requested)
                     $bonuses = ($totalDays >= 5) ? 500 : 0; // Perfect attendance bonus
                     $nightDiff = 0; // Simplified for this implementation
-
-                    // Fetch dynamic rates from settings
-                    $settings = \App\Models\AppSetting::first();
-                    $sssRate = $settings->sss_rate ?? 0.05;
-                    $pagibigRate = $settings->pagibig_rate ?? 0.02;
-                    $philhealthRate = $settings->philhealth_rate ?? 0.03;
 
                     // Deductions logic
                     $deductions = [];
@@ -239,20 +249,34 @@ class PayrollService
         $scheduleOut = Carbon::parse($dateStr . ' ' . $scheduleOutTime);
 
         // Handle Night Shift schedule
+        $isNightShift = false;
         if ($scheduleOut->lessThan($scheduleIn)) {
             $scheduleOut->addDay();
+            $isNightShift = true;
+        }
+
+        // Handle punch crossing midnight for night shifts
+        // If punch time (e.g. 02:00) is much earlier than schedule in (e.g. 22:00) 
+        // on the same dateStr, it's likely actually the next day for a night shift.
+        if ($isNightShift && $in->lessThan($scheduleIn) && $in->hour < 12) {
+             $in->addDay();
+        }
+
+        // Same for out punch if it exists
+        if ($out && $isNightShift && $out->lessThan($scheduleIn) && $out->hour < 12) {
+             $out->addDay();
         }
 
         // LATE CALCULATION
         $lateMinutes = 0;
-        if ($in->format('H:i:s') > $scheduleInTime) {
+        if ($in->greaterThan($scheduleIn)) {
              $lateMinutes = (int) $scheduleIn->diffInMinutes($in, true);
         }
         
         // UNDERTIME CALCULATION
         $undertimeMinutes = 0;
         if ($out) {
-            if ($out->format('H:i:s') < $scheduleOutTime && $out->lessThan($scheduleOut)) {
+            if ($out->lessThan($scheduleOut)) {
                 $undertimeMinutes = (int) $out->diffInMinutes($scheduleOut, true);
             }
         } else {
@@ -277,7 +301,7 @@ class PayrollService
         }
 
         // Calculate actual break durations if they exist
-        $actualBreakMinutes = 0;
+        $actualLunchMinutes = 0;
         
         // Lunch Break
         if ($attendance && $attendance->lunch_out && $attendance->lunch_in && 
@@ -287,8 +311,10 @@ class PayrollService
             $lin = Carbon::parse($dateStr . ' ' . $attendance->lunch_in);
             
             if ($lin->lessThan($lout)) $lin->addDay();
-            $actualBreakMinutes += $lin->diffInMinutes($lout, true);
+            $actualLunchMinutes = $lin->diffInMinutes($lout, true);
         }
+
+        $actualOtherBreakMinutes = 0;
 
         // Break 1 (1st Break)
         if ($attendance && $attendance->break1_out && $attendance->break1_in && 
@@ -298,7 +324,7 @@ class PayrollService
             $b1in = Carbon::parse($dateStr . ' ' . $attendance->break1_in);
             
             if ($b1in->lessThan($b1out)) $b1in->addDay();
-            $actualBreakMinutes += $b1in->diffInMinutes($b1out, true);
+            $actualOtherBreakMinutes += $b1in->diffInMinutes($b1out, true);
         }
 
         // Break 2 (Optional/Coffee)
@@ -309,26 +335,26 @@ class PayrollService
             $b2in = Carbon::parse($dateStr . ' ' . $attendance->break2_in);
             
             if ($b2in->lessThan($b2out)) $b2in->addDay();
-            $actualBreakMinutes += $b2in->diffInMinutes($b2out, true);
+            $actualOtherBreakMinutes += $b2in->diffInMinutes($b2out, true);
         }
 
         // TOTAL REGULAR HOURS WORKED
         // Standard logic: Shift Duration - Actual Breaks - Late - Undertime
         $scheduleDuration = $scheduleOut->diffInMinutes($scheduleIn, true);
         
-        // Use actual break minutes if they exist, otherwise fallback to standard deductions
-        $mealBreak = 0;
-        if ($actualBreakMinutes > 0) {
-            $mealBreak = $actualBreakMinutes;
-        } else {
-            if ($scheduleDuration >= 600) {
-                $mealBreak = 120;
-            } elseif ($scheduleDuration >= 300) {
-                $mealBreak = 60;
-            }
+        // Standard meal deduction logic (usually 60 or 120 mins)
+        $standardMealDeduction = 0;
+        if ($scheduleDuration >= 600) {
+            $standardMealDeduction = 120;
+        } elseif ($scheduleDuration >= 300) {
+            $standardMealDeduction = 60;
         }
 
-        $expectedWorkMinutes = $scheduleDuration - ($actualBreakMinutes > 0 ? $actualBreakMinutes : $mealBreak);
+        // Total deduction is either actual lunch (if punched) or standard lunch, 
+        // PLUS any other actual breaks punched.
+        $totalBreakMinutes = ($actualLunchMinutes > 0 ? $actualLunchMinutes : $standardMealDeduction) + $actualOtherBreakMinutes;
+
+        $expectedWorkMinutes = $scheduleDuration - $totalBreakMinutes;
 
         // Cap late and undertime to the schedule duration
         if ($lateMinutes > $scheduleDuration) $lateMinutes = $scheduleDuration;

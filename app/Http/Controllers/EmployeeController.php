@@ -144,6 +144,8 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
+        $this->authorize('delete', $employee);
+
         try {
             DB::beginTransaction();
 

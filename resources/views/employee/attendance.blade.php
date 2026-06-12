@@ -135,7 +135,7 @@
                                         </div>
                                     @endif
 
-                                    @if(($record->break1_out && $record->break1_out !== '00:00:00') || ($record->lunch_out && $record->lunch_out !== '00:00:00'))
+                                    @if(($record->break1_out && $record->break1_out !== '00:00:00') || ($record->break2_out && $record->break2_out !== '00:00:00') || ($record->lunch_out && $record->lunch_out !== '00:00:00'))
                                         <div class="border-top mt-1 pt-1 d-flex flex-column gap-1">
                                             @if($record->lunch_out && $record->lunch_out !== '00:00:00')
                                                 <div class="d-flex justify-content-between align-items-center bg-light rounded px-1" style="font-size: 0.6rem;">

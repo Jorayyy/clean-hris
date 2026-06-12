@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            $table->time('lunch_out')->nullable()->after('break2_in');
-            $table->time('lunch_in')->nullable()->after('lunch_out');
+            $table->string('remarks')->nullable()->after('ot_authorized');
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            $table->dropColumn(['lunch_out', 'lunch_in']);
+            $table->dropColumn('remarks');
         });
     }
 };

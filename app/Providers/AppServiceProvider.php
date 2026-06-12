@@ -32,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Employee::observe(\App\Observers\AuditObserver::class);
         \App\Models\Payroll::observe(\App\Observers\AuditObserver::class);
         \App\Models\PayrollItem::observe(\App\Observers\AuditObserver::class);
+        \App\Models\AppSetting::observe(\App\Observers\AuditObserver::class);
+        \App\Models\Attendance::observe(\App\Observers\AuditObserver::class);
+        \App\Models\Dtr::observe(\App\Observers\AuditObserver::class);
+        \App\Models\User::observe(\App\Observers\AuditObserver::class);
 
         // Cache settings to reduce DB load on every page load
         View::composer('*', function ($view) {

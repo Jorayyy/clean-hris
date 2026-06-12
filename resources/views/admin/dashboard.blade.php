@@ -423,9 +423,10 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Attendance Trend Chart
     var options = {
         series: [{
-            name: 'Logs Today',
+            name: 'Punches',
             data: @json($attendanceCounts ?? [])
         }],
         chart: {
@@ -448,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 shadeIntensity: 1,
                 opacityFrom: 0.45,
                 opacityTo: 0.05,
-                stops: [20, 100, 100, 100]
+                stops: [20, 100]
             }
         },
         colors: ['#0d6efd'],
@@ -494,4 +495,21 @@ document.addEventListener('DOMContentLoaded', function() {
     .font-monospace { font-family: 'JetBrains Mono', 'Courier New', monospace !important; }
     .progress-bar { transition: width 1s ease-in-out; }
 </style>
+@endsection
+                            show: true,
+                            label: 'Total Staff',
+                            formatter: function (w) { return {{ $totalEmployees }} }
+                        }
+                    }
+                }
+            }
+        },
+        dataLabels: { enabled: false },
+        legend: { position: 'bottom' }
+    };
+    new ApexCharts(document.querySelector("#staffDistributionChart"), distributionOptions).render();
+});
+</script>
+@endpush
+
 @endsection
