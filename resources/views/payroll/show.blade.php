@@ -83,6 +83,17 @@
                                                 <i class="bi bi-play-circle-fill me-2"></i> Process {{ $finalized_dtr_count }} Payslips
                                             </button>
                                         </form>
+                                        
+                                        @if(!$verification['can_process'])
+                                        <form action="{{ route('payroll.process-batch', $payroll->id) }}" method="POST" class="flex-grow-1">
+                                            @csrf
+                                            <input type="hidden" name="force_bypass" value="1">
+                                            <button type="submit" class="btn btn-outline-danger btn-lg w-100 rounded-pill shadow-sm fw-bold" onclick="return confirm('WARNING: Bypassing will generate payslips even for employees with missing logs or absences (Zero Pay). Proceed?')">
+                                                <i class="bi bi-shield-slash-fill me-1"></i> Bypass & Process All
+                                            </button>
+                                        </form>
+                                        @endif
+
                                         <a href="{{ route('payroll-items.create', ['payroll_id' => $payroll->id]) }}" class="btn btn-outline-dark btn-lg px-4 rounded-pill shadow-sm fw-bold">
                                             <i class="bi bi-plus-circle me-1"></i> Add Manual
                                         </a>
@@ -150,6 +161,64 @@
             </div>
         </div>
 
+        @if($payroll->status != 'approved')
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-shield-check text-primary me-2"></i>Attendance Verification Report</h6>
+                    </div>
+                    <div class="card-body pt-0">
+                        @if(!$verification['can_process'])
+                            <div class="alert alert-danger d-flex align-items-center mb-3">
+                                <i class="bi bi-exclamation-octagon-fill h4 me-3 mb-0"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Verification Failed: Attendance issues detected.</h6>
+                                    <p class="small mb-0">Payroll cannot be processed if there are missing logs, unfinalized DTRs, or absent employees (per system rules).</p>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-success d-flex align-items-center mb-3">
+                                <i class="bi bi-check-circle-fill h4 me-3 mb-0"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Attendance Verified!</h6>
+                                    <p class="small mb-0">All active employees have finalized DTRs and no absences were found. You can proceed with payroll generation.</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p class="small text-muted mb-1 fw-bold text-uppercase">Missing DTRs (No Logs)</p>
+                                @forelse($verification['missing_dtr'] as $name)
+                                    <div class="text-danger small"><i class="bi bi-x-circle me-1"></i> {{ $name }}</div>
+                                @empty
+                                    <div class="text-success small"><i class="bi bi-check2 me-1"></i> None</div>
+                                @endforelse
+                            </div>
+                            <div class="col-md-4">
+                                <p class="small text-muted mb-1 fw-bold text-uppercase">Pending DTRs (Draft)</p>
+                                @forelse($verification['pending_dtr'] as $dtr)
+                                    <div class="text-warning small"><i class="bi bi-hourglass me-1"></i> {{ $dtr['name'] }} ({{ $dtr['status'] }})</div>
+                                @empty
+                                    <div class="text-success small"><i class="bi bi-check2 me-1"></i> None</div>
+                                @endforelse
+                            </div>
+                            <div class="col-md-4">
+                                <p class="small text-muted mb-1 fw-bold text-uppercase">Employees with Absences</p>
+                                @forelse($verification['with_absences'] as $abs)
+                                    <div class="text-danger small"><i class="bi bi-person-exclamation me-1"></i> {{ $abs['name'] }} ({{ $abs['days'] }} days absent)</div>
+                                @empty
+                                    <div class="text-success small"><i class="bi bi-check2 me-1"></i> None</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="table-responsive">
             <table class="table table-hover table-bordered table-sm align-middle">
                 <thead class="bg-light text-center small">
@@ -194,7 +263,7 @@
                         <td class="text-danger">-{{ number_format($item->sss_deduction, 2) }}</td>
                         <td class="text-danger">-{{ number_format($item->pagibig_deduction, 2) }}</td>
                         <td class="text-danger">-{{ number_format($item->philhealth_deduction, 2) }}</td>
-                        <td class="bg-light text-primary"><strong>{{ number_format($item->net_pay, 2) }}</strong></td>
+                        <td class="bg-light text-primary"><strong>{{ number_format(max(0, $item->net_pay), 2) }}</strong></td>
                         <td>
                             <div class="btn-group">
                                 <a href="{{ route('payroll.payslip', $item->id) }}" class="btn btn-sm btn-outline-info">Slip</a>

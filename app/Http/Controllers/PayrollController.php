@@ -98,6 +98,9 @@ class PayrollController extends Controller
         $items = $payroll->items()->with('employee')->get();
         $item_count = $items->count();
 
+        // Perform attendance verification
+        $verification = $this->payrollService->verifyAttendance($payroll);
+
         // Count how many employees have finalized DTRs for this period that AREN'T in the batch yet
         $query = \App\Models\Dtr::where('status', 'finalized')
             ->whereDate('start_date', $payroll->start_date)
@@ -116,16 +119,31 @@ class PayrollController extends Controller
         // Subtract those already processed in this batch
         $finalized_dtr_count = $query->whereNotIn('employee_id', $items->pluck('employee_id'))->count();
 
-        return view('payroll.show', compact('payroll', 'items', 'item_count', 'finalized_dtr_count'));
+        return view('payroll.show', compact('payroll', 'items', 'item_count', 'finalized_dtr_count', 'verification'));
     }
 
-    public function processBatch(Payroll $payroll)
+    public function processBatch(Payroll $payroll, Request $request)
     {
         if ($payroll->status == 'approved') {
             return back()->with('error', 'Cannot re-process an approved payroll batch.');
         }
 
         try {
+            $forceBypass = $request->has('force_bypass');
+
+            // VERIFICATION: Ensure no missing logs or absent employees unless bypassed
+            if (!$forceBypass) {
+                $verification = $this->payrollService->verifyAttendance($payroll);
+                if (!$verification['can_process']) {
+                    $errorMessage = 'Cannot process payroll. Issues found: ';
+                    if (!empty($verification['missing_dtr'])) $errorMessage .= count($verification['missing_dtr']) . ' missing DTRs. ';
+                    if (!empty($verification['pending_dtr'])) $errorMessage .= count($verification['pending_dtr']) . ' DTRs not finalized. ';
+                    if (!empty($verification['with_absences'])) $errorMessage .= count($verification['with_absences']) . ' employees have absences. ';
+                    
+                    return back()->with('error', $errorMessage . ' Use the "Bypass" option if you want to proceed with zero-pay for these employees.');
+                }
+            }
+
             // We call the service directly for immediate feedback (Synchronous)
             // If the user wants to use the background worker, they'd use ProcessPayrollBatch::dispatch($payroll);
             $this->payrollService->computePayroll($payroll);

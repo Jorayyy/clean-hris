@@ -112,7 +112,10 @@
                 <span class="category-title text-success">EARNINGS (+)</span>
                 <div class="data-row"><span>Basic Salary:</span> <strong>P{{ number_format($item->basic_pay, 2) }}</strong></div>
                 <div class="data-row"><span>Overtime Pay:</span> <strong>P{{ number_format($item->overtime_pay, 2) }}</strong></div>
-                <div class="data-row"><span>Bonus / Incentives:</span> <strong>P{{ number_format($item->bonuses, 2) }}</strong></div>
+                @php
+                    $display_bonus = ($item->total_hours > 0) ? $item->bonuses : 0;
+                @endphp
+                <div class="data-row"><span>Bonus / Incentives:</span> <strong>P{{ number_format($display_bonus, 2) }}</strong></div>
                 <div class="data-row"><span>Night Differential:</span> <strong>P{{ number_format($item->night_diff, 2) }}</strong></div>
                 
                 @if($item->allowances_json && count($item->allowances_json) > 0)
@@ -132,7 +135,7 @@
                 @endif
 
                 <hr>
-                <div class="data-row text-success"><span>GROSS PAY:</span> <strong>P{{ number_format($item->basic_pay + $item->overtime_pay + $item->bonuses + $item->night_diff + $sum_allowances, 2) }}</strong></div>
+                <div class="data-row text-success"><span>GROSS PAY:</span> <strong>P{{ number_format($item->basic_pay + $item->overtime_pay + $display_bonus + $item->night_diff + $sum_allowances, 2) }}</strong></div>
             </div>
             <div class="col-md-6 text-center">
                 <span class="category-title text-danger">DEDUCTIONS (-)</span>
@@ -140,15 +143,24 @@
                     @php 
                         $total_deductions = 0;
                         $types = \App\Models\DeductionType::pluck('name', 'code')->toArray();
+                        $gross_for_display = $item->basic_pay + $item->overtime_pay + $display_bonus + $item->night_diff + $sum_allowances;
                     @endphp
                     
                     @if($item->deductions_json && count($item->deductions_json) > 0)
                         @foreach($item->deductions_json as $d)
-                            <div class="data-row">
-                                <span>{{ $types[$d['type']] ?? $d['type'] }}:</span> 
-                                <strong>P{{ number_format($d['amount'], 2) }}</strong>
-                            </div>
-                            @php $total_deductions += $d['amount']; @endphp
+                            @php 
+                                // IMPROVED LOGIC: If Basic Salary is 0, hide Late/UT rows entirely to avoid confusion
+                                $is_attendance_deduction = in_array(strtoupper($d['type']), ['LATE', 'UT', 'UNDERTIME']);
+                                $should_display = !($item->basic_pay <= 0 && $is_attendance_deduction);
+                            @endphp
+
+                            @if($should_display)
+                                <div class="data-row">
+                                    <span>{{ $types[$d['type']] ?? $d['type'] }}:</span> 
+                                    <strong>P{{ number_format($d['amount'], 2) }}</strong>
+                                </div>
+                                @php $total_deductions += $d['amount']; @endphp
+                            @endif
                         @endforeach
                     @else
                         <!-- Fallback for legacy records or missing JSON -->
@@ -165,13 +177,13 @@
                     @endif
                 </div>
                 <hr>
-                <div class="data-row text-danger"><span>TOTAL DEDUCTIONS:</span> <strong>P{{ number_format($total_deductions, 2) }}</strong></div>
+                <div class="data-row text-danger"><span>TOTAL DEDUCTIONS:</span> <strong>P{{ number_format(min($gross_for_display, $total_deductions), 2) }}</strong></div>
             </div>
         </div>
 
         <div class="row mt-4 pt-3 border-top bg-light">
             <div class="col-12 text-center py-2">
-                <h3 class="text-primary mb-0">NET PAY: P{{ number_format($item->net_pay, 2) }}</h3>
+                <h3 class="text-primary mb-0">NET PAY: P{{ number_format(max(0, $gross_for_display - min($gross_for_display, $total_deductions)), 2) }}</h3>
                 <p class="small text-muted italic">I hereby certify that the above figures are correct.</p>
             </div>
         </div>

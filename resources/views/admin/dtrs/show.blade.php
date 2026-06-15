@@ -239,8 +239,7 @@
                 <div class="col-md-6 text-end no-print">
                     <div class="mt-2 text-end">
                         @if($dtr->status == 'draft')
-                            <button type="button" class="btn btn-info btn-sm fw-bold" 
-                                @if($dtr->total_regular_hours <= 0) disabled title="Empty records cannot be verified" @else data-bs-toggle="modal" data-bs-target="#verifyDtrModal" @endif>
+                            <button type="button" class="btn btn-info btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#verifyDtrModal">
                                 <i class="bi bi-shield-check me-1"></i> Verify DTR
                             </button>
                         @elseif($dtr->status == 'verified')
@@ -270,6 +269,19 @@
                 @csrf @method('PATCH')
                 <div class="modal-body">
                     <p>You are about to verify the DTR for <strong>{{ $dtr->employee->full_name }}</strong>.</p>
+                    
+                    @if($dtr->total_regular_hours <= 0)
+                        <div class="alert alert-danger small py-2">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> This DTR has <strong>0 regular hours</strong>.
+                            <div class="mt-2 text-center pointer-event">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input border-danger" type="checkbox" name="force_bypass" id="forceVerify" value="1" required>
+                                    <label class="form-check-label text-danger fw-bold" for="forceVerify">I want to verify this empty DTR</label>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="mb-3">
                         <label class="form-label fw-bold small">Enter Security Password</label>
                         <input type="password" name="admin_password" class="form-control" placeholder="Required to proceed" required>

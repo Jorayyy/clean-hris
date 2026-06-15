@@ -206,8 +206,10 @@ class DtrController extends Controller
             return back()->with('error', 'Invalid security password. Verification failed.');
         }
 
-        if ($dtr->total_regular_hours <= 0) {
-            return back()->with('error', 'Cannot verify a DTR with zero regular hours. Please check attendance logs first.');
+        $forceBypass = $request->has('force_bypass');
+
+        if ($dtr->total_regular_hours <= 0 && !$forceBypass) {
+            return back()->with('error', 'Cannot verify a DTR with zero regular hours. If this is intentional (e.g., terminated or long-term absent), please use the "Bypass" option.');
         }
 
         // Check for incomplete logs (Missing Out punches)

@@ -12,6 +12,62 @@ use Illuminate\Support\Facades\DB;
 
 class PayrollService
 {
+    /**
+     * Verifies if all employees in the payroll batch have finalized DTRs 
+     * and identifies any attendance red flags.
+     */
+    public function verifyAttendance(Payroll $payroll)
+    {
+        $query = Employee::where('status', 'active');
+        
+        if ($payroll->payroll_group_id) {
+            $query->where('payroll_group_id', $payroll->payroll_group_id);
+        } elseif ($payroll->employee_id) {
+            $query->where('id', $payroll->employee_id);
+        }
+
+        $employees = $query->get();
+        $dtrs = Dtr::whereIn('employee_id', $employees->pluck('id'))
+            ->whereDate('start_date', $payroll->start_date)
+            ->whereDate('end_date', $payroll->end_date)
+            ->get()
+            ->keyBy('employee_id');
+
+        $results = [
+            'total_employees' => $employees->count(),
+            'missing_dtr' => [],
+            'pending_dtr' => [],
+            'with_absences' => [],
+            'can_process' => true,
+        ];
+
+        foreach ($employees as $employee) {
+            $dtr = $dtrs->get($employee->id);
+
+            if (!$dtr) {
+                $results['missing_dtr'][] = $employee->full_name;
+                $results['can_process'] = false;
+            } elseif ($dtr->status !== 'finalized') {
+                $results['pending_dtr'][] = [
+                    'name' => $employee->full_name,
+                    'status' => $dtr->status
+                ];
+                $results['can_process'] = false;
+            }
+            
+            if ($dtr && $dtr->total_absent_days > 0) {
+                $results['with_absences'][] = [
+                    'name' => $employee->full_name,
+                    'days' => $dtr->total_absent_days
+                ];
+                // The user says "absent employee" blocks payroll
+                $results['can_process'] = false;
+            }
+        }
+
+        return $results;
+    }
+
     public function computePayroll(Payroll $payroll)
     {
         try {
@@ -43,7 +99,6 @@ class PayrollService
                 $dtrs = Dtr::whereIn('employee_id', $employees->pluck('id'))
                     ->whereDate('start_date', $payroll->start_date)
                     ->whereDate('end_date', $payroll->end_date)
-                    ->where('status', 'finalized')
                     ->get()
                     ->keyBy('employee_id');
 
@@ -56,18 +111,18 @@ class PayrollService
                 $items = [];
 
                 foreach ($employees as $employee) {
-                    // Skip if item already exists to avoid duplicates
-                    if (PayrollItem::where('payroll_id', $payroll->id)->where('employee_id', $employee->id)->exists()) {
-                        continue;
-                    }
-
-                    // Check for finalized DTR
+                    // Check for DTR (finalized or otherwise)
                     $dtr = $dtrs->get($employee->id);
 
-                    // If NO finalized DTR, we skip them from the automated batch.
-                    // This prevents unverified attendance from being paid out.
-                    if (!$dtr) {
-                        continue;
+                    $dailyRate = $employee->daily_rate;
+                    $hourlyRate = $dailyRate / 8;
+
+                    // Compute values based on DTR if it exists, otherwise default to zero
+                    $basicPay = 0;
+                    $overtimePay = 0;
+                    if ($dtr) {
+                        $basicPay = ($dtr->total_regular_hours / 8) * $dailyRate;
+                        $overtimePay = $dtr->total_overtime_hours * $hourlyRate * 1.25; 
                     }
 
                     $attendances = Attendance::where('employee_id', $employee->id)
@@ -77,19 +132,12 @@ class PayrollService
                     $totalDays = $attendances->count();
                     $totalHours = $attendances->sum('total_hours');
                     
-                    $dailyRate = $employee->daily_rate;
-                    $hourlyRate = $dailyRate / 8;
-
-                    // Use DTR stats if available for better accuracy (handle lates/undertime if model has it)
-                    $basicPay = ($dtr->total_regular_hours / 8) * $dailyRate;
-                    
-                    // Logic for OT from DTR
-                    $overtimePay = $dtr->total_overtime_hours * $hourlyRate * 1.25; 
-
-
                     // Bonuses & Night Diff (simplified as requested)
-                    $bonuses = ($totalDays >= 5) ? 500 : 0; // Perfect attendance bonus
-                    $nightDiff = 0; // Simplified for this implementation
+                    // Logic: Only award "Perfect Attendance" bonus if they actually worked at least 5 days, 
+                    // have no absences, AND have actual hours rendered (not just empty clocks).
+                    $hasAbsences = $dtr ? ($dtr->total_absent_days > 0) : true;
+                    $bonuses = ($totalDays >= 5 && !$hasAbsences && $totalHours > 0) ? 500 : 0; 
+                    $nightDiff = 0; 
 
                     // Deductions logic
                     $deductions = [];
@@ -99,21 +147,25 @@ class PayrollService
                     $otherDeductions = 0;
 
                     // Late/UT Deductions
-                    if ($dtr->total_late_minutes > 0) {
-                        $amt = floor(($dtr->total_late_minutes / 60) * $hourlyRate);
-                        $deductions[] = [
-                            'type' => 'LATE', 
-                            'amount' => $amt
-                        ];
-                        $otherDeductions += $amt;
-                    }
-                    if ($dtr->total_undertime_minutes > 0) {
-                        $amt = floor(($dtr->total_undertime_minutes / 60) * $hourlyRate);
-                        $deductions[] = [
-                            'type' => 'UT', 
-                            'amount' => $amt
-                        ];
-                        $otherDeductions += $amt;
+                    // Optimization: Skip attendance deductions if BASIC PAY is 0 (fully absent)
+                    // This prevents "double-penalizing" where an employee gets 0 pay AND high negative deductions.
+                    if ($basicPay > 0 && $dtr) {
+                        if ($dtr->total_late_minutes > 0) {
+                            $amt = min($basicPay * 0.5, floor(($dtr->total_late_minutes / 60) * $hourlyRate));
+                            $deductions[] = [
+                                'type' => 'LATE', 
+                                'amount' => $amt
+                            ];
+                            $otherDeductions += $amt;
+                        }
+                        if ($dtr->total_undertime_minutes > 0) {
+                            $amt = min($basicPay * 0.5, floor(($dtr->total_undertime_minutes / 60) * $hourlyRate));
+                            $deductions[] = [
+                                'type' => 'UT', 
+                                'amount' => $amt
+                            ];
+                            $otherDeductions += $amt;
+                        }
                     }
 
                     foreach (['sss', 'pagibig', 'philhealth'] as $type) {
@@ -128,7 +180,10 @@ class PayrollService
                     }
 
                     $totalDeductions = array_sum(array_column($deductions, 'amount'));
-                    $netPay = ($basicPay + $overtimePay + $bonuses + $nightDiff) - $totalDeductions;
+                    
+                    // ENSURE NO NEGATIVE NET PAY: Cap at zero to handle cases with zero basic but fixed deductions
+                    $grossPay = $basicPay + $overtimePay + $bonuses + $nightDiff;
+                    $netPay = max(0, $grossPay - $totalDeductions);
 
                     // IDEMPOTENCY: Use updateOrCreate to ensure no double-records if job retries
                     $items[] = PayrollItem::updateOrCreate(
