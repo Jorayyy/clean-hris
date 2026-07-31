@@ -19,11 +19,16 @@ class ScheduleController extends Controller
             ->latest()
             ->get();
         $sites = Site::with('scheduleGroup')->withCount('employees')->get();
-        $overriddenEmployees = Employee::whereHas('schedules')
+        $overriddenEmployees = Employee::whereHas('schedules', function ($query) {
+                $query->where('is_template', false);
+            })
             ->with('site')
             ->get();
         $employeeCount = Employee::count();
-        $directAssignmentCount = Schedule::whereNotNull('employee_id')->count();
+        $directAssignmentCount = Schedule::where('is_template', false)
+            ->whereNotNull('employee_id')
+            ->distinct('employee_id')
+            ->count('employee_id');
         
         return view('admin.schedules.index', compact('shifts', 'schedules', 'sites', 'overriddenEmployees', 'employeeCount', 'directAssignmentCount'));
     }
