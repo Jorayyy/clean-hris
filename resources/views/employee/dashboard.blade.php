@@ -87,6 +87,15 @@
                         <div class="text-muted small mt-1">
                             <i class="bi bi-graph-up text-success me-1"></i> Stable trend
                         </div>
+                        @if($latestSalary && $latestSalary->payroll)
+                            @php
+                                $status = strtolower($latestSalary->payroll->status ?? 'draft');
+                                $statusClass = $status === 'approved' ? 'bg-success-subtle text-success' : ($status === 'processed' ? 'bg-info-subtle text-info-emphasis' : 'bg-warning-subtle text-warning-emphasis');
+                            @endphp
+                            <div class="mt-2">
+                                <span class="badge {{ $statusClass }} rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.65rem;">{{ $status }}</span>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -271,6 +280,7 @@
                                 <th>Basic Pay</th>
                                 <th>Overtime</th>
                                 <th>Total Deductions</th>
+                                <th>Payroll Status</th>
                                 <th>Net Pay</th>
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
@@ -285,6 +295,13 @@
                                     <td class="fw-medium font-monospace">₱{{ number_format($salary->basic_pay, 2) }}</td>
                                     <td class="fw-medium font-monospace text-primary">+₱{{ number_format($salary->overtime_pay, 2) }}</td>
                                     <td class="fw-medium font-monospace text-danger">-₱{{ number_format($salary->total_deductions, 2) }}</td>
+                                    <td>
+                                        @php
+                                            $status = strtolower($salary->payroll->status ?? 'draft');
+                                            $statusClass = $status === 'approved' ? 'bg-success-subtle text-success' : ($status === 'processed' ? 'bg-info-subtle text-info-emphasis' : 'bg-warning-subtle text-warning-emphasis');
+                                        @endphp
+                                        <span class="badge {{ $statusClass }} rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.65rem;">{{ $status }}</span>
+                                    </td>
                                     <td class="fw-800 text-success font-monospace">₱{{ number_format($salary->net_pay, 2) }}</td>
                                     <td class="text-end pe-4">
                                         <a href="{{ route('employee.payslip', $salary->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" target="_blank">
@@ -294,7 +311,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
+                                    <td colspan="7" class="text-center py-5 text-muted">
                                         <i class="bi bi-folder2-open fs-1 opacity-25 d-block mb-3"></i>
                                         No payslip records found for this period.
                                     </td>

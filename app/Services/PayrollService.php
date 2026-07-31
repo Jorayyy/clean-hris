@@ -122,7 +122,9 @@ class PayrollService
                     $overtimePay = 0;
                     if ($dtr) {
                         $basicPay = ($dtr->total_regular_hours / 8) * $dailyRate;
-                        $overtimePay = $dtr->total_overtime_hours * $hourlyRate * 1.25; 
+                        $overtimePay = ($dtr->is_ot_authorized ?? false)
+                            ? $dtr->total_overtime_hours * $hourlyRate * 1.25
+                            : 0;
                     }
 
                     $attendances = Attendance::where('employee_id', $employee->id)
@@ -168,14 +170,25 @@ class PayrollService
                         }
                     }
 
-                    foreach (['sss', 'pagibig', 'philhealth'] as $type) {
-                        $rate = $settings->{$type . '_rate'} ?? 0.05;
-                        $amt = floor($basicPay * $rate);
+                    $statutoryRates = [
+                        'sss' => $sssRate,
+                        'pagibig' => $pagibigRate,
+                        'philhealth' => $philhealthRate,
+                    ];
+
+                    foreach ($statutoryRates as $type => $rate) {
+                        $amt = round($basicPay * $rate, 2);
                         if ($amt > 0) {
                             $deductions[] = ['type' => strtoupper($type), 'amount' => $amt];
-                            if ($type === 'sss') $sssAmt = $amt;
-                            if ($type === 'pagibig') $pagibigAmt = $amt;
-                            if ($type === 'philhealth') $philhealthAmt = $amt;
+                            if ($type === 'sss') {
+                                $sssAmt = $amt;
+                            }
+                            if ($type === 'pagibig') {
+                                $pagibigAmt = $amt;
+                            }
+                            if ($type === 'philhealth') {
+                                $philhealthAmt = $amt;
+                            }
                         }
                     }
 

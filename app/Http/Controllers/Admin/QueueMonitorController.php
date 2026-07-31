@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 use App\Models\AuditLog;
 use App\Models\Employee;
@@ -25,6 +26,28 @@ class QueueMonitorController extends Controller
             }
         } catch (\Exception $e) {}
 
+        $queueDriver = config('queue.default');
+        $queueStats = [
+            'driver' => $queueDriver,
+            'pending_jobs' => 0,
+            'reserved_jobs' => 0,
+            'failed_jobs' => 0,
+            'batch_backlog' => 0,
+        ];
+
+        if (Schema::hasTable('jobs')) {
+            $queueStats['pending_jobs'] = DB::table('jobs')->count();
+            $queueStats['reserved_jobs'] = DB::table('jobs')->whereNotNull('reserved_at')->count();
+        }
+
+        if (Schema::hasTable('failed_jobs')) {
+            $queueStats['failed_jobs'] = DB::table('failed_jobs')->count();
+        }
+
+        if (Schema::hasTable('job_batches')) {
+            $queueStats['batch_backlog'] = (int) DB::table('job_batches')->sum('pending_jobs');
+        }
+
         // 2. Security Overview (Recent Failures or Logins)
         $recentActivity = AuditLog::with('user')->latest()->take(15)->get();
         
@@ -39,6 +62,6 @@ class QueueMonitorController extends Controller
             'php_ver' => PHP_VERSION,
         ];
 
-        return view('admin.queue-monitor.index', compact('recentActivity', 'stats'));
+        return view('admin.queue-monitor.index', compact('recentActivity', 'stats', 'queueStats'));
     }
 }

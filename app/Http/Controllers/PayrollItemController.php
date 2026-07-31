@@ -9,6 +9,7 @@ use App\Models\Dtr;
 use App\Models\Attendance;
 use App\Models\DeductionType;
 use App\Models\AllowanceType;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 
 class PayrollItemController extends Controller
@@ -111,7 +112,7 @@ class PayrollItemController extends Controller
             'total_hours' => 'required|numeric',
             'basic_pay' => 'required|numeric',
             'overtime_pay' => 'nullable|numeric',
-            'night_diff' => 'nullable|numeric',
+                'night_diff' => 'nullable|numeric',
             'bonuses' => 'nullable|numeric',
             'allowances' => 'nullable|array',
             'allowances.*.type' => 'nullable|string',
@@ -121,44 +122,19 @@ class PayrollItemController extends Controller
             'deductions.*.amount' => 'nullable|numeric|min:0',
         ]);
 
-        $overtime_pay = $request->input('overtime_pay', 0) ?: 0;
-        $night_diff = $request->input('night_diff', 0) ?: 0;
-        $bonuses = $request->input('bonuses', 0) ?: 0;
+        $settings = AppSetting::first();
+        $allowances_log = $this->normalizeLineItems($request->input('allowances', []));
+        $manualDeductions = $this->normalizeLineItems($request->input('deductions', []));
+        $statutoryDeductions = $this->buildStatutoryDeductions((float) $data['basic_pay'], $settings);
+        $deductions_log = array_values(array_merge($statutoryDeductions['lines'], $manualDeductions));
+        $manualDeductionTotal = array_sum(array_column($manualDeductions, 'amount'));
 
-        $total_allowances = 0;
-        $allowances_log = [];
-        if ($request->has('allowances') && is_array($request->allowances)) {
-            foreach ($request->allowances as $a) {
-                if (!empty($a['type']) && isset($a['amount']) && is_numeric($a['amount'])) {
-                    $total_allowances += $a['amount'];
-                    $allowances_log[] = [
-                        'type' => $a['type'],
-                        'amount' => $a['amount']
-                    ];
-                }
-            }
-        }
-
-        $total_deductions = 0;
-        $deductions_log = [];
-        if ($request->has('deductions') && is_array($request->deductions)) {
-            foreach ($request->deductions as $d) {
-                if (!empty($d['type']) && isset($d['amount']) && is_numeric($d['amount'])) {
-                    $total_deductions += $d['amount'];
-                    $deductions_log[] = [
-                        'type' => $d['type'],
-                        'amount' => $d['amount']
-                    ];
-                }
-            }
-        }
-
-        $net_pay = $data['basic_pay'] 
-                 + $overtime_pay 
-                 + $night_diff 
-                 + $bonuses
-                 + $total_allowances
-                 - $total_deductions;
+        $overtime_pay = (float) ($request->input('overtime_pay', 0) ?: 0);
+        $night_diff = (float) ($request->input('night_diff', 0) ?: 0);
+        $bonuses = (float) ($request->input('bonuses', 0) ?: 0);
+        $total_allowances = array_sum(array_column($allowances_log, 'amount'));
+        $total_deductions = array_sum(array_column($deductions_log, 'amount'));
+        $net_pay = max(0, ((float) $data['basic_pay']) + $overtime_pay + $night_diff + $bonuses + $total_allowances - $total_deductions);
 
         $payrollItem = PayrollItem::create([
             'payroll_id' => $data['payroll_id'],
@@ -172,6 +148,10 @@ class PayrollItemController extends Controller
             'net_pay' => $net_pay,
             'allowances_json' => $allowances_log,
             'deductions_json' => $deductions_log,
+            'deductions_sss' => $statutoryDeductions['sss'],
+            'deductions_pagibig' => $statutoryDeductions['pagibig'],
+            'deductions_philhealth' => $statutoryDeductions['philhealth'],
+            'other_deductions' => $manualDeductionTotal,
         ]);
 
         // Auto-update payroll status to 'processing' if it was 'draft'
@@ -195,22 +175,59 @@ class PayrollItemController extends Controller
             'total_hours' => 'required|numeric',
             'basic_pay' => 'required|numeric',
             'overtime_pay' => 'nullable|numeric',
+            'night_diff' => 'nullable|numeric',
             'bonuses' => 'nullable|numeric',
             'deductions_sss' => 'nullable|numeric',
             'deductions_pagibig' => 'nullable|numeric',
             'deductions_philhealth' => 'nullable|numeric',
             'other_deductions' => 'nullable|numeric',
+            'allowances' => 'nullable|array',
+            'allowances.*.type' => 'nullable|string',
+            'allowances.*.amount' => 'nullable|numeric|min:0',
+            'deductions' => 'nullable|array',
+            'deductions.*.type' => 'nullable|string',
+            'deductions.*.amount' => 'nullable|numeric|min:0',
         ]);
 
-        $net_pay = $data['basic_pay'] 
-                 + ($data['overtime_pay'] ?? 0) 
-                 + ($data['bonuses'] ?? 0)
-                 - ($data['deductions_sss'] ?? 0)
-                 - ($data['deductions_pagibig'] ?? 0)
-                 - ($data['deductions_philhealth'] ?? 0)
-                 - ($data['other_deductions'] ?? 0);
+        $settings = AppSetting::first();
+        $allowancesLog = $this->normalizeLineItems($request->input('allowances', $payrollItem->allowances_json ?? []));
+        $manualDeductions = $this->normalizeLineItems($request->input('deductions', []));
+        $hasLegacyDeductionFields = $request->filled('deductions_sss')
+            || $request->filled('deductions_pagibig')
+            || $request->filled('deductions_philhealth')
+            || $request->filled('other_deductions');
+        $manualDeductionTotal = array_sum(array_column($manualDeductions, 'amount'));
 
-        $data['net_pay'] = $net_pay;
+        if ($hasLegacyDeductionFields) {
+            $deductionsLog = array_values(array_filter([
+                ['type' => 'SSS', 'amount' => round((float) ($request->input('deductions_sss', 0) ?: 0), 2)],
+                ['type' => 'PAGIBIG', 'amount' => round((float) ($request->input('deductions_pagibig', 0) ?: 0), 2)],
+                ['type' => 'PHILHEALTH', 'amount' => round((float) ($request->input('deductions_philhealth', 0) ?: 0), 2)],
+                ['type' => 'OTHER', 'amount' => round((float) ($request->input('other_deductions', 0) ?: 0), 2)],
+            ], static fn (array $item) => $item['amount'] > 0));
+
+            $statutoryDeductions = [
+                'sss' => round((float) ($request->input('deductions_sss', 0) ?: 0), 2),
+                'pagibig' => round((float) ($request->input('deductions_pagibig', 0) ?: 0), 2),
+                'philhealth' => round((float) ($request->input('deductions_philhealth', 0) ?: 0), 2),
+                'other' => round((float) ($request->input('other_deductions', 0) ?: 0), 2),
+            ];
+        } else {
+            $statutoryDeductions = $this->buildStatutoryDeductions((float) $data['basic_pay'], $settings);
+            $deductionsLog = array_values(array_merge($statutoryDeductions['lines'], $manualDeductions));
+            $statutoryDeductions['other'] = $manualDeductionTotal;
+        }
+
+        $data['allowances_json'] = $allowancesLog;
+        $data['deductions_json'] = $deductionsLog;
+        $data['deductions_sss'] = $statutoryDeductions['sss'];
+        $data['deductions_pagibig'] = $statutoryDeductions['pagibig'];
+        $data['deductions_philhealth'] = $statutoryDeductions['philhealth'];
+        $data['other_deductions'] = $statutoryDeductions['other'];
+        $data['overtime_pay'] = (float) ($data['overtime_pay'] ?? 0);
+        $data['night_diff'] = (float) ($data['night_diff'] ?? 0);
+        $data['bonuses'] = (float) ($data['bonuses'] ?? 0);
+        $data['net_pay'] = max(0, ((float) $data['basic_pay']) + $data['overtime_pay'] + $data['night_diff'] + $data['bonuses'] + array_sum(array_column($allowancesLog, 'amount')) - array_sum(array_column($deductionsLog, 'amount')));
 
         $payrollItem->update($data);
 
@@ -222,5 +239,62 @@ class PayrollItemController extends Controller
         $payrollId = $payrollItem->payroll_id;
         $payrollItem->delete();
         return redirect()->route('payroll.show', $payrollId)->with('success', 'Payslip deleted.');
+    }
+
+    private function normalizeLineItems(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $type = trim((string) ($item['type'] ?? ''));
+            $amount = (float) ($item['amount'] ?? 0);
+
+            if ($type === '' || $amount < 0) {
+                continue;
+            }
+
+            $normalized[] = [
+                'type' => $type,
+                'amount' => round($amount, 2),
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function buildStatutoryDeductions(float $basicPay, ?AppSetting $settings): array
+    {
+        $rates = [
+            'sss' => $settings->sss_rate ?? 0.0450,
+            'pagibig' => $settings->pagibig_rate ?? 0.0200,
+            'philhealth' => $settings->philhealth_rate ?? 0.0500,
+        ];
+
+        $lines = [];
+        $totals = [];
+
+        foreach ($rates as $key => $rate) {
+            $amount = round($basicPay * (float) $rate, 2);
+            $totals[$key] = $amount;
+
+            if ($amount > 0) {
+                $lines[] = [
+                    'type' => strtoupper($key),
+                    'amount' => $amount,
+                ];
+            }
+        }
+
+        return [
+            'lines' => $lines,
+            'sss' => $totals['sss'] ?? 0,
+            'pagibig' => $totals['pagibig'] ?? 0,
+            'philhealth' => $totals['philhealth'] ?? 0,
+            'other' => 0,
+        ];
     }
 }

@@ -55,6 +55,12 @@
 </head>
 <body>
     @auth
+    @php
+        $currentUser = Auth::user();
+        $isSuperAdmin = $currentUser->isSuperAdmin();
+        $isAdmin = $currentUser->isAdmin();
+        $isEmployee = $currentUser->isEmployee();
+    @endphp
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -73,7 +79,7 @@
         </div>
         
         <div class="py-3">
-            @if(Auth::user()->is_super_admin)
+            @if($isSuperAdmin)
                 <div class="nav-category">Main Menu</div>
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
@@ -135,7 +141,7 @@
                     <i class="bi bi-chat-dots"></i> Transactions
                 </a>
 
-            @elseif(Auth::user()->isAdmin())
+            @elseif($isAdmin)
                 <div class="nav-category">Main Menu</div>
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
@@ -227,7 +233,7 @@
                         <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">{{ Auth::user()->email }}</div>
                     </li>
                     <li>
-                        <a class="dropdown-item py-2" href="{{ Auth::user()->isAdmin() ? route('admin.profile') : route('employee.profile') }}">
+                        <a class="dropdown-item py-2" href="{{ $isAdmin ? route('admin.profile') : route('employee.profile') }}">
                             <i class="bi bi-person-circle me-2"></i> My Profile
                         </a>
                     </li>

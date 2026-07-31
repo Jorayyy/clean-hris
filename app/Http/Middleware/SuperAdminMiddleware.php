@@ -18,7 +18,7 @@ class SuperAdminMiddleware
         if ($request->user()) {
             $user = $request->user();
             
-            if ($user->is_super_admin || $user->hasRole('Accounting Admin')) {
+            if ($user->isSuperAdmin() || $user->hasAnyRole(['Accounting Admin', 'Accounting-Admin'])) {
                 return $next($request);
             }
             abort(403, 'Unauthorized access.');

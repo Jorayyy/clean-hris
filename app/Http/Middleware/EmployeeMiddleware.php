@@ -16,10 +16,18 @@ class EmployeeMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && (Auth::user()->role === 'employee' || Auth::user()->isAdmin())) {
+        // 1. If they aren't logged in at all, send them to login safely
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Please log in first.');
+        }
+
+        // 2. Perform the role check
+        if (Auth::user()->isEmployee()) {
             return $next($request);
         }
 
-        return redirect('/login')->with('error', 'Unauthorized access.');
+        // 3. FIX: If they are logged in but don't have the right role, 
+        // abort with a 403 Forbidden instead of redirecting to login.
+        abort(403, 'Unauthorized access.');
     }
 }

@@ -43,15 +43,13 @@ class AdminDashboardController extends Controller
 
         // High Overtime / Late Watchlist (Current Month)
         $startOfMonth = Carbon::now()->startOfMonth();
-        $watchlist = Dtr::with('employee')
-            ->where('start_date', '>=', $startOfMonth)
-            ->select('employee_id', 
-                DB::raw('SUM(total_late_minutes) as late_mins'),
-                DB::raw('SUM(total_overtime_hours) as ot_hours'))
+        $watchlist = Dtr::query()
+            ->with('employee')
+            ->whereDate('start_date', '>=', $startOfMonth)
+            ->select('employee_id', DB::raw('SUM(total_late_minutes) as late_mins'), DB::raw('SUM(total_overtime_hours) as ot_hours'))
             ->groupBy('employee_id')
-            ->having('late_mins', '>', 0)
-            ->orHaving('ot_hours', '>', 0)
-            ->orderBy('late_mins', 'desc')
+            ->havingRaw('(SUM(total_late_minutes) > 0 OR SUM(total_overtime_hours) > 0)')
+            ->orderByDesc('late_mins')
             ->limit(5)
             ->get();
 
@@ -93,7 +91,7 @@ class AdminDashboardController extends Controller
             ->take(5);
 
         // Recent Batches and Tickets
-        $recentPayrolls = Payroll::with('payrollGroup')->latest()->paginate(5, ['*'], 'payroll_page');
+        $recentPayrolls = Payroll::with(['payrollGroup', 'employee'])->latest()->paginate(5, ['*'], 'payroll_page');
         $recentTickets = SupportTicket::with('employee')->latest()->take(5)->get();
 
         $groups = PayrollGroup::withCount('employees')->get();

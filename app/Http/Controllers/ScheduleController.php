@@ -18,11 +18,14 @@ class ScheduleController extends Controller
             ->where('is_template', false)
             ->latest()
             ->get();
-        $sites = Site::with('scheduleGroup')->get();
+        $sites = Site::with('scheduleGroup')->withCount('employees')->get();
+        $overriddenEmployees = Employee::whereHas('schedules')
+            ->with('site')
+            ->get();
         $employeeCount = Employee::count();
         $directAssignmentCount = Schedule::whereNotNull('employee_id')->count();
         
-        return view('admin.schedules.index', compact('shifts', 'schedules', 'sites', 'employeeCount', 'directAssignmentCount'));
+        return view('admin.schedules.index', compact('shifts', 'schedules', 'sites', 'overriddenEmployees', 'employeeCount', 'directAssignmentCount'));
     }
 
     public function shiftsIndex()
@@ -133,6 +136,9 @@ class ScheduleController extends Controller
                 'time_out' => 'required',
                 'days' => 'required|array',
                 'target_type' => 'required|in:individual,group,payroll',
+                'employee_id' => 'required_if:target_type,individual|nullable|exists:employees,id',
+                'schedule_group_id' => 'required_if:target_type,group|nullable|exists:schedule_groups,id',
+                'payroll_group_id' => 'required_if:target_type,payroll|nullable|exists:payroll_groups,id',
             ]);
 
             Schedule::create([
@@ -165,6 +171,9 @@ class ScheduleController extends Controller
             'time_out' => 'required',
             'days' => 'required|array',
             'target_type' => 'required|in:individual,group,payroll',
+            'employee_id' => 'required_if:target_type,individual|nullable|exists:employees,id',
+            'schedule_group_id' => 'required_if:target_type,group|nullable|exists:schedule_groups,id',
+            'payroll_group_id' => 'required_if:target_type,payroll|nullable|exists:payroll_groups,id',
         ]);
 
         $schedule->update([

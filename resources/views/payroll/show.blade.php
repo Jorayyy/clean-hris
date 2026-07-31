@@ -28,6 +28,16 @@
             </div>
         </div>
 
+        <div class="alert alert-light border d-flex justify-content-between align-items-center mb-4">
+            <div class="small text-muted">
+                <i class="bi bi-signpost-split text-primary me-1"></i>
+                Processing lane: <strong>DTR Finalized</strong> -> <strong>Payslip Draft</strong> -> <strong>Batch Approved</strong>
+            </div>
+            <a href="{{ route('admin.dtrs.index', ['start_date' => \Carbon\Carbon::parse($payroll->start_date)->format('Y-m-d'), 'end_date' => \Carbon\Carbon::parse($payroll->end_date)->format('Y-m-d')]) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-journal-check me-1"></i> Review DTR Flags
+            </a>
+        </div>
+
         @if($payroll->status == 'draft' || $payroll->status == 'processing' || $payroll->status == 'processed')
         @php
             if ($payroll->payrollGroup) {
@@ -77,18 +87,25 @@
                                         Process them to include them in this payroll.
                                     </p>
                                     <div class="d-flex gap-2 mt-4">
-                                        <form action="{{ route('payroll.process-batch', $payroll->id) }}" method="POST" class="flex-grow-1">
+                                        <form action="{{ route('payroll.process-batch', $payroll->id) }}" method="POST" class="flex-grow-1 process-batch-form">
                                             @csrf
-                                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm fw-bold">
+                                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm fw-bold process-batch-btn" data-loading-text="Processing and locking batch...">
                                                 <i class="bi bi-play-circle-fill me-2"></i> Process {{ $finalized_dtr_count }} Payslips
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('payroll.process-batch', $payroll->id) }}" method="POST" class="flex-grow-1 process-batch-form">
+                                            @csrf
+                                            <input type="hidden" name="queue" value="1">
+                                            <button type="submit" class="btn btn-outline-primary btn-lg w-100 rounded-pill shadow-sm fw-bold process-batch-btn" data-loading-text="Queued for background processing...">
+                                                <i class="bi bi-hourglass-split me-1"></i> Queue in Background
                                             </button>
                                         </form>
                                         
                                         @if(!$verification['can_process'])
-                                        <form action="{{ route('payroll.process-batch', $payroll->id) }}" method="POST" class="flex-grow-1">
+                                        <form action="{{ route('payroll.process-batch', $payroll->id) }}" method="POST" class="flex-grow-1 process-batch-form">
                                             @csrf
                                             <input type="hidden" name="force_bypass" value="1">
-                                            <button type="submit" class="btn btn-outline-danger btn-lg w-100 rounded-pill shadow-sm fw-bold" onclick="return confirm('WARNING: Bypassing will generate payslips even for employees with missing logs or absences (Zero Pay). Proceed?')">
+                                            <button type="submit" class="btn btn-outline-danger btn-lg w-100 rounded-pill shadow-sm fw-bold process-batch-btn" data-loading-text="Processing bypass run..." onclick="return confirm('WARNING: Bypassing will generate payslips even for employees with missing logs or absences (Zero Pay). Proceed?')">
                                                 <i class="bi bi-shield-slash-fill me-1"></i> Bypass & Process All
                                             </button>
                                         </form>
@@ -282,4 +299,27 @@
         @endif
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const forms = document.querySelectorAll('.process-batch-form');
+
+    forms.forEach(function (form) {
+        form.addEventListener('submit', function () {
+            const buttons = document.querySelectorAll('.process-batch-btn');
+            buttons.forEach(function (button) {
+                button.disabled = true;
+            });
+
+            const currentButton = form.querySelector('.process-batch-btn');
+            if (currentButton) {
+                const text = currentButton.getAttribute('data-loading-text') || 'Processing...';
+                currentButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + text;
+            }
+        });
+    });
+});
+</script>
+@endpush
 @endsection

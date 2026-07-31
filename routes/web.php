@@ -54,6 +54,14 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+Route::middleware(['auth'])->get('/schedule', function () {
+    $user = auth()->user();
+
+    return $user->isAdmin()
+        ? redirect()->route('schedules.index')
+        : redirect()->route('employee.schedule');
+})->name('schedule.redirect');
+
 // Admin Protected Routes
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
@@ -137,6 +145,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/payroll/item/{id}/payslip', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip');
 
     Route::resource('schedules', ScheduleController::class);
+    Route::get('/admin/schedule', fn () => redirect()->route('schedules.index'))->name('admin.schedule.redirect');
     Route::prefix('admin/scheduling')->name('schedules.')->group(function () {
         Route::get('/shifts', [ScheduleController::class, 'shiftsIndex'])->name('shifts.index');
         Route::post('/shifts', [ScheduleController::class, 'shiftsStore'])->name('shifts.store');

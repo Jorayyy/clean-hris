@@ -58,7 +58,18 @@
     <a href="{{ route('admin.dtrs.index') }}" class="btn btn-sm btn-outline-secondary shadow-sm px-3 fw-bold">
         <i class="bi bi-arrow-left me-1"></i> Back to List
     </a>
-    <h5 class="fw-bold mb-0 text-dark">DTR Details for {{ $dtr->employee->full_name }}</h5>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="fw-bold mb-0 text-dark">DTR Details for {{ $dtr->employee->full_name }}</h5>
+        @if(!empty($matchingPayroll))
+            <a href="{{ route('payroll.show', $matchingPayroll->id) }}" class="btn btn-sm btn-success fw-bold">
+                <i class="bi bi-cash-coin me-1"></i> Continue to Payroll Batch
+            </a>
+        @else
+            <a href="{{ route('payroll.create', ['mode' => 'single', 'employee_id' => $dtr->employee_id, 'start_date' => $dtr->start_date->format('Y-m-d'), 'end_date' => $dtr->end_date->format('Y-m-d')]) }}" class="btn btn-sm btn-outline-success fw-bold">
+                <i class="bi bi-plus-circle me-1"></i> Create Payroll from this DTR
+            </a>
+        @endif
+    </div>
 </div>
 
 <div class="card shadow border-0 mb-4">

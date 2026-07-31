@@ -11,13 +11,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Automatically redirects unauthenticated guests back to the login page safely
+        $middleware->redirectGuestsTo(fn () => route('login'));
+
         $middleware->alias([
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'prevent_back_history' => \App\Http\Middleware\PreventBackHistory::class,
         ]);
 
         $middleware->appendToGroup('web', \App\Http\Middleware\PreventBackHistory::class);
-        $middleware->appendToGroup('web', \App\Http\Middleware\ForceSecureCookies::class);
+        
+        // Disabled for localhost development to prevent HTTP/HTTPS cookie redirect loops
+        // $middleware->appendToGroup('web', \App\Http\Middleware\ForceSecureCookies::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

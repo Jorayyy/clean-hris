@@ -15,13 +15,16 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    protected function redirectUserByRole($user)
+        protected function redirectUserByRole($user)
     {
-        if ($user->isAdmin()) {
+        // Check standard model helper OR look directly at the role string
+        if ($user->isAdmin() || in_array($user->role, ['superadmin', 'admin'])) {
             return redirect('/admin/dashboard');
         }
+        
         return redirect('/employee/dashboard');
     }
+
 
     public function login(Request $request)
     {

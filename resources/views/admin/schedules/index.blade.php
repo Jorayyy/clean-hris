@@ -181,13 +181,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            @if($site->scheduleGroups->count() > 0)
-                                                @foreach($site->scheduleGroups as $group)
-                                                    <span class="badge bg-primary bg-opacity-10 text-primary fw-normal mb-1 d-inline-block">
-                                                        <i class="bi bi-file-earmark-text me-1"></i> {{ $group->name }}
-                                                    </span>
-                                                @endforeach
-                                            @elseif($site->scheduleGroup)
+                                            @if($site->scheduleGroup)
                                                 <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">
                                                     <i class="bi bi-file-earmark-text me-1"></i> {{ $site->scheduleGroup->name }}
                                                 </span>
@@ -199,14 +193,14 @@
                                             <div class="d-flex justify-content-center gap-1">
                                                 @php $days = ['M', 'T', 'W', 'Th', 'F', 'S', 'Su']; @endphp
                                                 @foreach($days as $day)
-                                                    <div class="rounded-circle {{ ($site->scheduleGroup || $site->scheduleGroups->count() > 0) ? 'bg-success' : 'bg-secondary bg-opacity-20' }}" 
+                                                    <div class="rounded-circle {{ $site->scheduleGroup ? 'bg-success' : 'bg-secondary bg-opacity-20' }}" 
                                                          style="width: 8px; height: 8px;" 
-                                                         title="{{ ($site->scheduleGroup || $site->scheduleGroups->count() > 0) ? 'Pattern Active' : 'No Pattern' }}"></div>
+                                                         title="{{ $site->scheduleGroup ? 'Pattern Active' : 'No Pattern' }}"></div>
                                                 @endforeach
                                             </div>
                                         </td>
                                         <td class="text-center">
-                                            <span class="fw-bold text-dark">{{ $site->employees()->count() }}</span>
+                                            <span class="fw-bold text-dark">{{ $site->employees_count }}</span>
                                             <span class="small text-muted">Staff</span>
                                         </td>
                                         <td class="text-end pe-4">
@@ -245,10 +239,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @php
-                                        // Fetch employees with individual overrides for the summary
-                                        $overriddenEmployees = \App\Models\Employee::whereHas('schedules')->with('site')->get();
-                                    @endphp
                                     @forelse($overriddenEmployees as $emp)
                                     <tr>
                                         <td class="ps-4">
@@ -304,7 +294,7 @@
                     </div>
                     <div>
                         <span class="small fw-bold d-block text-dark mb-1">Priority 1: Direct Assignments</span>
-                        <p class="small text-muted mb-0">Individual assignments created in **Step 3** always take top priority. Use these for temporary changes or special duties.</p>
+                        <p class="small text-muted mb-0">Individual assignments created in Step 3 always take top priority. Use these for temporary changes or special duties.</p>
                     </div>
                 </div>
             </div>

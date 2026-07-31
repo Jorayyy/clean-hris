@@ -128,4 +128,46 @@
         </div>
     </div>
 </div>
+
+<div class="row g-4 mt-1">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+            <div class="card-body">
+                <h6 class="text-muted small uppercase fw-bold">Queue Driver</h6>
+                <h3 class="fw-bold mb-1">{{ strtoupper($queueStats['driver']) }}</h3>
+                <p class="text-muted small mb-0">Dispatch Backend</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
+            <div class="card-body">
+                <h6 class="text-muted small uppercase fw-bold">Pending Jobs</h6>
+                <h3 class="fw-bold mb-1">{{ $queueStats['pending_jobs'] }}</h3>
+                <p class="text-muted small mb-0">Awaiting payroll or background work</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
+            <div class="card-body">
+                <h6 class="text-muted small uppercase fw-bold">Reserved Jobs</h6>
+                <h3 class="fw-bold mb-1">{{ $queueStats['reserved_jobs'] }}</h3>
+                <p class="text-muted small mb-0">Jobs in progress</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+            <div class="card-body">
+                <h6 class="text-muted small uppercase fw-bold">Failed Jobs</h6>
+                <h3 class="fw-bold mb-1">{{ $queueStats['failed_jobs'] }}</h3>
+                <p class="text-muted small mb-0">Review queue exceptions</p>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

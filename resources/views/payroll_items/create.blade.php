@@ -134,6 +134,9 @@
                             <button type="button" id="add-allowance-row" class="btn btn-sm btn-outline-success py-0" {{ $allowanceTypes->isEmpty() ? 'disabled' : '' }}>
                                 <i class="bi bi-plus-circle me-1"></i> Add Allowance
                             </button>
+                            <button type="button" id="clear-allowances" class="btn btn-sm btn-outline-secondary py-0">
+                                <i class="bi bi-x-circle me-1"></i> Clear
+                            </button>
                         </div>
                     </div>
 
@@ -151,6 +154,9 @@
                             @endif
                             <button type="button" id="add-deduction-row" class="btn btn-sm btn-outline-danger py-0" {{ $deductionTypes->isEmpty() ? 'disabled' : '' }}>
                                 <i class="bi bi-plus-circle me-1"></i> Add Deduction
+                            </button>
+                            <button type="button" id="clear-deductions" class="btn btn-sm btn-outline-secondary py-0">
+                                <i class="bi bi-x-circle me-1"></i> Clear
                             </button>
                         </div>
                     </div>
@@ -374,6 +380,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const allowancesList = document.getElementById('allowances-list');
     const addAllowanceBtn = document.getElementById('add-allowance-row');
     const addDeductionBtn = document.getElementById('add-deduction-row');
+    const clearAllowancesBtn = document.getElementById('clear-allowances');
+    const clearDeductionsBtn = document.getElementById('clear-deductions');
 
     if (addAllowanceBtn) {
         addAllowanceBtn.addEventListener('click', function() {
@@ -386,6 +394,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Find highest index
             const rows = document.querySelectorAll('.deduction-entry').length;
             addDeductionRow('', 0, rows);
+        });
+    }
+
+    if (clearAllowancesBtn) {
+        clearAllowancesBtn.addEventListener('click', function () {
+            allowancesList.innerHTML = '';
+            calculateNetPay();
+        });
+    }
+
+    if (clearDeductionsBtn) {
+        clearDeductionsBtn.addEventListener('click', function () {
+            const list = document.getElementById('deductions-list');
+            list.innerHTML = '';
+            addDeductionRow('SSS', '0.00', 0);
+            calculateNetPay();
         });
     }
 

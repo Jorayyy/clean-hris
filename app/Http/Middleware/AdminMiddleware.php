@@ -14,15 +14,19 @@ class AdminMiddleware
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        if (Auth::check()) {
-            if (Auth::user()->isAdmin()) {
-                return $next($request);
-            }
-            abort(403, 'Unauthorized access.');
+        $user = auth()->user();
+
+        if (!$user) {
+            return redirect()->route('login');
         }
 
-        return redirect('/login')->with('error', 'Unauthorized access.');
+        if ($user->isAdmin()) {
+            return $next($request);
+        }
+
+        abort(403, 'Unauthorized action.');
     }
+
 }

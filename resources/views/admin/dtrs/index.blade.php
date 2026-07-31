@@ -73,6 +73,16 @@
     </div>
 </div>
 
+<div class="alert alert-light border d-flex align-items-center justify-content-between mb-3">
+    <div class="small text-muted">
+        <i class="bi bi-signpost-split text-primary me-1"></i>
+        Workflow: <strong>DTR Draft</strong> -> <strong>Verify</strong> -> <strong>Finalize</strong> -> <strong>Payroll Batch</strong>
+    </div>
+    <a href="{{ route('payroll.index') }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-cash-stack me-1"></i> Open Payroll Workspace
+    </a>
+</div>
+
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -154,6 +164,9 @@
                                 <div class="btn-group">
                                     <a href="{{ route('admin.dtrs.show', $dtr->id) }}" class="btn btn-sm btn-outline-primary" title="Details">
                                         <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a href="{{ route('payroll.index', ['start_date' => $dtr->start_date->format('Y-m-d'), 'end_date' => $dtr->end_date->format('Y-m-d')]) }}" class="btn btn-sm btn-outline-success ms-1" title="Open related payroll period">
+                                        <i class="bi bi-cash-coin"></i> Payroll
                                     </a>
                                     @if($dtr->status !== 'finalized')
                                     <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-bs-toggle="modal" data-bs-target="#editDtrModal{{ $dtr->id }}" title="Edit Record">

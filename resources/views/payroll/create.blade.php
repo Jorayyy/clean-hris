@@ -14,10 +14,10 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold small text-uppercase text-muted border-bottom d-block mb-3">Generation Mode</label>
                         <div class="btn-group w-100 shadow-sm" role="group">
-                            <input type="radio" class="btn-check" name="mode" id="modeGroup" value="group" checked autocomplete="off">
+                            <input type="radio" class="btn-check" name="mode" id="modeGroup" value="group" {{ (($prefill['mode'] ?? 'group') === 'group') ? 'checked' : '' }} autocomplete="off">
                             <label class="btn btn-outline-dark fw-bold" for="modeGroup"><i class="bi bi-people me-1"></i> Payroll Group</label>
 
-                            <input type="radio" class="btn-check" name="mode" id="modeSingle" value="single" autocomplete="off">
+                            <input type="radio" class="btn-check" name="mode" id="modeSingle" value="single" {{ (($prefill['mode'] ?? '') === 'single') ? 'checked' : '' }} autocomplete="off">
                             <label class="btn btn-outline-dark fw-bold" for="modeSingle"><i class="bi bi-person me-1"></i> Individual</label>
                         </div>
                     </div>
@@ -27,23 +27,23 @@
                         <input type="text" name="payroll_code" class="form-control" value="PAY-{{ now()->format('Ymd-His') }}" required>
                     </div>
 
-                    <div id="groupSelection" class="mb-3">
+                    <div id="groupSelection" class="mb-3 {{ (($prefill['mode'] ?? 'group') === 'single') ? 'd-none' : '' }}">
                         <label class="form-label text-primary font-weight-bold">Select Payroll Group to Process</label>
                         <select name="payroll_group_id" id="payroll_group_id" class="form-select border-primary shadow-sm py-2">
                             <option value="">-- Choose Group --</option>
                             @foreach($groups as $g)
-                                <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->employees_count ?? 0 }} employees)</option>
+                                <option value="{{ $g->id }}" {{ (string)($prefill['payroll_group_id'] ?? '') === (string)$g->id ? 'selected' : '' }}>{{ $g->name }} ({{ $g->employees_count ?? 0 }} employees)</option>
                             @endforeach
                         </select>
                         <small class="text-muted">Only active employees in this group will be included.</small>
                     </div>
 
-                    <div id="singleSelection" class="mb-3 d-none">
+                    <div id="singleSelection" class="mb-3 {{ (($prefill['mode'] ?? '') === 'single') ? '' : 'd-none' }}">
                         <label class="form-label fw-bold text-primary mb-1">Select Employee</label>
                         <select name="employee_id" id="employee_id" class="form-select border-primary shadow-sm py-2">
                             <option value="">-- Choose Employee --</option>
                             @foreach($employees as $e)
-                                <option value="{{ $e->id }}">{{ $e->full_name }} ({{ $e->employee_id }})</option>
+                                <option value="{{ $e->id }}" {{ (string)($prefill['employee_id'] ?? '') === (string)$e->id ? 'selected' : '' }}>{{ $e->full_name }} ({{ $e->employee_id }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -59,11 +59,11 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label font-weight-bold">Period Start Date</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control" required readonly>
+                            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ $prefill['start_date'] ?? '' }}" required readonly>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label font-weight-bold">Period End Date</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control" required readonly>
+                            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ $prefill['end_date'] ?? '' }}" required readonly>
                         </div>
                     </div>
                     <div class="mb-4">
@@ -92,6 +92,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const modeRadios = document.querySelectorAll('input[name="mode"]');
     const groupSelection = document.getElementById('groupSelection');
     const singleSelection = document.getElementById('singleSelection');
+    const prefillStartDate = @json($prefill['start_date'] ?? null);
+    const prefillEndDate = @json($prefill['end_date'] ?? null);
 
     function fetchPeriods() {
         const mode = document.querySelector('input[name="mode"]:checked').value;
@@ -125,6 +127,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         const option = document.createElement('option');
                         option.value = `${period.start_date}|${period.end_date}`;
                         option.textContent = period.label;
+                        if (prefillStartDate && prefillEndDate && period.start_date === prefillStartDate && period.end_date === prefillEndDate) {
+                            option.selected = true;
+                            startDateInput.value = period.start_date;
+                            endDateInput.value = period.end_date;
+                        }
                         periodSelect.appendChild(option);
                     });
                 }
@@ -156,6 +163,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    const selectedMode = document.querySelector('input[name="mode"]:checked')?.value;
+    if (selectedMode === 'single') {
+        groupSelect.required = false;
+        employeeSelect.required = true;
+    } else {
+        employeeSelect.required = false;
+        groupSelect.required = true;
+    }
+
     groupSelect.addEventListener('change', fetchPeriods);
     employeeSelect.addEventListener('change', fetchPeriods);
 
@@ -169,6 +185,10 @@ document.addEventListener('DOMContentLoaded', function() {
             endDateInput.value = '';
         }
     });
+
+    if ((selectedMode === 'group' && groupSelect.value) || (selectedMode === 'single' && employeeSelect.value)) {
+        fetchPeriods();
+    }
 });
 </script>
 @endpush

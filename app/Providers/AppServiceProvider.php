@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Implicitly grant "Super Admin" role all permissions
         \Illuminate\Support\Facades\Gate::before(function ($user, $capability) {
-            return $user->hasRole('super-admin') || $user->hasRole('Super Admin') ? true : null;
+            return method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin() ? true : null;
         });
 
         \App\Models\Employee::observe(\App\Observers\AuditObserver::class);

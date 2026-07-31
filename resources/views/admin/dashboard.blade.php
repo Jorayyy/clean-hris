@@ -18,14 +18,13 @@
                         <i class="bi bi-person-plus-fill me-2"></i>Add Employee
                     </a>
                 </div>
-                <!-- Decorative Icon -->
                 <i class="bi bi-shield-check position-absolute end-0 top-50 translate-middle-y opacity-25" style="font-size: 8rem; margin-right: -2rem;"></i>
             </div>
         </div>
     </div>
 
     <!-- Critical To-Do's Area -->
-    @if($pendingDtrs > 0 || $unprocessedPayrolls > 0 || $pendingTickets > 0)
+    @if(($pendingDtrs ?? 0) > 0 || ($unprocessedPayrolls ?? 0) > 0 || ($pendingTickets ?? 0) > 0)
     <div class="col-md-12">
         <div class="alert bg-white border-0 shadow-sm rounded-4 d-flex align-items-center p-3 mb-0">
             <div class="bg-danger-subtle text-danger rounded-circle p-2 me-3">
@@ -34,13 +33,13 @@
             <div class="flex-grow-1">
                 <span class="fw-bold text-dark small">PRIORITY TASKS:</span>
                 <div class="d-inline-flex gap-3 ms-3">
-                    @if($pendingDtrs > 0)
+                    @if(($pendingDtrs ?? 0) > 0)
                         <span class="badge bg-danger-subtle text-danger rounded-pill fw-bold">{{ $pendingDtrs }} DTRs Pending</span>
                     @endif
-                    @if($unprocessedPayrolls > 0)
+                    @if(($unprocessedPayrolls ?? 0) > 0)
                         <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill fw-bold">{{ $unprocessedPayrolls }} Draft Payrolls</span>
                     @endif
-                    @if($pendingTickets > 0)
+                    @if(($pendingTickets ?? 0) > 0)
                         <span class="badge bg-info-subtle text-info-emphasis rounded-pill fw-bold">{{ $pendingTickets }} Tickets Open</span>
                     @endif
                 </div>
@@ -356,25 +355,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($recentPayrolls as $p)
-                        <td class="ps-4 fw-bold text-primary font-monospace" style="font-size: 0.75rem;">{{ $p->payroll_code }}</td>
-                        <td style="font-size: 0.8rem;">
-                            @if($p->employee_id)
-                                <span class="text-info"><i class="bi bi-person me-1"></i>{{ $p->employee->full_name ?? 'Individual' }}</span>
-                            @else
-                                {{ $p->payrollGroup->name ?? 'All Groups' }}
-                            @endif
-                        </td>
-                        <td style="font-size: 0.75rem;"><span class="text-muted">{{ $p->start_date }} to {{ $p->end_date }}</span></td>
-                        <td>
-                            <span class="badge border {{ $p->status == 'processed' ? 'bg-success-subtle text-success border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border-warning-subtle' }} rounded-pill px-3 py-1" style="font-size: 0.65rem;">
-                                {{ ucfirst($p->status) }}
-                            </span>
-                        </td>
-                        <td class="text-end pe-4">
-                            <a href="{{ route('payroll.show', $p->id) }}" class="btn btn-sm btn-link font-monospace text-decoration-none fw-bold" style="font-size: 0.7rem;">REVIEW</a>
-                        </td>
-                            @endforeach
+                            @forelse($recentPayrolls as $p)
+                                <tr>
+                                    <td class="ps-4 fw-bold text-primary font-monospace" style="font-size: 0.75rem;">{{ $p->payroll_code }}</td>
+                                    <td style="font-size: 0.8rem;">
+                                        @if($p->employee_id)
+                                            <span class="text-info"><i class="bi bi-person me-1"></i>{{ $p->employee->full_name ?? 'Individual' }}</span>
+                                        @else
+                                            {{ $p->payrollGroup->name ?? 'All Groups' }}
+                                        @endif
+                                    </td>
+                                    <td style="font-size: 0.75rem;"><span class="text-muted">{{ $p->start_date }} to {{ $p->end_date }}</span></td>
+                                    <td>
+                                        <span class="badge border {{ $p->status == 'processed' ? 'bg-success-subtle text-success border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border-warning-subtle' }} rounded-pill px-3 py-1" style="font-size: 0.65rem;">
+                                            {{ ucfirst($p->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="{{ route('payroll.show', $p->id) }}" class="btn btn-sm btn-link font-monospace text-decoration-none fw-bold" style="font-size: 0.7rem;">REVIEW</a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">No recent payroll batches available.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -495,21 +500,4 @@ document.addEventListener('DOMContentLoaded', function() {
     .font-monospace { font-family: 'JetBrains Mono', 'Courier New', monospace !important; }
     .progress-bar { transition: width 1s ease-in-out; }
 </style>
-@endsection
-                            show: true,
-                            label: 'Total Staff',
-                            formatter: function (w) { return {{ $totalEmployees }} }
-                        }
-                    }
-                }
-            }
-        },
-        dataLabels: { enabled: false },
-        legend: { position: 'bottom' }
-    };
-    new ApexCharts(document.querySelector("#staffDistributionChart"), distributionOptions).render();
-});
-</script>
-@endpush
-
 @endsection

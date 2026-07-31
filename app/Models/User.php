@@ -38,17 +38,58 @@ class User extends Authenticatable
         return $this->belongsTo(Employee::class);
     }
 
+    public function normalizedRole(): ?string
+    {
+        return $this->role ? strtolower(trim((string) $this->role)) : null;
+    }
+
+    public function hasPortalRole(array $roles): bool
+    {
+        $currentRole = $this->normalizedRole();
+        $normalizedRoles = array_map(static fn ($role) => strtolower(trim((string) $role)), $roles);
+
+        if ($currentRole && in_array($currentRole, $normalizedRoles, true)) {
+            return true;
+        }
+
+        return $this->getRoleNames()
+            ->map(static fn ($role) => strtolower(trim((string) $role)))
+            ->intersect($normalizedRoles)
+            ->isNotEmpty();
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasPortalRole(['superadmin', 'super-admin', 'super admin'])
+            || $this->hasAnyRole(['Super Admin', 'super-admin']);
+    }
+
     public function getIsSuperAdminAttribute()
     {
-        return $this->role === 'super-admin' || 
-               $this->hasAnyRole(['Super Admin', 'super-admin']);
+        return $this->isSuperAdmin();
     }
 
     public function isAdmin()
     {
-        return $this->is_super_admin || 
-               $this->role === 'admin' || 
-               $this->hasAnyRole(['HR Admin', 'Accounting Admin', 'Admin', 'admin']);
+        return $this->isSuperAdmin()
+            || $this->hasPortalRole(['admin'])
+            || $this->hasAnyRole(['HR Admin', 'Accounting Admin', 'Admin', 'admin']);
+    }
+
+    public function getIsAdminAttribute(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->hasPortalRole(['employee'])
+            || $this->hasAnyRole(['Employee', 'employee']);
+    }
+
+    public function getIsEmployeeAttribute(): bool
+    {
+        return $this->isEmployee();
     }
 
     /**

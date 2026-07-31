@@ -48,11 +48,20 @@ class PayrollController extends Controller
         return view('payroll.index', compact('payrolls', 'periods'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $groups = PayrollGroup::withCount('employees')->get();
         $employees = Employee::where('status', 'active')->get();
-        return view('payroll.create', compact('groups', 'employees'));
+
+        $prefill = [
+            'mode' => $request->input('mode', $request->filled('employee_id') ? 'single' : 'group'),
+            'employee_id' => $request->input('employee_id'),
+            'payroll_group_id' => $request->input('payroll_group_id'),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+        ];
+
+        return view('payroll.create', compact('groups', 'employees', 'prefill'));
     }
 
     public function getFinalizedDtrs(Request $request)
@@ -142,6 +151,13 @@ class PayrollController extends Controller
                     
                     return back()->with('error', $errorMessage . ' Use the "Bypass" option if you want to proceed with zero-pay for these employees.');
                 }
+            }
+
+            if ($request->boolean('queue')) {
+                ProcessPayrollBatch::dispatch($payroll->fresh());
+
+                return redirect()->route('payroll.show', $payroll->id)
+                    ->with('success', 'Payroll batch queued for asynchronous processing.');
             }
 
             // We call the service directly for immediate feedback (Synchronous)

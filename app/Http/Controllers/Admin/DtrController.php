@@ -21,7 +21,10 @@ class DtrController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Dtr::with('employee');
+        $query = Dtr::query()
+            ->with(['employee:id,employee_id,first_name,middle_name,last_name,name_extension,payroll_group_id'])
+            ->orderByDesc('start_date')
+            ->orderByDesc('id');
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->whereDate('start_date', $request->start_date)
@@ -31,7 +34,7 @@ class DtrController extends Controller
         $dtrs = $query->latest()->paginate(20);
         
         $periods = Dtr::select('start_date', 'end_date')
-            ->distinct()
+            ->groupBy('start_date', 'end_date')
             ->orderBy('start_date', 'desc')
             ->get();
 
@@ -179,12 +182,28 @@ class DtrController extends Controller
 
     public function show(Dtr $dtr)
     {
+        $dtr->load('employee');
+
         $attendances = Attendance::where('employee_id', $dtr->employee_id)
             ->whereDate('date', '>=', $dtr->start_date)
             ->whereDate('date', '<=', $dtr->end_date)
             ->get();
+
+        $matchingPayroll = Payroll::query()
+            ->whereDate('start_date', $dtr->start_date)
+            ->whereDate('end_date', $dtr->end_date)
+            ->whereIn('status', ['draft', 'processing', 'processed'])
+            ->where(function ($query) use ($dtr) {
+                $query->where('employee_id', $dtr->employee_id)
+                    ->orWhere(function ($groupQuery) use ($dtr) {
+                        $groupQuery->whereNull('employee_id')
+                            ->where('payroll_group_id', optional($dtr->employee)->payroll_group_id);
+                    });
+            })
+            ->latest()
+            ->first();
             
-        return view('admin.dtrs.show', compact('dtr', 'attendances'));
+        return view('admin.dtrs.show', compact('dtr', 'attendances', 'matchingPayroll'));
     }
 
     public function verify(Request $request, Dtr $dtr)
