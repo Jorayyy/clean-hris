@@ -5,12 +5,12 @@
     <!-- Pulse Quick Actions -->
     <div class="col-md-12">
         <div class="card border-0 shadow-sm rounded-4 bg-info text-white overflow-hidden">
-            <div class="card-body p-4 d-flex justify-content-between align-items-center position-relative">
+            <div class="card-body p-4 d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 position-relative">
                 <div class="z-1">
                     <h4 class="fw-800 mb-1 tracking-tight">HR Operations Center</h4>
                     <p class="mb-0 opacity-75">Workforce Management Dashboard: Track employees, attendance, and support requests.</p>
                 </div>
-                <div class="d-flex gap-2 z-1">
+                <div class="d-flex gap-2 flex-wrap z-1">
                     <a href="{{ route('employees.create') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm">
                         <i class="bi bi-person-plus-fill me-2 text-info"></i>Add New Employee
                     </a>
@@ -45,7 +45,7 @@
     @endif
 
     <!-- Stats Cards -->
-    <div class="col-md-3">
+    <div class="col-12 col-md-3">
         <div class="card shadow-sm rounded-4 border-0 h-100 overflow-hidden">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between mb-3 text-muted">
@@ -57,7 +57,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-12 col-md-3">
         <div class="card shadow-sm rounded-4 border-0 h-100 overflow-hidden">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between mb-3 text-muted">
@@ -69,7 +69,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-12 col-md-3">
         <div class="card shadow-sm rounded-4 border-0 h-100 overflow-hidden">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between mb-3 text-muted">
@@ -81,7 +81,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-12 col-md-3">
         <div class="card shadow-sm rounded-4 border-0 h-100 overflow-hidden bg-info-subtle border-1 border-info border-opacity-25">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between mb-3 text-info">
@@ -97,7 +97,7 @@
 
 <div class="row g-4 mb-4">
     <!-- Workforce Distribution -->
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
         <div class="card shadow-sm border-0 rounded-4 h-100">
             <div class="card-header bg-white border-0 py-3 ps-4">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart-fill me-2 text-info"></i>BPO Pulse (Classification)</h6>
@@ -109,7 +109,7 @@
     </div>
 
     <!-- Attendance Chart -->
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-white py-3 border-0">
                 <h6 class="mb-0 fw-bold border-start border-4 border-primary ps-2">Attendance Volume (Last 7 Days)</h6>
@@ -123,10 +123,10 @@
 
 <div class="row g-4 mb-4 d-flex align-items-stretch">
     <!-- Workforce Insight Modules -->
-    <div class="col-lg-8">
+    <div class="col-12 col-lg-8">
         <div class="row g-4 h-100">
             <!-- Site Distribution -->
-            <div class="col-md-6 d-flex flex-column">
+            <div class="col-12 col-md-6 d-flex flex-column">
                 <div class="card shadow-sm border-0 rounded-4 h-100">
                     <div class="card-header bg-white border-0 py-3 ps-4">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Site Distribution</h6>
@@ -152,7 +152,7 @@
             </div>
 
             <!-- Yield vs Overtime -->
-            <div class="col-md-6 d-flex flex-column">
+            <div class="col-12 col-md-6 d-flex flex-column">
                 <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
                     <div class="card-header bg-white border-0 py-3 ps-4">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Yield vs Overtime</h6>
@@ -194,7 +194,7 @@
     </div>
 
     <!-- Sidebar Area -->
-    <div class="col-lg-4 d-flex flex-column">
+    <div class="col-12 col-lg-4 d-flex flex-column">
         <!-- Payroll Deadline / Runway -->
         <div class="card shadow-sm border-0 rounded-4 bg-white mb-4 flex-shrink-0">
             <div class="card-body p-4">
@@ -322,7 +322,7 @@
 
 <div class="row g-4">
     <!-- Active Payroll Groups -->
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card shadow-sm border-0 rounded-4 h-100">
             <div class="card-header bg-white py-3 border-0 ps-4">
                 <h6 class="mb-0 fw-bold">Distribution by Group</h6>
@@ -349,7 +349,7 @@
     </div>
 
     <!-- Recent Tickets -->
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-white py-3 border-0">
                 <h6 class="mb-0 fw-bold">Recent Support Tickets</h6>

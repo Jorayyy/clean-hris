@@ -118,11 +118,11 @@
                                     $lastLog = $employee->lastAttendance;
                                 @endphp
                                 @if($todayLog)
-                                    @if($todayLog->time_in && !$todayLog->time_out)
+                                    @if($todayLog->time_in && (!$todayLog->time_out || $todayLog->time_out === '00:00:00'))
                                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-25">
                                             <i class="bi bi-dot fs-4 align-middle"></i> ON DUTY
                                         </span>
-                                    @elseif($todayLog->time_in && $todayLog->time_out)
+                                    @elseif($todayLog->time_in && $todayLog->time_out && $todayLog->time_out !== '00:00:00')
                                         <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 border border-info border-opacity-25">
                                             <i class="bi bi-check-circle small align-middle me-1"></i> SHIFT ENDED
                                         </span>
@@ -147,7 +147,7 @@
                                 </div>
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{{ route("attendance.show", ["attendance" => $employee->id]) }}" class="btn btn-sm btn-white border shadow-sm rounded-pill px-3">
+                                <a href="{{ route("attendance.employee.show", ["employee" => $employee->id]) }}" class="btn btn-sm btn-white border shadow-sm rounded-pill px-3">
                                     View Logs <i class="bi bi-chevron-right ms-1 small"></i>
                                 </a>
                             </td>

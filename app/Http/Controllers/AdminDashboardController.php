@@ -23,7 +23,12 @@ class AdminDashboardController extends Controller
     {
         // Stats Cards
         $totalEmployees = Employee::where('status', 'active')->count();
-        $totalAttendanceToday = Attendance::whereDate('date', Carbon::today())->count();
+        $totalAttendanceToday = Attendance::whereDate('date', Carbon::today())
+            ->where('time_in', '!=', '00:00:00')
+            ->count();
+        $lateAttendanceToday = Attendance::whereDate('date', Carbon::today())
+            ->where('late_minutes', '>', 0)
+            ->count();
         $pendingTickets = SupportTicket::whereIn('status', ['pending', 'open', 'in_progress'])->count();
         $totalPayrollDisbursed = PayrollItem::sum('net_pay');
 
@@ -63,8 +68,21 @@ class AdminDashboardController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
             $attendanceLabels[] = $date->format('M d');
-            $attendanceCounts[] = Attendance::whereDate('date', $date)->count();
+            $attendanceCounts[] = Attendance::whereDate('date', $date)
+                ->where('time_in', '!=', '00:00:00')
+                ->count();
         }
+
+        $attendanceExceptions = Attendance::with('employee')
+            ->whereDate('date', '>=', Carbon::today()->subDays(7))
+            ->where(function ($query) {
+                $query->where('late_minutes', '>', 0)
+                    ->orWhere('undertime_minutes', '>', 0);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('late_minutes')
+            ->take(6)
+            ->get();
 
         // Upcoming Events
         $upcomingHolidays = Holiday::where('date', '>=', Carbon::today())
@@ -91,7 +109,7 @@ class AdminDashboardController extends Controller
             ->take(5);
 
         // Recent Batches and Tickets
-        $recentPayrolls = Payroll::with(['payrollGroup', 'employee'])->latest()->paginate(5, ['*'], 'payroll_page');
+        $recentPayrolls = Payroll::with(['payrollGroup', 'employee'])->latest()->take(5)->get();
         $recentTickets = SupportTicket::with('employee')->latest()->take(5)->get();
 
         $groups = PayrollGroup::withCount('employees')->get();
@@ -118,6 +136,7 @@ class AdminDashboardController extends Controller
             'totalPayrollDisbursed',
             'attendanceLabels',
             'attendanceCounts',
+            'attendanceExceptions',
             'recentPayrolls',
             'recentTickets',
             'groups',
@@ -125,6 +144,7 @@ class AdminDashboardController extends Controller
             'upcomingBirthdays',
             'pendingDtrs',
             'unprocessedPayrolls',
+            'lateAttendanceToday',
             'classificationCounts',
             'positionCounts',
             'watchlist',

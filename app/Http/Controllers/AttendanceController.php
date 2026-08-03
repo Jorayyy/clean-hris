@@ -29,6 +29,9 @@ class AttendanceController extends Controller
                       ->orWhere('last_name', 'like', "%{$search}%")
                       ->orWhere('employee_id', 'like', "%{$search}%");
             })
+            ->withCount(['attendances as attendances_count' => function ($query) {
+                $query->whereDate('date', today());
+            }])
             ->with(['attendances' => function($query) {
                 $query->whereDate('date', today());
             }])
@@ -68,6 +71,14 @@ class AttendanceController extends Controller
         $year = $request->get('year', now()->year);
         $month = $request->get('month', now()->month);
 
+        $formatTime = function ($value) {
+            if (!$value || $value === '00:00:00') {
+                return null;
+            }
+
+            return date('H:i', strtotime($value));
+        };
+
         $attendances = Attendance::where('employee_id', $employee->id)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
@@ -77,10 +88,12 @@ class AttendanceController extends Controller
         // Get Direct Individual Schedules
         $individualSchedules = \App\Models\Schedule::where('employee_id', $employee->id)
             ->where('is_template', false)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
+            ->whereYear('schedule_date', $year)
+            ->whereMonth('schedule_date', $month)
             ->get()
-            ->groupBy('date');
+            ->groupBy(function ($schedule) {
+                return $schedule->schedule_date ? $schedule->schedule_date->toDateString() : null;
+            });
 
         $site = $employee->site ? $employee->site->load('scheduleGroup') : null;
         $siteConfig = null;
@@ -103,17 +116,42 @@ class AttendanceController extends Controller
             // 1. Check Attendance
             $logs = $attendances->get($dateString);
             if ($logs && $logs->count() > 0) {
-                $data['attendance'] = [
-                    'status' => 'present',
-                    'logs' => $logs->map(function($log) {
+                $realLogs = $logs->filter(function ($log) {
+                    return collect([
+                        $log->time_in,
+                        $log->time_out,
+                        $log->break1_out,
+                        $log->break1_in,
+                        $log->break2_out,
+                        $log->break2_in,
+                        $log->lunch_out,
+                        $log->lunch_in,
+                    ])->contains(function ($value) {
+                        return $value && $value !== '00:00:00';
+                    });
+                });
+
+                if ($realLogs->isNotEmpty()) {
+                    $data['attendance'] = [
+                        'status' => 'present',
+                        'logs' => $realLogs->map(function($log) {
+                        $formatTime = function ($value) {
+                            if (!$value || $value === '00:00:00') {
+                                return null;
+                            }
+
+                            return date('H:i', strtotime($value));
+                        };
+
                         return [
-                            'time_in' => $log->time_in ? date('H:i', strtotime($log->time_in)) : '--:--',
-                            'time_out' => $log->time_out ? date('H:i', strtotime($log->time_out)) : '--:--',
-                            'break1_out' => $log->break1_out ? date('H:i', strtotime($log->break1_out)) : null,
-                            'break1_in' => $log->break1_in ? date('H:i', strtotime($log->break1_in)) : null,
+                            'time_in' => $formatTime($log->time_in),
+                            'time_out' => $formatTime($log->time_out),
+                            'break1_out' => $formatTime($log->break1_out),
+                            'break1_in' => $formatTime($log->break1_in),
                         ];
                     })
-                ];
+                    ];
+                }
             }
 
             // 2. Check Schedule (Individual Priority -> Group -> Site)

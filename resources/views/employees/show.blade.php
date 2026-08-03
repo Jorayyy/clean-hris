@@ -106,7 +106,7 @@
             
             <div class="card-footer bg-light p-3">
                 <div class="d-flex justify-content-end">
-                    <a href="{{ route('attendance.show', ['attendance' => $employee->id]) }}" class="btn btn-outline-indigo btn-sm shadow-sm">
+                    <a href="{{ route('attendance.employee.show', ['employee' => $employee->id]) }}" class="btn btn-outline-indigo btn-sm shadow-sm">
                         <i class="bi bi-calendar-check me-1"></i> View Detailed Attendance History
                     </a>
                 </div>

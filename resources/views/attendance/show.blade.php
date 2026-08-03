@@ -2,6 +2,16 @@
 
 @section('content')
 <div class="container-fluid px-4 py-4">
+    @php
+        $formatTime = function ($value, $fallback = '--:--') {
+            if (!$value || $value === '00:00:00') {
+                return $fallback;
+            }
+
+            return \Carbon\Carbon::parse($value)->format('H:i');
+        };
+    @endphp
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <nav aria-label="breadcrumb">
@@ -67,10 +77,6 @@
                         <label class="list-group-item d-flex align-items-center py-3 border-0">
                             <input class="form-check-input me-3 event-toggle" type="checkbox" value="view-attendance" id="toggle-attendance" checked>
                             <span class="small fw-semibold">View Attendance</span>
-                        </label>
-                        <label class="list-group-item d-flex align-items-center py-3 border-0">
-                            <input class="form-check-input me-3 event-toggle" type="checkbox" value="view-approved" id="toggle-approved">
-                            <span class="small fw-semibold">View Approved Forms</span>
                         </label>
                         <label class="list-group-item d-flex align-items-center py-3 border-0">
                             <input class="form-check-input me-3 event-toggle" type="checkbox" value="view-breaks" id="toggle-breaks">
@@ -169,44 +175,44 @@
                                     <tr>
                                         <td class="ps-4 fw-medium">{{ \Carbon\Carbon::parse($row->date)->format('M d, Y') }}</td>
                                         <td>
-                                            <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ \Carbon\Carbon::parse($row->time_in)->format('H:i') }}</span>
+                                            <span class="fw-bold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>{{ $formatTime($row->time_in, '---') }}</span>
                                         </td>
                                         <td>
                                             <div class="small">
-                                                @if($row->break1_out || $row->break1_in)
+                                                @if(($row->break1_out && $row->break1_out !== '00:00:00') || ($row->break1_in && $row->break1_in !== '00:00:00'))
                                                     <div>
                                                         <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.65rem;">1st:</span> 
                                                         <span class="text-info">
-                                                            {{ $row->break1_out ? \Carbon\Carbon::parse($row->break1_out)->format('H:i') : '--:--' }} - 
-                                                            {{ $row->break1_in ? \Carbon\Carbon::parse($row->break1_in)->format('H:i') : '--:--' }}
+                                                            {{ $formatTime($row->break1_out) }} - 
+                                                            {{ $formatTime($row->break1_in) }}
                                                         </span>
                                                     </div>
                                                 @endif
-                                                @if($row->lunch_out || $row->lunch_in)
+                                                @if(($row->lunch_out && $row->lunch_out !== '00:00:00') || ($row->lunch_in && $row->lunch_in !== '00:00:00'))
                                                     <div>
                                                         <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.65rem;">Lunch:</span> 
                                                         <span class="text-info">
-                                                            {{ $row->lunch_out ? \Carbon\Carbon::parse($row->lunch_out)->format('H:i') : '--:--' }} - 
-                                                            {{ $row->lunch_in ? \Carbon\Carbon::parse($row->lunch_in)->format('H:i') : '--:--' }}
+                                                            {{ $formatTime($row->lunch_out) }} - 
+                                                            {{ $formatTime($row->lunch_in) }}
                                                         </span>
                                                     </div>
                                                 @endif
-                                                @if($row->break2_out || $row->break2_in)
+                                                @if(($row->break2_out && $row->break2_out !== '00:00:00') || ($row->break2_in && $row->break2_in !== '00:00:00'))
                                                     <div>
                                                         <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.65rem;">2nd:</span> 
                                                         <span class="text-info">
-                                                            {{ $row->break2_out ? \Carbon\Carbon::parse($row->break2_out)->format('H:i') : '--:--' }} - 
-                                                            {{ $row->break2_in ? \Carbon\Carbon::parse($row->break2_in)->format('H:i') : '--:--' }}
+                                                            {{ $formatTime($row->break2_out) }} - 
+                                                            {{ $formatTime($row->break2_in) }}
                                                         </span>
                                                     </div>
                                                 @endif
-                                                @if(!$row->break1_out && !$row->break1_in && !$row->lunch_out && !$row->lunch_in && !$row->break2_out && !$row->break2_in)
+                                                @if((!$row->break1_out || $row->break1_out === '00:00:00') && (!$row->break1_in || $row->break1_in === '00:00:00') && (!$row->lunch_out || $row->lunch_out === '00:00:00') && (!$row->lunch_in || $row->lunch_in === '00:00:00') && (!$row->break2_out || $row->break2_out === '00:00:00') && (!$row->break2_in || $row->break2_in === '00:00:00'))
                                                     <span class="text-muted small">No breaks recorded</span>
                                                 @endif
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('H:i') : '---' }}</span>
+                                            <span class="fw-bold text-danger"><i class="bi bi-box-arrow-left me-2"></i>{{ $formatTime($row->time_out, '---') }}</span>
                                         </td>
                                         <td>{{ number_format($row->total_hours, 2) }} hrs</td>
                                         <td class="text-end pe-4">
@@ -220,7 +226,7 @@
                                         </td>
                                     </tr>
                                     @empty
-                                    <tr><td colspan="5" class="text-center py-5 text-muted">No records found for this period.</td></tr>
+                                    <tr><td colspan="6" class="text-center py-5 text-muted">No records found for this period.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -339,18 +345,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             if (showAttendance) {
                                 // IN Event
-                                events.push({
-                                    title: `IN: ${mainLog.time_in}`,
-                                    start: date,
-                                    backgroundColor: '#198754',
-                                    borderColor: '#198754',
-                                    textColor: '#ffffff',
-                                    allDay: true,
-                                    extendedProps: { type: 'attendance', ...dayData.attendance }
-                                });
+                                if (mainLog.time_in) {
+                                    events.push({
+                                        title: `IN: ${mainLog.time_in}`,
+                                        start: date,
+                                        backgroundColor: '#198754',
+                                        borderColor: '#198754',
+                                        textColor: '#ffffff',
+                                        allDay: true,
+                                        extendedProps: { type: 'attendance', ...dayData.attendance }
+                                    });
+                                }
 
                                 // OUT Event (if exists)
-                                if (mainLog.time_out && mainLog.time_out !== '--:--') {
+                                if (mainLog.time_out) {
                                     events.push({
                                         title: `OUT: ${mainLog.time_out}`,
                                         start: date,
@@ -415,11 +423,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('modalDate').innerText = info.event.start.toDateString();
                 
                 let html = '';
-                if (props.type === 'attendance') {
+                                    if (props.type === 'attendance') {
                     html = `<h4 class="fw-bold mb-3 text-success">PRESENT</h4>`;
                     props.logs.forEach(log => {
                         html += `<div class="d-flex justify-content-between border-bottom py-2">
-                                    <span>In: <strong>${log.time_in}</strong></span>
+                                    <span>In: <strong>${log.time_in || '---'}</strong></span>
                                     <span>Out: <strong>${log.time_out || '---'}</strong></span>
                                  </div>`;
                     });
