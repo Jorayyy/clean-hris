@@ -39,6 +39,9 @@ use App\Http\Controllers\SiteController;
 // Public login/bundy routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/logout', function () {
+    return redirect('/login');
+})->name('logout.redirect');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/web-bundy', [WebBundyController::class, 'showBundy'])->name('bundy.show');
 Route::get('/web-bundy/status/{employee_id}', [WebBundyController::class, 'checkStatus'])->middleware('throttle:30,1')->name('bundy.status');

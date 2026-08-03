@@ -225,8 +225,63 @@
         display: flex;
         flex-direction: column;
     }
+
+    @media (max-width: 768px) {
+        .w-100[style*="max-width: 450px;"] {
+            gap: 0.75rem;
+        }
+
+        #bundyCol {
+            order: 2;
+        }
+
+        #loginCol {
+            order: 1;
+        }
+
+        #bundyCard.minimized,
+        #loginCard.minimized {
+            display: none !important;
+        }
+
+        #loginCard .card-body,
+        #bundyCard .card-body {
+            padding: 1rem !important;
+        }
+
+        #loginCard .card-header,
+        #bundyCard .card-header {
+            padding: 0.85rem 1rem !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        #loginCard .form-control,
+        #bundyCard .form-control,
+        #bundyCard .form-select {
+            font-size: 16px;
+        }
+
+        #loginCard .btn,
+        #bundyCard .btn {
+            min-height: 48px;
+        }
+    }
 </style>
 <script>
+    function setMobileAuthDefaults() {
+        if (window.innerWidth <= 768) {
+            const bundyCard = document.getElementById('bundyCard');
+            const loginCard = document.getElementById('loginCard');
+            if (bundyCard && loginCard && !bundyCard.classList.contains('active-form') && !loginCard.classList.contains('active-form')) {
+                loginCard.classList.add('active-form');
+                loginCard.classList.remove('minimized');
+                bundyCard.classList.add('minimized');
+                bundyCard.classList.remove('active-form');
+            }
+        }
+    }
+
     function toggleCard(type) {
         const bundyCol = document.getElementById('bundyCol');
         const loginCol = document.getElementById('loginCol');
@@ -275,6 +330,9 @@
             this.querySelector('i').classList.toggle('bi-eye-slash');
         });
     }
+
+    window.addEventListener('resize', setMobileAuthDefaults);
+    setMobileAuthDefaults();
 </script>
 @endpush
 @endsection

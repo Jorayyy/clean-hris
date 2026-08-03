@@ -15,7 +15,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             margin: 0;
             position: relative;
         }
@@ -126,9 +127,43 @@
         .auth-card.minimized:hover { opacity: 0.8; filter: grayscale(0.5); }
 
         @media (max-width: 992px) {
+            body {
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+
             .auth-wrapper { grid-template-columns: 1fr; }
             .animation-side { display: none; }
             .login-container { max-width: 550px; }
+            .auth-wrapper {
+                min-height: auto;
+                border-radius: 28px;
+            }
+            .form-side {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 12px;
+            }
+
+            .auth-wrapper {
+                border-radius: 24px;
+            }
+
+            .form-side {
+                padding: 18px 16px;
+            }
+
+            .auth-card .card-body {
+                padding: 1rem 1rem !important;
+            }
+
+            .auth-card .card-header h5 {
+                font-size: 0.95rem;
+            }
         }
     </style>
     <!-- Toast Container -->
