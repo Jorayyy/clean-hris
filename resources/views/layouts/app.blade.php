@@ -15,7 +15,7 @@
             --accent-color: #3b82f6;
         }
         body { background-color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; }
-        .sidebar { width: var(--sidebar-width); background: var(--primary-dark); color: #cbd5e1; height: 100vh; position: fixed; left: 0; top: 0; transition: all 0.3s; z-index: 1000; overflow-y: auto; }
+        .sidebar { width: var(--sidebar-width); background: var(--primary-dark); color: #cbd5e1; height: 100vh; position: fixed; left: 0; top: 0; transition: transform 0.3s ease, left 0.3s ease; z-index: 1000; overflow-y: auto; will-change: transform; }
         .sidebar-header { padding: 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1.5rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; border-left: 4px solid transparent; font-size: 0.9rem; font-weight: 500; }
         .sidebar-link:hover { background: var(--secondary-dark); color: #fff; }
@@ -37,10 +37,10 @@
         }
         
         @media (max-width: 991.98px) {
-            .sidebar { left: -var(--sidebar-width); }
-            .sidebar.show { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.2); }
+            .sidebar { left: 0 !important; transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.2); }
             .sidebar-overlay.show { display: block; }
-            .main-content { margin-left: 0; }
+            .main-content { margin-left: 0 !important; }
         }
 
         @media (max-width: 767.98px) {
@@ -121,7 +121,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header d-flex align-items-center">
+        <div class="sidebar-header d-flex align-items-center justify-content-between gap-2">
             @if($systemSettings->app_logo)
                 @php 
                     $logoPath = str_starts_with($systemSettings->app_logo, 'logos/') 
@@ -131,6 +131,9 @@
                 <img src="/{{ $logoPath }}" alt="Logo" class="logo-img me-2">
             @endif
             <span class="fw-bold text-white text-truncate">{{ $systemSettings->app_name }}</span>
+            <button type="button" class="btn btn-sm btn-outline-light d-lg-none ms-auto" onclick="toggleSidebar()" aria-label="Close sidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
         
         <div class="py-3">
@@ -340,6 +343,12 @@
         document.addEventListener("DOMContentLoaded", function() {
             const sidebar = document.getElementById('sidebar');
             if (!sidebar) return;
+
+            if (window.innerWidth < 992) {
+                sidebar.classList.remove('show');
+                const overlay = document.getElementById('sidebar-overlay');
+                if (overlay) overlay.classList.remove('show');
+            }
             
             // 1. Restore the scroll position when the page loads
             const scrollPos = localStorage.getItem('sidebar-scroll');
