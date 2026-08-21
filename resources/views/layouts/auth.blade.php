@@ -18,7 +18,7 @@
         body {
             font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
                 "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
-            background: #060607;
+            background: #b8b8be;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -27,44 +27,90 @@
             overflow-y: auto;
             margin: 0;
             position: relative;
-            color: #f5f5f7;
+            color: #1d1d1f;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             letter-spacing: -0.011em;
         }
 
         body::before,
-        body::after {
-            content: "";
+        body::after { content: none; }
+
+        .bg-scene {
             position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            pointer-events: none;
+            inset: 0;
+            overflow: hidden;
             z-index: 0;
+            pointer-events: none;
         }
-        body::before {
-            width: 620px;
-            height: 620px;
-            top: -220px;
-            left: -180px;
-            background: radial-gradient(circle, rgba(0, 113, 227, 0.16) 0%, transparent 70%);
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(110px);
+            will-change: transform;
         }
-        body::after {
-            width: 520px;
-            height: 520px;
-            bottom: -200px;
-            right: -140px;
-            background: radial-gradient(circle, rgba(94, 92, 230, 0.12) 0%, transparent 70%);
+
+        .orb-blue {
+            width: 560px; height: 560px;
+            top: -180px; left: -120px;
+            background: radial-gradient(circle, rgba(0, 113, 227, 0.18) 0%, transparent 70%);
+            animation: drift-a 34s ease-in-out infinite alternate;
+        }
+
+        .orb-indigo {
+            width: 500px; height: 500px;
+            bottom: -170px; right: -110px;
+            background: radial-gradient(circle, rgba(94, 92, 230, 0.14) 0%, transparent 70%);
+            animation: drift-b 44s ease-in-out infinite alternate;
+        }
+
+        .orb-green {
+            width: 400px; height: 400px;
+            top: 38%; left: 56%;
+            background: radial-gradient(circle, rgba(48, 209, 88, 0.09) 0%, transparent 70%);
+            animation: drift-c 52s ease-in-out infinite alternate;
+        }
+
+        .orb-warm {
+            width: 320px; height: 320px;
+            bottom: 12%; left: 6%;
+            background: radial-gradient(circle, rgba(255, 159, 10, 0.07) 0%, transparent 70%);
+            animation: drift-d 47s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift-a {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(130px, 90px) scale(1.15); }
+        }
+
+        @keyframes drift-b {
+            from { transform: translate(0, 0) scale(1.1); }
+            to { transform: translate(-150px, -70px) scale(0.95); }
+        }
+
+        @keyframes drift-c {
+            from { transform: translate(0, 0); }
+            to { transform: translate(-110px, 90px); }
+        }
+
+        @keyframes drift-d {
+            from { transform: translate(0, 0); }
+            to { transform: translate(100px, -80px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .orb { animation: none; }
         }
 
         ::selection {
-            background: rgba(0, 113, 227, 0.35);
+            background: rgba(0, 113, 227, 0.22);
         }
 
         ::-webkit-scrollbar { width: 9px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(0, 0, 0, 0.25);
             border-radius: 99px;
             border: 2px solid transparent;
             background-clip: content-box;
@@ -82,12 +128,12 @@
         .auth-wrapper {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
-            background: rgba(24, 24, 27, 0.55);
+            background: rgba(255, 255, 255, 0.78);
             backdrop-filter: blur(40px) saturate(160%);
             -webkit-backdrop-filter: blur(40px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(0, 0, 0, 0.10);
             border-radius: 36px;
-            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
             overflow: hidden;
             width: 100%;
             min-height: 750px;
@@ -100,14 +146,14 @@
         }
 
         .animation-side {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 60px;
-            color: white;
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            color: #1d1d1f;
+            border-right: 1px solid rgba(0, 0, 0, 0.06);
         }
 
         .form-side {
@@ -115,7 +161,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .card { border: none; background: transparent; }
@@ -150,19 +196,19 @@
         }
 
         .form-control {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            color: #f5f5f7;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            color: #1d1d1f;
             border-radius: 12px;
             transition: border-color 0.2s var(--apple-ease), box-shadow 0.2s var(--apple-ease),
                 background-color 0.2s var(--apple-ease);
         }
-        .form-control::placeholder { color: rgba(235, 235, 245, 0.4); }
+        .form-control::placeholder { color: rgba(60, 60, 67, 0.35); }
         .form-control:focus {
-            background: rgba(255, 255, 255, 0.1);
+            background: #fff;
             border-color: var(--apple-blue);
-            color: #fff;
-            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.28);
+            color: #1d1d1f;
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.18);
         }
 
         .auth-card.minimized {
@@ -247,6 +293,12 @@
     </div>
 </head>
 <body>
+    <div class="bg-scene" aria-hidden="true">
+        <div class="orb orb-blue"></div>
+        <div class="orb orb-indigo"></div>
+        <div class="orb orb-green"></div>
+        <div class="orb orb-warm"></div>
+    </div>
     <div class="login-container">
         <div class="auth-wrapper">
             <!-- Left Side / Branding -->
@@ -258,9 +310,9 @@
                                         ? $systemSettings->app_logo 
                                         : 'logos/' . $systemSettings->app_logo;
                         @endphp
-                        <img src="/{{ $logoPath }}" alt="Logo" style="height: 120px; width: auto; max-width: 280px; object-fit: contain; filter: drop-shadow(0 0 30px rgba(255,255,255,0.35));" class="mb-4">
+                        <img src="/{{ $logoPath }}" alt="Logo" style="height: 120px; width: auto; max-width: 280px; object-fit: contain; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.12));" class="mb-4">
                     @endif
-                    <h1 class="fw-900 tracking-tighter text-white mb-0" style="font-size: 3.5rem; letter-spacing: -3px; line-height: 1;">MEBS HIYAS</h1>
+                    <h1 class="fw-bold mb-0" style="font-size: 3.2rem; letter-spacing: -0.04em; line-height: 1; color: #1d1d1f;">MEBS HIYAS</h1>
                 </div>
             </div>
 
