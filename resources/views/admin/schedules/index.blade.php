@@ -4,16 +4,7 @@
 @php
     $dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     $dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    $resolveDay = function ($config, $index) use ($shifts) {
-        $val = $config[$dayNames[$index]] ?? null;
-        if ($val === 'OFF') return ['state' => 'off', 'shift' => null];
-        if (is_array($val)) $val = $val['id'] ?? null;
-        if (is_numeric($val)) {
-            $shift = $shifts->firstWhere('id', (int) $val);
-            return ['state' => 'on', 'shift' => $shift];
-        }
-        return ['state' => 'none', 'shift' => null];
-    };
+    $shiftById = $shifts->keyBy('id');
 @endphp
 
 <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
@@ -220,10 +211,22 @@
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-1" dir="ltr">
                                         @foreach($dayLetters as $i => $letter)
-                                            @php $dayInfo = $resolveDay($config, $i); @endphp
-                                            @if($dayInfo['state'] === 'on')
-                                                <span class="week-chip week-on" title="{{ $dayNames[$i] }}: {{ $dayInfo['shift']?->name ?? 'Shift' }}{{ $dayInfo['shift'] ? ' (' . \Carbon\Carbon::parse($dayInfo['shift']->time_in)->format('g:i A') . ' - ' . \Carbon\Carbon::parse($dayInfo['shift']->time_out)->format('g:i A') . ')' : '' }}">{{ $letter }}</span>
-                                            @elseif($dayInfo['state'] === 'off')
+                                            @php
+                                                $val = $config[$dayNames[$i]] ?? null;
+                                                if ($val === 'OFF') {
+                                                    $chipState = 'off';
+                                                    $chipShift = null;
+                                                } else {
+                                                    if (is_array($val)) {
+                                                        $val = $val['id'] ?? null;
+                                                    }
+                                                    $chipShift = is_numeric($val) ? $shiftById->get((int) $val) : null;
+                                                    $chipState = $chipShift ? 'on' : 'none';
+                                                }
+                                            @endphp
+                                            @if($chipState === 'on')
+                                                <span class="week-chip week-on" title="{{ $dayNames[$i] }}: {{ $chipShift->name }} ({{ \Carbon\Carbon::parse($chipShift->time_in)->format('g:i A') }} - {{ \Carbon\Carbon::parse($chipShift->time_out)->format('g:i A') }})">{{ $letter }}</span>
+                                            @elseif($chipState === 'off')
                                                 <span class="week-chip week-off" title="{{ $dayNames[$i] }}: Rest day">{{ $letter }}</span>
                                             @else
                                                 <span class="week-chip" title="{{ $dayNames[$i] }}: Not scheduled">{{ $letter }}</span>
