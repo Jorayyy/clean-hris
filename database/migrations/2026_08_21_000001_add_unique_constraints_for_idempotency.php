@@ -19,24 +19,42 @@ return new class extends Migration
         $this->collapseDuplicates('payroll_items', ['payroll_id', 'employee_id']);
 
         Schema::table('attendances', function (Blueprint $table) {
-            $table->unique(['employee_id', 'date'], 'attendances_employee_date_unique');
+            if (!Schema::hasIndex('attendances', 'attendances_employee_date_unique')) {
+                $table->unique(['employee_id', 'date'], 'attendances_employee_date_unique');
+            }
         });
 
         Schema::table('payroll_items', function (Blueprint $table) {
-            $table->dropIndex('payroll_items_payroll_id_employee_id_index');
-            $table->unique(['payroll_id', 'employee_id'], 'payroll_items_payroll_employee_unique');
+            if (!Schema::hasIndex('payroll_items', 'payroll_items_payroll_employee_unique')) {
+                $table->unique(['payroll_id', 'employee_id'], 'payroll_items_payroll_employee_unique');
+            }
+        });
+
+        Schema::table('payroll_items', function (Blueprint $table) {
+            if (Schema::hasIndex('payroll_items', 'payroll_items_payroll_id_employee_id_index')) {
+                $table->dropIndex('payroll_items_payroll_id_employee_id_index');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            $table->dropUnique('attendances_employee_date_unique');
+            if (Schema::hasIndex('attendances', 'attendances_employee_date_unique')) {
+                $table->dropUnique('attendances_employee_date_unique');
+            }
         });
 
         Schema::table('payroll_items', function (Blueprint $table) {
-            $table->dropUnique('payroll_items_payroll_employee_unique');
-            $table->index(['payroll_id', 'employee_id']);
+            if (Schema::hasIndex('payroll_items', 'payroll_items_payroll_employee_unique')) {
+                $table->dropUnique('payroll_items_payroll_employee_unique');
+            }
+        });
+
+        Schema::table('payroll_items', function (Blueprint $table) {
+            if (!Schema::hasIndex('payroll_items', 'payroll_items_payroll_id_employee_id_index')) {
+                $table->index(['payroll_id', 'employee_id']);
+            }
         });
     }
 
