@@ -19,6 +19,14 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasRoles;
 
     /**
+     * Fields this model opts into masking before audit-log persistence.
+     * Merged with the observer's global defaults by AuditObserver::log().
+     */
+    public static array $maskedAttributes = [
+        'password', 'remember_token', 'dtr_password', 'plain_password', 'otp_secret',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

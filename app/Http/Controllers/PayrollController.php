@@ -31,7 +31,7 @@ class PayrollController extends Controller
 
     public function index(Request $request)
     {
-        $query = Payroll::with('payrollGroup')->latest();
+        $query = Payroll::with(['payrollGroup', 'employee'])->latest();
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->where('start_date', $request->start_date)
@@ -147,8 +147,9 @@ class PayrollController extends Controller
                     $errorMessage = 'Cannot process payroll. Issues found: ';
                     if (!empty($verification['missing_dtr'])) $errorMessage .= count($verification['missing_dtr']) . ' missing DTRs. ';
                     if (!empty($verification['pending_dtr'])) $errorMessage .= count($verification['pending_dtr']) . ' DTRs not finalized. ';
+                    if (!empty($verification['open_corrections'])) $errorMessage .= count($verification['open_corrections']) . ' employees with open attendance corrections. ';
                     if (!empty($verification['with_absences'])) $errorMessage .= count($verification['with_absences']) . ' employees have absences. ';
-                    
+
                     return back()->with('error', $errorMessage . ' Use the "Bypass" option if you want to proceed with zero-pay for these employees.');
                 }
             }

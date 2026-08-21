@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleAndPermissionSeeder::class,
             CreateSuperAdminSeeder::class, // Ensure this file exists and uses 'superadmin@gmail.com'
+            ContributionBracketSeeder::class,
             PayrollSeeder::class,
         ]);
 

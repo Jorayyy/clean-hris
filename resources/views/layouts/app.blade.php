@@ -6,23 +6,49 @@
     <title>{{ $systemSettings->app_name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
-            --sidebar-width: 260px;
-            --primary-dark: #1e293b;
-            --secondary-dark: #334155;
-            --accent-color: #3b82f6;
+            --sidebar-width: 264px;
+            --apple-blue: #0071e3;
+            --apple-hairline: rgba(0,0,0,0.08);
         }
-        body { background-color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; }
-        .sidebar { width: var(--sidebar-width); background: var(--primary-dark); color: #cbd5e1; height: 100vh; position: fixed; left: 0; top: 0; transition: transform 0.3s ease, left 0.3s ease; z-index: 1000; overflow-y: auto; will-change: transform; }
-        .sidebar-header { padding: 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1.5rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; border-left: 4px solid transparent; font-size: 0.9rem; font-weight: 500; }
-        .sidebar-link:hover { background: var(--secondary-dark); color: #fff; }
-        .sidebar-link.active { background: var(--secondary-dark); color: #fff; border-left-color: var(--accent-color); }
-        .sidebar-link i { font-size: 1.1rem; width: 25px; margin-right: 10px; }
-        .main-content { margin-left: var(--sidebar-width); flex: 1; transition: all 0.3s; }
-        .top-navbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0.75rem 1.5rem; }
+        body { background-color: #f5f5f7; min-height: 100vh; display: flex; flex-direction: column; }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(250,250,252,0.82);
+            backdrop-filter: saturate(180%) blur(24px);
+            -webkit-backdrop-filter: saturate(180%) blur(24px);
+            border-right: 1px solid var(--apple-hairline);
+            height: 100vh; position: fixed; left: 0; top: 0;
+            transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+            z-index: 1000; overflow-y: auto; will-change: transform;
+        }
+        .sidebar-header { padding: 1.15rem 1.35rem; background: transparent; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .sidebar-link {
+            display: flex; align-items: center;
+            margin: 1px 10px; padding: 0.58rem 0.9rem;
+            border-radius: 980px;
+            color: #1d1d1f; text-decoration: none;
+            font-size: 0.9rem; font-weight: 500; letter-spacing: -0.006em;
+            transition: background-color 0.18s ease, color 0.18s ease;
+        }
+        .sidebar-link:hover { background: rgba(0,0,0,0.045); color: #000; }
+        .sidebar-link.active { background: var(--apple-blue); color: #fff; box-shadow: 0 3px 10px rgba(0,113,227,0.32); }
+        .sidebar-link i { font-size: 1.05rem; width: 24px; margin-right: 10px; color: #86868b; transition: color 0.18s ease; }
+        .sidebar-link:hover i { color: #48484a; }
+        .sidebar-link.active i { color: #fff; }
+        .main-content { margin-left: var(--sidebar-width); flex: 1; transition: margin-left 0.35s cubic-bezier(0.32,0.72,0,1); }
+        .top-navbar {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid var(--apple-hairline);
+            padding: 0.7rem 1.5rem;
+        }
         
         /* Mobile Sidebar Overlay */
         .sidebar-overlay { 
@@ -38,7 +64,7 @@
         
         @media (max-width: 991.98px) {
             .sidebar { left: 0 !important; transform: translateX(-100%); }
-            .sidebar.show { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.2); }
+            .sidebar.show { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.12); }
             .sidebar-overlay.show { display: block; }
             .main-content { margin-left: 0 !important; }
         }
@@ -97,8 +123,8 @@
                 padding: 0.85rem !important;
             }
         }
-        .logo-img { height: 35px; border-radius: 4px; }
-        .nav-category { padding: 1.2rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; }
+        .logo-img { height: 34px; border-radius: 8px; }
+        .nav-category { padding: 1.15rem 1.55rem 0.45rem; font-size: 0.69rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.07em; }
 
         @media print {
             .sidebar, .top-navbar, .btn, .no-print { display: none !important; }
@@ -130,8 +156,8 @@
                 @endphp
                 <img src="/{{ $logoPath }}" alt="Logo" class="logo-img me-2">
             @endif
-            <span class="fw-bold text-white text-truncate">{{ $systemSettings->app_name }}</span>
-            <button type="button" class="btn btn-sm btn-outline-light d-lg-none ms-auto" onclick="toggleSidebar()" aria-label="Close sidebar">
+            <span class="fw-bold text-truncate">{{ $systemSettings->app_name }}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary d-lg-none ms-auto" onclick="toggleSidebar()" aria-label="Close sidebar">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
@@ -269,7 +295,7 @@
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Top Navbar -->
-        <nav class="top-navbar d-flex align-items-center justify-content-between shadow-sm sticky-top">
+        <nav class="top-navbar d-flex align-items-center justify-content-between sticky-top">
             <button class="btn btn-sm btn-light d-lg-none" type="button" onclick="toggleSidebar()">
                 <i class="bi bi-list fs-4"></i>
             </button>

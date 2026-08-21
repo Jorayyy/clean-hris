@@ -193,6 +193,12 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         Route::delete('admin/roles/{role}', [App\Http\Controllers\Admin\RolePermissionController::class, 'destroy'])->name('admin.roles.destroy');
     });
 
+    // Attendance Corrections (§2.3 workflow: flag -> submit -> approve before payroll lock)
+    Route::get('admin/attendance-corrections', [\App\Http\Controllers\AttendanceCorrectionController::class, 'index'])->name('admin.attendance-corrections.index');
+    Route::post('attendance-corrections', [\App\Http\Controllers\AttendanceCorrectionController::class, 'store'])->name('attendance-corrections.store');
+    Route::patch('attendance-corrections/{correction}/approve', [\App\Http\Controllers\AttendanceCorrectionController::class, 'approve'])->name('attendance-corrections.approve');
+    Route::patch('attendance-corrections/{correction}/reject', [\App\Http\Controllers\AttendanceCorrectionController::class, 'reject'])->name('attendance-corrections.reject');
+
     // Audit Logs
     Route::get('admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
     Route::post('admin/audit-logs/prune', [AuditLogController::class, 'prune'])->name('admin.audit-logs.prune');

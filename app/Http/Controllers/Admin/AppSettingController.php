@@ -27,6 +27,15 @@ class AppSettingController extends Controller
             'undertime_rate' => 1.0000,
         ]);
         
+        // Settings page submits "_pct" percentage fields; convert to decimals.
+        // Direct "rate" fields (legacy API/tests) remain raw decimals.
+        foreach (['sss_rate', 'pagibig_rate', 'philhealth_rate', 'night_diff_rate'] as $rateField) {
+            $pctField = $rateField . '_pct';
+            if ($request->filled($pctField)) {
+                $request->merge([$rateField => (float) str_replace(',', '', $request->input($pctField)) / 100]);
+            }
+        }
+
         $request->validate([
             'app_name' => 'required|string|max:255',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -36,6 +45,7 @@ class AppSettingController extends Controller
             'philhealth_rate' => 'required|numeric|between:0,1',
             'late_rate' => 'required|numeric|min:0',
             'undertime_rate' => 'required|numeric|min:0',
+            'night_diff_rate' => 'nullable|numeric|between:0,1',
         ]);
 
         $data = [
@@ -46,6 +56,7 @@ class AppSettingController extends Controller
             'philhealth_rate' => $request->philhealth_rate,
             'late_rate' => $request->late_rate,
             'undertime_rate' => $request->undertime_rate,
+            'night_diff_rate' => $request->input('night_diff_rate', $settings->night_diff_rate ?? 0.10),
         ];
 
         if ($request->hasFile('app_logo')) {

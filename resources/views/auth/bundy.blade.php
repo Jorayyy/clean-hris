@@ -5,12 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Bundy - HRIS Payroll</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .bundy-card { width: 100%; max-width: 450px; border: none; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .digital-clock { font-size: 3rem; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
-        .date-display { font-size: 1.1rem; color: #7f8c8d; margin-bottom: 25px; }
-        .btn-punch { padding: 12px; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+                "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f5f5f7;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.011em;
+        }
+        .bundy-card {
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 24px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 20px 50px rgba(0,0,0,0.08);
+        }
+        .digital-clock {
+            font-size: 3.2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: #1d1d1f;
+            margin-bottom: 5px;
+            font-variant-numeric: tabular-nums;
+        }
+        .date-display { font-size: 1rem; color: #6e6e73; margin-bottom: 25px; }
+        .btn-punch {
+            padding: 11px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            border-radius: 14px;
+        }
+        .form-control-lg { border-radius: 14px; }
     </style>
 </head>
 <body>

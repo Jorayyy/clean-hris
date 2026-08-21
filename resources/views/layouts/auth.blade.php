@@ -6,11 +6,19 @@
     <title>{{ $systemSettings->app_name ?? 'HRIS' }} - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --apple-blue: #0071e3;
+            --apple-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #0f172a;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+                "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+            background: #060607;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -19,78 +27,87 @@
             overflow-y: auto;
             margin: 0;
             position: relative;
+            color: #f5f5f7;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.011em;
         }
 
-        /* Video Background */
-        .video-bg {
+        body::before,
+        body::after {
+            content: "";
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-            background: #000; /* Fallback */
-        }
-        .video-bg iframe {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100vw;
-            height: 56.25vw; /* 16:9 ratio */
-            min-height: 100vh;
-            min-width: 177.77vh; /* 16:9 ratio */
-            transform: translate(-50%, -50%);
-            object-fit: cover;
+            border-radius: 50%;
+            filter: blur(120px);
             pointer-events: none;
-            opacity: 1; /* Reset to full visibility for the stripes */
-            filter: contrast(1.2) brightness(0.8); /* Enhance the white lines */
+            z-index: 0;
         }
-        .video-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.9) 100%);
-            z-index: -1;
+        body::before {
+            width: 620px;
+            height: 620px;
+            top: -220px;
+            left: -180px;
+            background: radial-gradient(circle, rgba(0, 113, 227, 0.16) 0%, transparent 70%);
+        }
+        body::after {
+            width: 520px;
+            height: 520px;
+            bottom: -200px;
+            right: -140px;
+            background: radial-gradient(circle, rgba(94, 92, 230, 0.12) 0%, transparent 70%);
         }
 
-        .login-container { 
-            width: 100%; 
-            max-width: 1100px; 
+        ::selection {
+            background: rgba(0, 113, 227, 0.35);
+        }
+
+        ::-webkit-scrollbar { width: 9px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 99px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 1100px;
             padding: 20px;
             perspective: 1000px;
+            position: relative;
+            z-index: 1;
         }
-        
+
         .auth-wrapper {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(25px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+            background: rgba(24, 24, 27, 0.55);
+            backdrop-filter: blur(40px) saturate(160%);
+            -webkit-backdrop-filter: blur(40px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 36px;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
             overflow: hidden;
             width: 100%;
             min-height: 750px;
-            animation: cardEntrance 1s ease-out forwards;
+            animation: cardEntrance 0.8s var(--apple-ease) forwards;
         }
 
         @keyframes cardEntrance {
-            from { opacity: 0; transform: translateY(50px) rotateX(-5deg); }
-            to { opacity: 1; transform: translateY(0) rotateX(0); }
+            from { opacity: 0; transform: translateY(28px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .animation-side {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 60px;
             color: white;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .form-side {
@@ -98,29 +115,59 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(40px);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .card { border: none; background: transparent; }
-        
-        .btn-primary { 
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            border: none;
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
-            transition: all 0.3s;
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(37, 99, 235, 0.3); }
 
-        .btn-danger { 
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border: none;
-            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.2);
+        .btn {
+            --bs-btn-border-radius: 980px;
+            --bs-btn-font-weight: 500;
+            letter-spacing: -0.006em;
+            transition: background-color 0.2s var(--apple-ease), box-shadow 0.2s var(--apple-ease),
+                transform 0.12s var(--apple-ease);
+        }
+        .btn:active { transform: scale(0.97); }
+
+        .btn-primary {
+            --bs-btn-bg: var(--apple-blue);
+            --bs-btn-border-color: var(--apple-blue);
+            --bs-btn-hover-bg: #0077ed;
+            --bs-btn-hover-border-color: #0077ed;
+            --bs-btn-active-bg: #0068d1;
+            --bs-btn-active-border-color: #0068d1;
+            --bs-btn-focus-shadow-rgb: 0, 113, 227;
+            --bs-btn-focus-box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.3);
         }
 
-        .auth-card.minimized { 
-            height: 65px !important; 
-            opacity: 0.5; 
+        .btn-danger {
+            --bs-btn-bg: #ff453a;
+            --bs-btn-border-color: #ff453a;
+            --bs-btn-hover-bg: #e03d33;
+            --bs-btn-hover-border-color: #e03d33;
+            --bs-btn-active-bg: #cc372e;
+            --bs-btn-active-border-color: #cc372e;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #f5f5f7;
+            border-radius: 12px;
+            transition: border-color 0.2s var(--apple-ease), box-shadow 0.2s var(--apple-ease),
+                background-color 0.2s var(--apple-ease);
+        }
+        .form-control::placeholder { color: rgba(235, 235, 245, 0.4); }
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--apple-blue);
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.28);
+        }
+
+        .auth-card.minimized {
+            height: 65px !important;
+            opacity: 0.5;
             filter: grayscale(1);
             transition: all 0.4s;
         }
@@ -200,12 +247,6 @@
     </div>
 </head>
 <body>
-    <div class="video-bg">
-        <!-- New Background Video (10s Loop) -->
-        <iframe src="https://www.youtube.com/embed/9vntypeV5QU?autoplay=1&mute=1&controls=0&loop=1&playlist=9vntypeV5QU&start=360&end=370&showinfo=0&rel=0&enablejsapi=1&origin={{ urlencode(url('/')) }}" frameborder="0" allow="autoplay; encrypted-media"></iframe>
-    </div>
-    <div class="video-overlay"></div>
-
     <div class="login-container">
         <div class="auth-wrapper">
             <!-- Left Side / Branding -->
@@ -217,7 +258,7 @@
                                         ? $systemSettings->app_logo 
                                         : 'logos/' . $systemSettings->app_logo;
                         @endphp
-                        <img src="/{{ $logoPath }}" alt="Logo" style="height: 120px; width: auto; max-width: 280px; object-fit: contain; filter: drop-shadow(0 0 30px rgba(255,255,255,0.5));" class="mb-4">
+                        <img src="/{{ $logoPath }}" alt="Logo" style="height: 120px; width: auto; max-width: 280px; object-fit: contain; filter: drop-shadow(0 0 30px rgba(255,255,255,0.35));" class="mb-4">
                     @endif
                     <h1 class="fw-900 tracking-tighter text-white mb-0" style="font-size: 3.5rem; letter-spacing: -3px; line-height: 1;">MEBS HIYAS</h1>
                 </div>
@@ -299,5 +340,4 @@
         });
     </script>
 </body>
-</html>
 </html>

@@ -4,8 +4,8 @@
 <div class="container-fluid px-4 py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold mb-0">Attendance Management</h4>
-            <p class="text-muted small mb-0">Select an employee to view their attendance history</p>
+            <h2 class="fw-bold mb-1" style="font-size: 1.9rem; letter-spacing: -0.03em;">Attendance</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Select an employee to view their attendance history</p>
         </div>
         <a href="{{ route("attendance.create") }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm rounded-pill px-4">
             <i class="bi bi-plus-circle"></i>
@@ -125,6 +125,10 @@
                                     @elseif($todayLog->time_in && $todayLog->time_out && $todayLog->time_out !== '00:00:00')
                                         <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 border border-info border-opacity-25">
                                             <i class="bi bi-check-circle small align-middle me-1"></i> SHIFT ENDED
+                                        </span>
+                                    @else
+                                        <span class="badge bg-warning bg-opacity-10 text-warning-emphasis rounded-pill px-3 border border-warning border-opacity-25">
+                                            NO PUNCHES
                                         </span>
                                     @endif
                                 @elseif($lastLog)

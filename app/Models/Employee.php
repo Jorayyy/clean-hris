@@ -20,6 +20,16 @@ class Employee extends Model
 
     protected $appends = ['full_name'];
 
+    /**
+     * Fields this model opts into masking before audit-log persistence.
+     * Merged with the observer's global defaults by AuditObserver::log().
+     */
+    public static array $maskedAttributes = [
+        'tin_no', 'sss_no', 'pagibig_no', 'philhealth_no',
+        'account_no', 'rcbc_no', 'palawan_pay_no',
+        'bank_name', 'web_bundy_code',
+    ];
+
     public function site()
     {
         return $this->belongsTo(Site::class);

@@ -10,9 +10,9 @@ class PayrollItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'payroll_id', 'employee_id', 'total_days', 'total_hours', 'basic_pay', 'overtime_pay',
+        'payroll_id', 'employee_id', 'dtr_id', 'total_days', 'total_hours', 'basic_pay', 'overtime_pay',
         'night_diff', 'bonuses', 'allowances_json', 'deductions_json', 'net_pay',
-        'deductions_sss', 'deductions_pagibig', 'deductions_philhealth', 'other_deductions'
+        'deductions_sss', 'deductions_pagibig', 'deductions_philhealth', 'withholding_tax', 'other_deductions'
     ];
 
     protected $casts = [
@@ -24,9 +24,10 @@ class PayrollItem extends Model
 
     public function getTotalDeductionsAttribute()
     {
-        $specific = ($this->deductions_sss ?? 0) + 
-                    ($this->deductions_pagibig ?? 0) + 
-                    ($this->deductions_philhealth ?? 0) + 
+        $specific = ($this->deductions_sss ?? 0) +
+                    ($this->deductions_pagibig ?? 0) +
+                    ($this->deductions_philhealth ?? 0) +
+                    ($this->withholding_tax ?? 0) +
                     ($this->other_deductions ?? 0);
 
         if ($specific > 0) return $specific;
@@ -81,5 +82,10 @@ class PayrollItem extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function dtr()
+    {
+        return $this->belongsTo(Dtr::class);
     }
 }

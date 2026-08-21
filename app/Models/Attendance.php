@@ -32,4 +32,9 @@ class Attendance extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    public function corrections()
+    {
+        return $this->hasMany(AttendanceCorrection::class);
+    }
 }

@@ -1,240 +1,225 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4 py-4">
-    <div class="card border-0 shadow-sm rounded-4 bg-primary text-white overflow-hidden mb-4">
-        <div class="card-body p-4 p-lg-5 d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 position-relative">
-            <div class="z-1">
-                <p class="text-white-50 small mb-1 text-uppercase fw-semibold tracking-wider">HRIS Operations</p>
-                <h4 class="fw-800 mb-2 tracking-tight">Payroll & Attendance Command Center</h4>
-                <p class="mb-0 opacity-75">A focused view of the work that needs attention today: attendance, payroll, exceptions, and open requests.</p>
+@php
+    $hour = now()->hour;
+    $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+    $firstName = explode(' ', trim(Auth::user()->name ?? Auth::user()->email))[0];
+@endphp
+
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="font-size: 1.9rem; letter-spacing: -0.03em;">{{ $greeting }}, {{ $firstName }}</h2>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">{{ now()->format('l, F j, Y') }} &mdash; payroll, attendance, and requests at a glance.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('payroll.create') }}" class="btn btn-primary px-4"><i class="bi bi-plus-lg me-2"></i>Start Payroll</a>
+        <a href="{{ route('attendance.index') }}" class="btn btn-light px-4"><i class="bi bi-clock-history me-2"></i>Attendance</a>
+    </div>
+</div>
+
+@if(($pendingDtrs ?? 0) > 0 || ($unprocessedPayrolls ?? 0) > 0 || ($pendingTickets ?? 0) > 0)
+<div class="d-flex align-items-center flex-wrap gap-2 p-3 mb-4 rounded-4" style="background: #ffedeb;">
+    <i class="bi bi-exclamation-triangle-fill text-danger ms-1"></i>
+    <span class="fw-semibold small" style="color: #c41e13;">Pending actions</span>
+    <div class="d-inline-flex gap-2 ms-1">
+        @if(($pendingDtrs ?? 0) > 0)
+            <span class="badge bg-white text-danger fw-semibold">{{ $pendingDtrs }} DTR{{ $pendingDtrs > 1 ? 's' : '' }} to review</span>
+        @endif
+        @if(($unprocessedPayrolls ?? 0) > 0)
+            <span class="badge bg-white fw-semibold" style="color: #995f00;">{{ $unprocessedPayrolls }} draft payroll{{ $unprocessedPayrolls > 1 ? 's' : '' }}</span>
+        @endif
+        @if(($pendingTickets ?? 0) > 0)
+            <span class="badge bg-white fw-semibold" style="color: #0b66b5;">{{ $pendingTickets }} ticket{{ $pendingTickets > 1 ? 's' : '' }} open</span>
+        @endif
+    </div>
+    <a href="{{ route('admin.dtrs.index') }}" class="btn btn-sm btn-light ms-auto fw-semibold">Resolve<i class="bi bi-arrow-right ms-1"></i></a>
+</div>
+@endif
+
+<div class="row g-3 g-md-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;">Active Staff</span>
+                    <div class="kpi-chip" style="background: rgba(0,113,227,0.1); color: #0071e3;"><i class="bi bi-people-fill"></i></div>
+                </div>
+                <h2 class="fw-bold mb-1 kpi-number">{{ $totalEmployees }}</h2>
+                <div class="small text-muted"><span class="dot dot-success me-1"></span>All systems operational</div>
             </div>
-            <div class="d-flex gap-2 flex-wrap justify-content-start justify-content-lg-end z-1">
-                <a href="{{ route('employees.create') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm">
-                    <i class="bi bi-person-plus-fill me-2 text-primary"></i>Add Employee
-                </a>
-                <a href="{{ route('attendance.index') }}" class="btn btn-outline-light fw-bold rounded-pill px-4 shadow-sm">
-                    <i class="bi bi-clock-history me-2"></i>Attendance
-                </a>
-                <a href="{{ route('payroll.create') }}" class="btn btn-primary fw-bold rounded-pill px-4 border border-white border-opacity-25 shadow-sm" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(10px);">
-                    <i class="bi bi-plus-circle-fill me-2"></i>Start Payroll
-                </a>
-            </div>
-            <i class="bi bi-building-gear position-absolute end-0 top-50 translate-middle-y opacity-25" style="font-size: 8rem; margin-right: -2rem;"></i>
         </div>
     </div>
-
-    @if(($pendingDtrs ?? 0) > 0 || ($unprocessedPayrolls ?? 0) > 0 || ($pendingTickets ?? 0) > 0)
-    <div class="alert bg-white border-0 shadow-sm rounded-4 d-flex align-items-center p-3 mb-4">
-        <div class="bg-danger-subtle text-danger rounded-circle p-2 me-3">
-            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-        </div>
-        <div class="flex-grow-1">
-            <span class="fw-bold text-dark small">PENDING ACTIONS:</span>
-            <div class="d-inline-flex gap-2 ms-3 flex-wrap">
-                @if(($pendingDtrs ?? 0) > 0)
-                    <span class="badge bg-danger-subtle text-danger rounded-pill fw-bold">{{ $pendingDtrs }} DTRs to review</span>
-                @endif
-                @if(($unprocessedPayrolls ?? 0) > 0)
-                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill fw-bold">{{ $unprocessedPayrolls }} draft payrolls</span>
-                @endif
-                @if(($pendingTickets ?? 0) > 0)
-                    <span class="badge bg-info-subtle text-info-emphasis rounded-pill fw-bold">{{ $pendingTickets }} open tickets</span>
-                @endif
-            </div>
-        </div>
-        <a href="{{ route('admin.dtrs.index') }}" class="btn btn-sm btn-outline-danger border-0 fw-bold">Resolve now <i class="bi bi-arrow-right ms-1"></i></a>
-    </div>
-    @endif
-
-    <div class="row g-4 mb-4">
-        <div class="col-12 col-md-3">
-            <div class="card shadow-sm rounded-4 border-0 h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-3 text-muted">
-                        <span class="fw-bold small tracking-wider">ACTIVE STAFF</span>
-                        <i class="bi bi-people-fill fs-5"></i>
-                    </div>
-                    <h2 class="fw-800 mb-1">{{ $totalEmployees }}</h2>
-                    <div class="text-success small fw-bold">Currently active</div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;">Present Today</span>
+                    <div class="kpi-chip" style="background: rgba(52,199,89,0.12); color: #248a3d;"><i class="bi bi-clock-history"></i></div>
                 </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-3">
-            <div class="card shadow-sm rounded-4 border-0 h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-3 text-muted">
-                        <span class="fw-bold small tracking-wider">PRESENT TODAY</span>
-                        <i class="bi bi-clock-history fs-5"></i>
-                    </div>
-                    <h2 class="fw-800 mb-1">{{ $totalAttendanceToday }}</h2>
-                    <div class="text-primary small fw-bold">Real punches</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-3">
-            <div class="card shadow-sm rounded-4 border-0 h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-3 text-muted">
-                        <span class="fw-bold small tracking-wider">LATE TODAY</span>
-                        <i class="bi bi-alarm fs-5"></i>
-                    </div>
-                    <h2 class="fw-800 mb-1">{{ $lateAttendanceToday }}</h2>
-                    <div class="text-danger small fw-bold">Attendance exceptions</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-3">
-            <div class="card shadow-sm rounded-4 border-0 h-100 overflow-hidden bg-primary-subtle border-1 border-primary border-opacity-25">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-3 text-primary">
-                        <span class="fw-bold small tracking-wider">DRAFT PAYROLLS</span>
-                        <i class="bi bi-file-earmark-diff fs-5"></i>
-                    </div>
-                    <h2 class="fw-800 mb-1 text-primary-emphasis">{{ $unprocessedPayrolls }}</h2>
-                    <a href="{{ route('payroll.index') }}" class="stretched-link text-primary text-decoration-none small fw-bold">Open payroll queue</a>
+                <h2 class="fw-bold mb-1 kpi-number">{{ $totalAttendanceToday }}</h2>
+                <div class="small {{ $lateAttendanceToday > 0 ? 'text-danger' : 'text-muted' }}">
+                    @if($lateAttendanceToday > 0)<i class="bi bi-exclamation-circle me-1"></i>@endif
+                    {{ $lateAttendanceToday }} late arrival{{ $lateAttendanceToday == 1 ? '' : 's' }}
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-12 col-lg-8">
-            <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-header bg-white border-0 py-3 ps-4 d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="mb-0 fw-bold">Attendance Volume (Last 7 Days)</h6>
-                        <div class="small text-muted">Real punches, not placeholder rows</div>
-                    </div>
-                    <i class="bi bi-graph-up-arrow text-primary fs-5"></i>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;">Net Disbursed</span>
+                    <div class="kpi-chip" style="background: rgba(255,159,10,0.14); color: #995f00;"><i class="bi bi-cash-coin"></i></div>
                 </div>
-                <div class="card-body px-4">
-                    <div id="attendanceChart" style="min-height: 280px;"></div>
-                </div>
+                <h2 class="fw-bold mb-1 kpi-number">&#8369;{{ number_format($totalPayrollDisbursed, 0) }}</h2>
+                <div class="small text-muted">All-time net pay</div>
             </div>
         </div>
-
-        <div class="col-12 col-lg-4">
-            <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-header bg-white border-0 py-3 ps-4">
-                    <h6 class="mb-0 fw-bold">Attendance Exceptions</h6>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 small">
-                            <thead class="bg-light text-muted text-uppercase">
-                                <tr>
-                                    <th class="ps-4">Employee</th>
-                                    <th>Late</th>
-                                    <th>Undertime</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($attendanceExceptions as $attendance)
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="fw-bold text-dark">{{ $attendance->employee->full_name ?? 'Unknown' }}</div>
-                                            <div class="text-muted x-small">{{ \Carbon\Carbon::parse($attendance->date)->format('M d') }}</div>
-                                        </td>
-                                        <td class="text-danger fw-bold">{{ (int) $attendance->late_minutes }}m</td>
-                                        <td class="text-warning fw-bold">{{ (int) $attendance->undertime_minutes }}m</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center py-4 text-muted">No attendance exceptions in the last 7 days.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ route('payroll.index') }}" class="text-decoration-none">
+            <div class="card h-100 card-hover">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;">Draft Payrolls</span>
+                        <div class="kpi-chip" style="background: rgba(175,82,222,0.12); color: #8929b8;"><i class="bi bi-file-earmark-diff"></i></div>
                     </div>
+                    <h2 class="fw-bold mb-1 kpi-number">{{ $unprocessedPayrolls }}</h2>
+                    <div class="small" style="color: #0071e3;">Open payroll queue<i class="bi bi-arrow-right ms-1"></i></div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 g-md-4 mb-4">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Attendance Volume</h6>
+                <span class="text-muted small">Last 7 days</span>
+            </div>
+            <div class="card-body pt-2">
+                <div id="attendanceChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Needs Attention</h6>
+                <a href="{{ route('attendance.index') }}" class="small text-decoration-none fw-medium">All attendance</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @forelse($attendanceExceptions as $ex)
+                        <div class="list-group-item px-4 d-flex align-items-center gap-3">
+                            <div class="avatar-initial">{{ strtoupper(substr($ex->employee->full_name ?? '?', 0, 1)) }}</div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="fw-semibold text-truncate" style="font-size: 0.9rem;">{{ $ex->employee->full_name ?? 'Unknown' }}</div>
+                                <div class="text-muted" style="font-size: 0.78rem;">{{ \Carbon\Carbon::parse($ex->date)->format('D, M j') }}</div>
+                            </div>
+                            @if($ex->late_minutes > 0)
+                                <span class="badge">+{{ $ex->late_minutes }}m late</span>
+                            @endif
+                            @if($ex->undertime_minutes > 0)
+                                <span class="badge badge-orange">-{{ $ex->undertime_minutes }}m UT</span>
+                            @endif
+                        </div>
+                    @empty
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle text-success fs-2 d-block mb-2"></i>
+                            <p class="text-muted small mb-0">Clean week &mdash; no late or undertime records.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="row g-4">
-        <div class="col-12 col-lg-7">
-            <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
-                <div class="card-header bg-white py-3 border-0 ps-4 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold">Recent Payroll Batches</h6>
-                    <a href="{{ route('payroll.index') }}" class="small fw-bold text-decoration-none">View all</a>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light font-monospace small text-muted text-uppercase tracking-wider">
-                                <tr>
-                                    <th class="ps-4">Batch</th>
-                                    <th>Group</th>
-                                    <th>Period</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentPayrolls as $payroll)
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-primary font-monospace" style="font-size: 0.75rem;">{{ $payroll->payroll_code }}</td>
-                                        <td style="font-size: 0.8rem;">
-                                            @if($payroll->employee_id)
-                                                {{ $payroll->employee->full_name ?? 'Individual' }}
-                                            @else
-                                                {{ $payroll->payrollGroup->name ?? 'All Groups' }}
-                                            @endif
-                                        </td>
-                                        <td style="font-size: 0.75rem;" class="text-muted">{{ $payroll->start_date }} to {{ $payroll->end_date }}</td>
-                                        <td>
-                                            <span class="badge border {{ $payroll->status == 'processed' ? 'bg-success-subtle text-success border-success-subtle' : 'bg-warning-subtle text-warning-emphasis border-warning-subtle' }} rounded-pill px-3 py-1" style="font-size: 0.65rem;">
-                                                {{ ucfirst($payroll->status) }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center text-muted py-4">No recent payroll batches available.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<div class="row g-3 g-md-4">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Recent Payroll Batches</h6>
+                <a href="{{ route('payroll.index') }}" class="small text-decoration-none fw-medium">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Batch</th>
+                            <th>Group</th>
+                            <th>Period</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentPayrolls as $p)
+                            <tr>
+                                <td class="ps-4"><span class="code-chip">{{ $p->payroll_code }}</span></td>
+                                <td style="font-size: 0.88rem;">
+                                    @if($p->employee_id)
+                                        {{ $p->employee->full_name ?? 'Individual' }}
+                                    @else
+                                        {{ $p->payrollGroup->name ?? 'All Groups' }}
+                                    @endif
+                                </td>
+                                <td class="text-muted" style="font-size: 0.82rem;">{{ $p->start_date }} &ndash; {{ $p->end_date }}</td>
+                                <td>
+                                    @if($p->status == 'processed')
+                                        <span class="badge badge-blue">Processed</span>
+                                    @elseif($p->status == 'approved')
+                                        <span class="badge badge-green">Approved</span>
+                                    @else
+                                        <span class="badge badge-orange">{{ ucfirst($p->status) }}</span>
+                                    @endif
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="{{ route('payroll.show', $p->id) }}" class="btn btn-sm btn-light">Review</a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="text-center text-muted py-4">No recent payroll batches available.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
 
-        <div class="col-12 col-lg-5">
-            <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
-                <div class="card-header bg-white py-3 border-0 ps-4 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold">Open Tickets</h6>
-                    <a href="{{ route('admin.tickets.index') }}" class="small fw-bold text-decoration-none">View all</a>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 small">
-                            <thead class="bg-light text-muted text-uppercase">
-                                <tr>
-                                    <th class="ps-4">Employee</th>
-                                    <th>Subject</th>
-                                    <th class="text-end pe-4">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentTickets as $ticket)
-                                    <tr>
-                                        <td class="ps-4">{{ $ticket->employee->name ?? 'System' }}</td>
-                                        <td>{{ \Illuminate\Support\Str::limit($ticket->subject, 24) }}</td>
-                                        <td class="text-end pe-4">
-                                            <span class="badge rounded-pill {{ $ticket->status == 'open' ? 'bg-danger' : ($ticket->status == 'in_progress' ? 'bg-warning text-dark' : 'bg-success') }}">
-                                                {{ str_replace('_', ' ', $ticket->status) }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center py-4 text-muted">No recent tickets.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Open Tickets</h6>
+                <a href="{{ route('admin.tickets.index') }}" class="small text-decoration-none fw-medium">View all</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @forelse($recentTickets as $ticket)
+                        <div class="list-group-item px-4 d-flex align-items-center gap-3">
+                            <div class="avatar-initial">{{ strtoupper(substr($ticket->employee->name ?? 'S', 0, 1)) }}</div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="fw-semibold text-truncate" style="font-size: 0.9rem;">{{ \Illuminate\Support\Str::limit($ticket->subject, 40) }}</div>
+                                <div class="text-muted text-truncate" style="font-size: 0.78rem;">{{ $ticket->employee->name ?? 'System' }}</div>
+                            </div>
+                            @if($ticket->status == 'open')
+                                <span class="badge">Open</span>
+                            @elseif($ticket->status == 'in_progress')
+                                <span class="badge badge-orange">In progress</span>
+                            @else
+                                <span class="badge badge-green">{{ str_replace('_', ' ', $ticket->status) }}</span>
+                            @endif
+                        </div>
+                    @empty
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox text-muted fs-2 d-block mb-2"></i>
+                            <p class="text-muted small mb-0">No recent tickets.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -244,54 +229,77 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    var appleFont = 'Inter, -apple-system, sans-serif';
+    var muted = '#86868b';
+
     var options = {
         series: [{
             name: 'Punches',
             data: @json($attendanceCounts ?? [])
         }],
         chart: {
-            height: 280,
+            height: 260,
             type: 'area',
             toolbar: { show: false },
-            zoom: { enabled: false }
+            zoom: { enabled: false },
+            fontFamily: appleFont,
+            animations: { easing: 'easeout', speed: 600 }
         },
         dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
+        stroke: { curve: 'smooth', width: 2.5, lineCap: 'round' },
         xaxis: {
             categories: @json($attendanceLabels ?? []),
             axisBorder: { show: false },
-            axisTicks: { show: false }
+            axisTicks: { show: false },
+            labels: { style: { colors: muted, fontSize: '11px', fontWeight: 500 } }
         },
         yaxis: { show: false },
         fill: {
             type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.35,
-                opacityTo: 0.05,
-                stops: [20, 100]
-            }
+            gradient: { shadeIntensity: 1, opacityFrom: 0.28, opacityTo: 0.02, stops: [20, 100] }
         },
-        colors: ['#0d6efd'],
-        grid: { borderColor: '#f1f1f1', strokeDashArray: 4 }
+        colors: ['#0071e3'],
+        grid: { borderColor: 'rgba(0,0,0,0.05)', strokeDashArray: 0, padding: { left: 8, right: 8 } },
+        tooltip: {
+            theme: 'light',
+            y: { formatter: function(v) { return v + ' punches'; } }
+        }
     };
-
-    var chart = new ApexCharts(document.querySelector('#attendanceChart'), options);
-    chart.render();
+    new ApexCharts(document.querySelector('#attendanceChart'), options).render();
 });
 </script>
 
 <style>
-    .fw-800 { font-weight: 800; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-wider { letter-spacing: 0.1em; }
-    .rounded-4 { border-radius: 1rem !important; }
-    .bg-primary-subtle { background-color: #e0f2fe !important; }
-    .bg-danger-subtle { background-color: #fee2e2 !important; }
-    .bg-warning-subtle { background-color: #fef3c7 !important; }
-    .bg-info-subtle { background-color: #e0f2fe !important; }
-    .x-small { font-size: 0.7rem; }
-    .font-monospace { font-family: 'JetBrains Mono', 'Courier New', monospace !important; }
-    .progress-bar { transition: width 1s ease-in-out; }
+    .kpi-number { font-size: 1.85rem; letter-spacing: -0.03em; }
+    .kpi-chip {
+        width: 36px; height: 36px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 10px; font-size: 0.95rem; flex-shrink: 0;
+    }
+    .avatar-initial {
+        width: 34px; height: 34px; flex-shrink: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 50%; font-size: 0.8rem; font-weight: 600; color: #fff;
+        background: linear-gradient(135deg, #8e8e93, #636366);
+    }
+    .avatar-initial:nth-child(odd) { background: linear-gradient(135deg, #0071e3, #0058b0); }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; vertical-align: middle; }
+    .dot-success { background: #34c759; box-shadow: 0 0 0 3px rgba(52,199,89,0.15); }
+    .min-width-0 { min-width: 0; }
+    .code-chip {
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 0.72rem; font-weight: 600;
+        background: rgba(0,113,227,0.08); color: #0071e3;
+        padding: 0.25rem 0.6rem; border-radius: 7px;
+        letter-spacing: 0.02em;
+    }
+    .badge { font-size: 0.72rem; }
+    .badge:not([class*="badge-"]):not(.bg-white) { background: #ffe5e3 !important; color: #d02f26 !important; }
+    .badge-orange { background: #ffefd6 !important; color: #995f00 !important; }
+    .badge-blue { background: rgba(0,113,227,0.1) !important; color: #0071e3 !important; }
+    .badge-green { background: #d9f4e3 !important; color: #157347 !important; }
+    .card-hover { transition: transform 0.2s cubic-bezier(0.25,0.1,0.25,1), box-shadow 0.2s cubic-bezier(0.25,0.1,0.25,1); }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05), 0 16px 40px rgba(0,0,0,0.08); }
+    .apexcharts-tooltip { border-radius: 12px !important; border: none !important; box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important; }
 </style>
 @endsection

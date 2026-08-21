@@ -25,9 +25,11 @@ class AttendanceController extends Controller
         
         $employees = Employee::query()
             ->when($search, function($query, $search) {
-                $query->where('first_name', 'like', "%{$search}%")
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
                       ->orWhere('last_name', 'like', "%{$search}%")
                       ->orWhere('employee_id', 'like', "%{$search}%");
+                });
             })
             ->withCount(['attendances as attendances_count' => function ($query) {
                 $query->whereDate('date', today());
@@ -68,8 +70,21 @@ class AttendanceController extends Controller
 
     public function getMonthlyAttendance(Request $request, Employee $employee)
     {
-        $year = $request->get('year', now()->year);
-        $month = $request->get('month', now()->month);
+        if ($request->filled('start') && $request->filled('end')) {
+            $startDate = \Carbon\Carbon::parse($request->get('start'))->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->get('end'))->startOfDay();
+            if ($endDate->lessThan($startDate)) {
+                [$startDate, $endDate] = [$endDate, $startDate];
+            }
+            if ($startDate->diffInDays($endDate) > 80) {
+                $endDate = $startDate->copy()->addDays(80);
+            }
+        } else {
+            $year = $request->get('year', now()->year);
+            $month = $request->get('month', now()->month);
+            $startDate = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfDay();
+            $endDate = $startDate->copy()->endOfMonth()->startOfDay();
+        }
 
         $formatTime = function ($value) {
             if (!$value || $value === '00:00:00') {
@@ -80,52 +95,103 @@ class AttendanceController extends Controller
         };
 
         $attendances = Attendance::where('employee_id', $employee->id)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
+            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->orderBy('time_in')
             ->get()
-            ->groupBy('date');
+            ->groupBy(function ($log) {
+                return \Carbon\Carbon::parse($log->date)->toDateString();
+            });
 
-        // Get Direct Individual Schedules
-        $individualSchedules = \App\Models\Schedule::where('employee_id', $employee->id)
+        $datedSchedules = \App\Models\Schedule::where('employee_id', $employee->id)
             ->where('is_template', false)
-            ->whereYear('schedule_date', $year)
-            ->whereMonth('schedule_date', $month)
+            ->whereBetween('schedule_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
             ->groupBy(function ($schedule) {
                 return $schedule->schedule_date ? $schedule->schedule_date->toDateString() : null;
             });
 
+        $patternSchedules = \App\Models\Schedule::where('employee_id', $employee->id)
+            ->where('is_template', false)
+            ->whereNull('schedule_date')
+            ->get();
+
+        $resolveShiftById = function ($id) {
+            if (!$id) {
+                return null;
+            }
+
+            $shift = \App\Models\Shift::find($id);
+            if ($shift) {
+                return ['name' => $shift->name, 'time_in' => $shift->time_in, 'time_out' => $shift->time_out];
+            }
+
+            $custom = \App\Models\CustomShift::find($id);
+            if ($custom) {
+                return ['name' => $custom->title, 'time_in' => $custom->start_time, 'time_out' => $custom->end_time];
+            }
+
+            return null;
+        };
+
+        $scheduleFromRow = function ($row) use ($resolveShiftById) {
+            if ($row->time_in && $row->time_out) {
+                return ['name' => $row->name ?? 'Shift', 'time_in' => $row->time_in, 'time_out' => $row->time_out];
+            }
+
+            $resolved = $resolveShiftById($row->shift_id);
+            if ($resolved) {
+                return $resolved;
+            }
+
+            if ($row->custom_shift_id) {
+                $custom = \App\Models\CustomShift::find($row->custom_shift_id);
+                if ($custom) {
+                    return ['name' => $custom->title, 'time_in' => $custom->start_time, 'time_out' => $custom->end_time];
+                }
+            }
+
+            return null;
+        };
+
+        $configDayValue = function ($config, $dayName) {
+            if (!is_array($config)) {
+                return null;
+            }
+
+            foreach ([$dayName, strtoupper($dayName), ucfirst(strtolower($dayName))] as $key) {
+                if (array_key_exists($key, $config)) {
+                    return $config[$key];
+                }
+            }
+
+            return null;
+        };
+
+        $ownGroupConfig = $employee->scheduleGroup ? $employee->scheduleGroup->schedule_config : null;
+
         $site = $employee->site ? $employee->site->load('scheduleGroup') : null;
         $siteConfig = null;
-
         if ($site) {
-            $siteConfig = ($site->scheduleGroup) ? $site->scheduleGroup->schedule_config : $site->schedule_config;
+            $siteConfig = $site->scheduleGroup ? $site->scheduleGroup->schedule_config : $site->schedule_config;
         }
 
-        $daysInMonth = \Carbon\Carbon::createFromDate($year, $month, 1)->daysInMonth;
         $formatted = [];
-
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $dateString = sprintf('%04d-%02d-%02d', $year, $month, $day);
-            $dayName = \Carbon\Carbon::parse($dateString)->format('l');
+        for ($date = $startDate->copy(); $date->lessThanOrEqualTo($endDate); $date->addDay()) {
+            $dateString = $date->toDateString();
+            $dayName = $date->format('l');
             $data = [
                 'attendance' => null,
-                'schedule' => null
+                'schedule' => null,
             ];
-            
-            // 1. Check Attendance
+
             $logs = $attendances->get($dateString);
             if ($logs && $logs->count() > 0) {
                 $realLogs = $logs->filter(function ($log) {
                     return collect([
-                        $log->time_in,
-                        $log->time_out,
-                        $log->break1_out,
-                        $log->break1_in,
-                        $log->break2_out,
-                        $log->break2_in,
-                        $log->lunch_out,
-                        $log->lunch_in,
+                        $log->time_in, $log->time_out,
+                        $log->break1_out, $log->break1_in,
+                        $log->lunch_out, $log->lunch_in,
+                        $log->break2_out, $log->break2_in,
                     ])->contains(function ($value) {
                         return $value && $value !== '00:00:00';
                     });
@@ -134,53 +200,60 @@ class AttendanceController extends Controller
                 if ($realLogs->isNotEmpty()) {
                     $data['attendance'] = [
                         'status' => 'present',
-                        'logs' => $realLogs->map(function($log) {
-                        $formatTime = function ($value) {
-                            if (!$value || $value === '00:00:00') {
-                                return null;
-                            }
-
-                            return date('H:i', strtotime($value));
-                        };
-
-                        return [
-                            'time_in' => $formatTime($log->time_in),
-                            'time_out' => $formatTime($log->time_out),
-                            'break1_out' => $formatTime($log->break1_out),
-                            'break1_in' => $formatTime($log->break1_in),
-                        ];
-                    })
+                        'total_hours' => (float) $realLogs->sum('total_hours'),
+                        'logs' => $realLogs->map(function ($log) use ($formatTime) {
+                            return [
+                                'time_in' => $formatTime($log->time_in),
+                                'time_out' => $formatTime($log->time_out),
+                                'break1_out' => $formatTime($log->break1_out),
+                                'break1_in' => $formatTime($log->break1_in),
+                                'lunch_out' => $formatTime($log->lunch_out),
+                                'lunch_in' => $formatTime($log->lunch_in),
+                                'break2_out' => $formatTime($log->break2_out),
+                                'break2_in' => $formatTime($log->break2_in),
+                            ];
+                        })->values(),
                     ];
                 }
             }
 
-            // 2. Check Schedule (Individual Priority -> Group -> Site)
             $sched = null;
             $schedSource = null;
 
-            // Direct plotting
-            if ($individualSchedules->has($dateString)) {
-                $s = $individualSchedules->get($dateString)->first();
-                $sched = [
-                    'title' => $s->title ?? 'Shift',
-                    'time_in' => $s->time_in,
-                    'time_out' => $s->time_out,
-                ];
+            $directPlot = $datedSchedules->get($dateString)?->first();
+            if ($directPlot) {
+                $sched = $scheduleFromRow($directPlot);
                 $schedSource = 'individual';
-            } 
-            // Group/Site plotting
-            elseif ($siteConfig && isset($siteConfig[$dayName])) {
-                $dayConfig = $siteConfig[$dayName];
-                if ($dayConfig !== 'OFF' && (!is_array($dayConfig) || !($dayConfig['is_rest_day'] ?? false))) {
-                    $schedId = is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig;
-                    $s = \App\Models\Schedule::find($schedId);
-                    if ($s) {
-                        $sched = [
-                            'title' => $s->title,
-                            'time_in' => $s->time_in,
-                            'time_out' => $s->time_out,
-                        ];
-                        $schedSource = ($site->scheduleGroup) ? 'group' : 'fixed';
+            }
+
+            if (!$sched) {
+                $pattern = $patternSchedules->first(function ($p) use ($dayName) {
+                    return $p->days && is_array($p->days) && in_array($dayName, $p->days);
+                });
+                if ($pattern) {
+                    $sched = $scheduleFromRow($pattern);
+                    $schedSource = 'individual';
+                }
+            }
+
+            if (!$sched) {
+                $dayConfig = $configDayValue($ownGroupConfig, $dayName);
+                if ($dayConfig !== 'OFF' && (!is_array($dayConfig) || empty($dayConfig['is_rest_day']))) {
+                    $resolved = $resolveShiftById(is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig);
+                    if ($resolved) {
+                        $sched = $resolved;
+                        $schedSource = 'group';
+                    }
+                }
+            }
+
+            if (!$sched) {
+                $dayConfig = $configDayValue($siteConfig, $dayName);
+                if ($dayConfig !== 'OFF' && (!is_array($dayConfig) || empty($dayConfig['is_rest_day']))) {
+                    $resolved = $resolveShiftById(is_array($dayConfig) ? ($dayConfig['id'] ?? null) : $dayConfig);
+                    if ($resolved) {
+                        $sched = $resolved;
+                        $schedSource = 'fixed';
                     }
                 }
             }

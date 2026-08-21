@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\WebBundyPunchRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\AuthorizedNetwork;
@@ -271,123 +272,152 @@ class WebBundyController extends Controller
             }
         }
 
-        $attendance = Attendance::where('employee_id', $employee->id)
-            ->where('date', $targetDate)
-            ->first();
+        // §1.1 RACE SAFETY: The read-validate-write sequence runs inside a
+        // transaction with a row lock, and record creation is backed by the
+        // unique (employee_id, date) constraint — rapid double-clicks or
+        // network retries can no longer produce two rows for one shift.
+        $result = DB::transaction(function () use ($request, $employee, $targetDate, $today, $now) {
+            $attendance = Attendance::where('employee_id', $employee->id)
+                ->where('date', $targetDate)
+                ->lockForUpdate()
+                ->first();
 
-        if (!$attendance) {
-            if ($request->punch_type === 'am_in') {
-                $attendance = Attendance::create([
-                    'employee_id' => $employee->id,
-                    'date' => $targetDate,
-                    'time_in' => '00:00:00',
-                    'time_out' => '00:00:00',
-                    'break1_out' => '00:00:00',
-                    'break1_in' => '00:00:00',
-                    'break2_out' => '00:00:00',
-                    'break2_in' => '00:00:00',
-                    'lunch_out' => '00:00:00',
-                    'lunch_in' => '00:00:00',
-                    'total_hours' => 0,
-                    'late_minutes' => 0,
-                    'undertime_minutes' => 0,
-                ]);
-            } else {
-                return back()->with('bundy_error', 'SEQUENCE ERROR: No "Start Shift" record found for ' . ($targetDate === $today ? 'today' : 'yesterday') . '. Please punch START SHIFT first.');
-            }
-        }
+            if (!$attendance) {
+                if ($request->punch_type !== 'am_in') {
+                    return ['error' => 'SEQUENCE ERROR: No "Start Shift" record found for ' . ($targetDate === $today ? 'today' : 'yesterday') . '. Please punch START SHIFT first.'];
+                }
 
-        // Map punch types to database columns
-        $typeMap = [
-            'am_in' => 'time_in',
-            'am_out' => 'lunch_out', // Changed from break1_out to lunch_out for standard 4-punch support
-            'pm_in' => 'lunch_in',   // Changed from break1_in to lunch_in for standard 4-punch support
-            'pm_out' => 'time_out',
-            'lunch_out' => 'lunch_out',
-            'lunch_in' => 'lunch_in',
-            'break1_out' => 'break1_out',
-            'break1_in' => 'break1_in',
-            'break2_out' => 'break2_out',
-            'break2_in' => 'break2_in',
-        ];
+                try {
+                    $attendance = Attendance::create([
+                        'employee_id' => $employee->id,
+                        'date' => $targetDate,
+                        'time_in' => '00:00:00',
+                        'time_out' => '00:00:00',
+                        'break1_out' => '00:00:00',
+                        'break1_in' => '00:00:00',
+                        'break2_out' => '00:00:00',
+                        'break2_in' => '00:00:00',
+                        'lunch_out' => '00:00:00',
+                        'lunch_in' => '00:00:00',
+                        'total_hours' => 0,
+                        'late_minutes' => 0,
+                        'undertime_minutes' => 0,
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // Lost a creation race against the unique constraint —
+                    // fall back to the winning row.
+                    $attendance = Attendance::where('employee_id', $employee->id)
+                        ->where('date', $targetDate)
+                        ->first();
 
-        $column = $typeMap[$request->punch_type] ?? $request->punch_type;
-
-        // Check if already punched
-        if ($attendance->{$column} !== null && $attendance->{$column} !== '00:00:00') {
-            $formattedTime = Carbon::parse($attendance->{$column})->format('H:i');
-            return back()->with('bundy_error', 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' for shift starting ' . Carbon::parse($attendance->date)->format('M d') . '.');
-        }
-
-        // Strict Sequence Validations (Independent for each break type)
-        if ($request->punch_type !== 'am_in' && ($attendance->time_in === '00:00:00' || !$attendance->time_in)) {
-            return back()->with('bundy_error', 'SEQUENCE ERROR: You must punch START SHIFT first.');
-        }
-
-        // BLOCK PUNCHING IF ALREADY TIMED OUT (PM OUT)
-        if ($request->punch_type !== 'pm_out' && ($attendance->time_out !== '00:00:00' && $attendance->time_out !== null)) {
-            return back()->with('bundy_error', 'ACTION NOT POSSIBLE: You have already punched PM OUT (END) for this shift. You cannot record more activities for this period.');
-        }
-
-        // Time-based sequence checks (Ensure currently punched time is after previous relevant punch)
-        $punchTime = $now;
-        
-        if ($request->punch_type === 'lunch_out' || $request->punch_type === 'am_out') {
-            $inTime = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
-            if ($punchTime->lessThan($inTime)) {
-                return back()->with('bundy_error', 'SEQUENCE ERROR: Lunch Out cannot be earlier than Start Shift.');
-            }
-        }
-
-        if ($request->punch_type === 'pm_out') {
-            $inTime = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
-            if ($punchTime->lessThan($inTime)) {
-                return back()->with('bundy_error', 'SEQUENCE ERROR: PM Out cannot be earlier than Start Shift.');
-            }
-            
-            // If lunch in exists, pm out must be after it
-            if ($attendance->lunch_in && $attendance->lunch_in !== '00:00:00') {
-                $lInTime = Carbon::parse($attendance->date . ' ' . $attendance->lunch_in);
-                if ($lInTime->greaterThan($punchTime)) $lInTime->subDay(); // Handle overnight
-                if ($punchTime->lessThan($lInTime)) {
-                     return back()->with('bundy_error', 'SEQUENCE ERROR: PM Out cannot be earlier than Lunch In.');
+                    if (!$attendance) {
+                        throw $e;
+                    }
                 }
             }
-        }
 
-        // Fix: Use target columns for sequence checks to handle aliases (am_out/pm_in)
-        if (in_array($column, ['lunch_in', 'break1_in', 'break2_in'])) {
-            $outColumn = str_replace('_in', '_out', $column);
-            if ($attendance->{$outColumn} === '00:00:00' || !$attendance->{$outColumn}) {
-                $typeName = str_replace('_', ' ', strtoupper($column));
-                $outName = str_replace('_', ' ', strtoupper($outColumn));
-                return back()->with('bundy_error', "SEQUENCE ERROR: You cannot punch $typeName because you haven't punched $outName.");
+            // Map punch types to database columns
+            $typeMap = [
+                'am_in' => 'time_in',
+                'am_out' => 'lunch_out', // Changed from break1_out to lunch_out for standard 4-punch support
+                'pm_in' => 'lunch_in',   // Changed from break1_in to lunch_in for standard 4-punch support
+                'pm_out' => 'time_out',
+                'lunch_out' => 'lunch_out',
+                'lunch_in' => 'lunch_in',
+                'break1_out' => 'break1_out',
+                'break1_in' => 'break1_in',
+                'break2_out' => 'break2_out',
+                'break2_in' => 'break2_in',
+            ];
+
+            $column = $typeMap[$request->punch_type] ?? $request->punch_type;
+
+            // Check if already punched
+            if ($attendance->{$column} !== null && $attendance->{$column} !== '00:00:00') {
+                $formattedTime = Carbon::parse($attendance->{$column})->format('H:i');
+                return ['error' => 'DUPLICATE PUNCH: You already punched for ' . str_replace('_', ' ', strtoupper($request->punch_type)) . ' at ' . $formattedTime . ' for shift starting ' . Carbon::parse($attendance->date)->format('M d') . '.'];
             }
 
-            // Time comparison for break in
-            $outTime = Carbon::parse($attendance->date . ' ' . $attendance->{$outColumn});
-            if ($punchTime->lessThan($outTime)) {
-                $typeName = str_replace('_', ' ', strtoupper($column));
-                return back()->with('bundy_error', "SEQUENCE ERROR: $typeName cannot be earlier than the corresponding OUT punch.");
+            // Strict Sequence Validations (Independent for each break type)
+            if ($request->punch_type !== 'am_in' && ($attendance->time_in === '00:00:00' || !$attendance->time_in)) {
+                return ['error' => 'SEQUENCE ERROR: You must punch START SHIFT first.'];
             }
+
+            // BLOCK PUNCHING IF ALREADY TIMED OUT (PM OUT)
+            if ($request->punch_type !== 'pm_out' && ($attendance->time_out !== '00:00:00' && $attendance->time_out !== null)) {
+                return ['error' => 'ACTION NOT POSSIBLE: You have already punched PM OUT (END) for this shift. You cannot record more activities for this period.'];
+            }
+
+            // Time-based sequence checks (Ensure currently punched time is after previous relevant punch)
+            $punchTime = $now;
+
+            if ($request->punch_type === 'lunch_out' || $request->punch_type === 'am_out') {
+                $inTime = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
+                if ($punchTime->lessThan($inTime)) {
+                    return ['error' => 'SEQUENCE ERROR: Lunch Out cannot be earlier than Start Shift.'];
+                }
+            }
+
+            if ($request->punch_type === 'pm_out') {
+                $inTime = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
+                if ($punchTime->lessThan($inTime)) {
+                    return ['error' => 'SEQUENCE ERROR: PM Out cannot be earlier than Start Shift.'];
+                }
+
+                // If lunch in exists, pm out must be after it
+                if ($attendance->lunch_in && $attendance->lunch_in !== '00:00:00') {
+                    $lInTime = Carbon::parse($attendance->date . ' ' . $attendance->lunch_in);
+                    if ($lInTime->greaterThan($punchTime)) $lInTime->subDay(); // Handle overnight
+                    if ($punchTime->lessThan($lInTime)) {
+                         return ['error' => 'SEQUENCE ERROR: PM Out cannot be earlier than Lunch In.'];
+                    }
+                }
+            }
+
+            // Fix: Use target columns for sequence checks to handle aliases (am_out/pm_in)
+            if (in_array($column, ['lunch_in', 'break1_in', 'break2_in'])) {
+                $outColumn = str_replace('_in', '_out', $column);
+                if ($attendance->{$outColumn} === '00:00:00' || !$attendance->{$outColumn}) {
+                    $typeName = str_replace('_', ' ', strtoupper($column));
+                    $outName = str_replace('_', ' ', strtoupper($outColumn));
+                    return ['error' => "SEQUENCE ERROR: You cannot punch $typeName because you haven't punched $outName."];
+                }
+
+                // Time comparison for break in
+                $outTime = Carbon::parse($attendance->date . ' ' . $attendance->{$outColumn});
+                if ($punchTime->lessThan($outTime)) {
+                    $typeName = str_replace('_', ' ', strtoupper($column));
+                    return ['error' => "SEQUENCE ERROR: $typeName cannot be earlier than the corresponding OUT punch."];
+                }
+            }
+
+            // Update the specific punch column
+            $attendance->update([
+                $column => $now->toTimeString()
+            ]);
+
+            return ['attendance' => $attendance];
+        });
+
+        if (isset($result['error'])) {
+            return back()->with('bundy_error', $result['error']);
         }
 
-        // Update the specific punch column
-        $attendance->update([
-            $column => $now->toTimeString()
-        ]);
+        $attendance = $result['attendance'];
 
-        // Recalculate stats
+        // Recalculate stats (reusing the loaded models per §2.1)
         $payrollService = app(\App\Services\PayrollService::class);
         $timeIn = ($attendance->time_in && $attendance->time_in !== '00:00:00') ? $attendance->time_in : null;
         $timeOut = ($attendance->time_out && $attendance->time_out !== '00:00:00') ? $attendance->time_out : null;
 
         if ($timeIn) {
             $stats = $payrollService->calculateAttendanceStats(
-                $timeIn, 
-                $timeOut ?? $now->toTimeString(), 
-                $employee->id, 
-                $attendance->date
+                $timeIn,
+                $timeOut ?? $now->toTimeString(),
+                $employee->id,
+                $attendance->date,
+                $attendance,
+                $employee
             );
             $attendance->update($stats);
         }
