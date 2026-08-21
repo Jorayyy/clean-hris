@@ -20,74 +20,79 @@
         }
     }
 @endphp
-<div class="row align-items-center mb-4">
-    <div class="col">
-        <h4 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Generate Daily Time Records (DTR)</h4>
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="font-size: 1.9rem; letter-spacing: -0.03em;">Daily Time Records</h2>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">Generate, verify, and lock attendance summaries before payroll.</p>
     </div>
-    <div class="col-auto">
-        <div class="btn-group me-2" id="batchActions" style="display: none;">
-            <div class="dropdown me-1">
-                <button type="button" class="btn btn-outline-primary fw-bold dropdown-toggle" data-bs-toggle="dropdown">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <div id="batchActions" style="display: none;" class="d-inline-flex gap-2">
+            <div class="dropdown">
+                <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
                     <i class="bi bi-shield-check me-1"></i> Batch Authorize
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_all')"><i class="bi bi-check-all text-primary me-2"></i>Authorize All Extras</button></li>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_all')"><i class="bi bi-check-all me-2" style="color:#0071e3;"></i>Authorize All Extras</button></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_ot')"><i class="bi bi-clock-history text-success me-2"></i>Authorize OT Only</button></li>
-                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_nd')"><i class="bi bi-moon-stars text-info me-2"></i>Authorize Night Diff Only</button></li>
-                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_holiday')"><i class="bi bi-calendar-event text-warning me-2"></i>Authorize Holiday Only</button></li>
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_ot')"><i class="bi bi-clock-history me-2" style="color:#157347;"></i>Authorize OT Only</button></li>
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_nd')"><i class="bi bi-moon-stars me-2" style="color:#0b6a99;"></i>Authorize Night Diff Only</button></li>
+                    <li><button type="button" class="dropdown-item py-2" onclick="submitBatchAuth('authorize_holiday')"><i class="bi bi-calendar-event me-2" style="color:#995f00;"></i>Authorize Holiday Only</button></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><button type="button" class="dropdown-item py-2 text-danger" onclick="submitBatchAuth('unauthorize_all')"><i class="bi bi-x-circle me-2"></i>Unauthorize All</button></li>
+                    <li><button type="button" class="dropdown-item py-2" style="color:#d02f26;" onclick="submitBatchAuth('unauthorize_all')"><i class="bi bi-x-circle me-2"></i>Unauthorize All</button></li>
                 </ul>
             </div>
-            <button type="button" class="btn btn-info fw-bold" id="batchVerifyBtn" data-bs-toggle="modal" data-bs-target="#batchVerifyModal">
+            <button type="button" class="btn btn-light" id="batchVerifyBtn" data-bs-toggle="modal" data-bs-target="#batchVerifyModal">
                 <i class="bi bi-check2-square me-1"></i> Verify Selected
             </button>
-            <button type="button" class="btn btn-success fw-bold" id="batchFinalizeBtn" data-bs-toggle="modal" data-bs-target="#batchFinalizeModal">
-                <i class="bi bi-lock-fill me-1"></i> Finalize Selected
+            <button type="button" class="btn btn-light" id="batchFinalizeBtn" data-bs-toggle="modal" data-bs-target="#batchFinalizeModal">
+                <i class="bi bi-lock me-1"></i> Finalize Selected
             </button>
-            <button type="button" class="btn btn-danger fw-bold" id="batchDeleteBtn" data-bs-toggle="modal" data-bs-target="#batchDeleteModal">
-                <i class="bi bi-trash-fill me-1"></i> Delete Selected
+            <button type="button" class="btn btn-light" id="batchDeleteBtn" data-bs-toggle="modal" data-bs-target="#batchDeleteModal">
+                <i class="bi bi-trash me-1"></i> Delete Selected
             </button>
         </div>
-        <form action="{{ route('admin.dtrs.index') }}" method="GET" class="d-inline-flex align-items-center bg-white rounded shadow-sm border p-1" style="min-width: 300px;">
-            <select name="period" class="form-select border-0 shadow-none fw-bold" onchange="const [start, end] = this.value.split('|'); if(start && end) { window.location.href = `{{ route('admin.dtrs.index') }}?start_date=${start}&end_date=${end}`; } else { window.location.href = `{{ route('admin.dtrs.index') }}`; }">
-                <option value="">All Periods</option>
-                @foreach($periods as $period)
-                    @php
-                        $start = $period->start_date->format('Y-m-d');
-                        $end = $period->end_date->format('Y-m-d');
-                        $isSelected = request('start_date') == $start && request('end_date') == $end;
-                    @endphp
-                    <option value="{{ $start }}|{{ $end }}" {{ $isSelected ? 'selected' : '' }}>
-                        {{ $period->start_date->format('M d') }} - {{ $period->end_date->format('M d, Y') }}
-                    </option>
-                @endforeach
-            </select>
-        </form>
-    </div>
-    <div class="col text-end">
-        <a href="{{ route('admin.dtrs.create') }}" class="btn btn-primary shadow-sm px-4 fw-bold">
-            <i class="bi bi-plus-circle me-1"></i> Generate New DTR
+        <select name="period" class="form-select" style="width: auto; min-width: 200px;" onchange="const [start, end] = this.value.split('|'); if(start && end) { window.location.href = `{{ route('admin.dtrs.index') }}?start_date=${start}&end_date=${end}`; } else { window.location.href = `{{ route('admin.dtrs.index') }}`; }">
+            <option value="">All Periods</option>
+            @foreach($periods as $period)
+                @php
+                    $start = $period->start_date->format('Y-m-d');
+                    $end = $period->end_date->format('Y-m-d');
+                    $isSelected = request('start_date') == $start && request('end_date') == $end;
+                @endphp
+                <option value="{{ $start }}|{{ $end }}" {{ $isSelected ? 'selected' : '' }}>
+                    {{ $period->start_date->format('M d') }} - {{ $period->end_date->format('M d, Y') }}
+                </option>
+            @endforeach
+        </select>
+        <a href="{{ route('admin.dtrs.create') }}" class="btn btn-primary px-4">
+            <i class="bi bi-plus-lg me-2"></i>Generate New DTR
         </a>
     </div>
 </div>
 
-<div class="alert alert-light border d-flex align-items-center justify-content-between mb-3">
-    <div class="small text-muted">
-        <i class="bi bi-signpost-split text-primary me-1"></i>
-        Workflow: <strong>DTR Draft</strong> -> <strong>Verify</strong> -> <strong>Finalize</strong> -> <strong>Payroll Batch</strong>
+<div class="card mb-4">
+    <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3 small text-muted">
+            <span class="fw-medium" style="color:#494949;">Workflow:</span>
+            <span class="stage-dot"></span><span>Draft</span>
+            <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+            <span class="badge badge-blue">Verify</span>
+            <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+            <span class="badge badge-green">Finalize</span>
+            <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+            <span class="badge badge-orange">Payroll Batch</span>
+        </div>
+        <a href="{{ route('payroll.index') }}" class="btn btn-sm btn-light">
+            <i class="bi bi-cash-stack me-1"></i> Open Payroll Workspace
+        </a>
     </div>
-    <a href="{{ route('payroll.index') }}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-cash-stack me-1"></i> Open Payroll Workspace
-    </a>
 </div>
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th class="ps-4" style="width: 40px;">
                             <input type="checkbox" class="form-check-input" id="selectAll">
@@ -107,95 +112,91 @@
                             <input type="checkbox" class="form-check-input dtr-checkbox" value="{{ $dtr->id }}" data-status="{{ $dtr->status }}">
                         </td>
                         <td>
-                            <div class="fw-bold">{{ $dtr->employee->full_name }}</div>
-                            <small class="text-muted">{{ $dtr->employee->employee_id }}</small>
+                            <div class="fw-semibold" style="font-size: 0.92rem;">{{ $dtr->employee->full_name }}</div>
+                            <small class="text-muted" style="font-size: 0.76rem;">{{ $dtr->employee->employee_id }}</small>
                         </td>
-                        <td>
-                            <i class="bi bi-calendar3 small text-muted me-1"></i>
+                        <td style="font-size: 0.88rem;">
                             {{ $dtr->start_date->format('M d') }} - {{ $dtr->end_date->format('M d, Y') }}
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark fw-normal border text-uppercase">Reg: {{ $dtr->total_regular_hours }}h</span>
+                            <span class="badge bg-secondary-subtle text-secondary">Reg: {{ $dtr->total_regular_hours }}h</span>
                             @if($dtr->total_overtime_hours > 0)
                                 <br/>
                                 @if($dtr->is_ot_authorized)
-                                    <span class="badge bg-success-subtle text-success fw-bold border border-success border-opacity-25 text-uppercase mt-1" title="Authorized OT">
+                                    <span class="badge badge-green mt-1" title="Authorized OT">
                                         <i class="bi bi-shield-check me-1"></i> OT: {{ $dtr->total_overtime_hours }}h
                                     </span>
                                 @else
-                                    <span class="badge bg-secondary-subtle text-secondary fw-normal border border-secondary border-opacity-25 text-uppercase mt-1" title="Unauthorized OT (Will not be paid)">
+                                    <span class="badge bg-secondary-subtle text-secondary mt-1" title="Unauthorized OT (Will not be paid)">
                                         <i class="bi bi-shield-slash me-1"></i> OT: {{ $dtr->total_overtime_hours }}h
                                     </span>
                                 @endif
                             @endif
                         </td>
-                        <td>
+                        <td style="font-size: 0.85rem;">
                             @if($dtr->total_regular_hours == 0)
                                 @if($dtr->admin_notes && str_contains($dtr->admin_notes, 'incomplete'))
-                                    <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 small fw-bold">
-                                        <i class="bi bi-exclamation-triangle-fill"></i> INCOMPLETE LOGS
-                                    </span>
+                                    <span class="badge"><i class="bi bi-exclamation-triangle-fill me-1"></i>INCOMPLETE LOGS</span>
                                 @else
-                                    <span class="badge bg-secondary small">ABSENT / NO LOGS</span>
+                                    <span class="text-muted">Absent / no logs</span>
                                 @endif
                             @else
                                 @if($dtr->total_late_minutes > 0)
-                                    <span class="text-danger small fw-bold">Late: {{ formatDtrMinutes($dtr->total_late_minutes) }}</span><br/>
+                                    <span class="fw-semibold" style="color:#d02f26;">Late: {{ formatDtrMinutes($dtr->total_late_minutes) }}</span><br/>
                                 @endif
                                 @if($dtr->total_undertime_minutes > 0)
-                                    <span class="text-warning small fw-bold">UT: {{ formatDtrMinutes($dtr->total_undertime_minutes) }}</span>
+                                    <span class="fw-semibold" style="color:#995f00;">UT: {{ formatDtrMinutes($dtr->total_undertime_minutes) }}</span>
                                 @endif
                                 @if($dtr->total_late_minutes == 0 && $dtr->total_undertime_minutes == 0)
-                                    <span class="text-success small fw-bold"><i class="bi bi-check2-circle"></i> Perfect</span>
+                                    <span class="fw-semibold" style="color:#157347;"><i class="bi bi-check2-circle me-1"></i>Perfect</span>
                                 @endif
                             @endif
                         </td>
                         <td>
                             @if($dtr->status == 'draft')
-                                <span class="badge rounded-pill bg-warning text-dark px-3 mt-1 shadow-sm border"><i class="bi bi-pencil me-1"></i>Draft</span>
+                                <span class="badge badge-orange">Draft</span>
                             @elseif($dtr->status == 'verified')
-                                <span class="badge rounded-pill bg-info text-dark px-3 mt-1 shadow-sm border"><i class="bi bi-shield-check me-1"></i>Verified</span>
+                                <span class="badge badge-blue">Verified</span>
                             @else
-                                <span class="badge rounded-pill bg-success text-white px-3 mt-1 shadow-sm border"><i class="bi bi-check-circle-fill me-1"></i>Finalized</span>
+                                <span class="badge badge-green">Finalized</span>
                             @endif
                         </td>
                         <td class="text-end pe-4">
-                            <div class="btn-group">
-                                <div class="btn-group">
-                                    <a href="{{ route('admin.dtrs.show', $dtr->id) }}" class="btn btn-sm btn-outline-primary" title="Details">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
-                                    <a href="{{ route('payroll.index', ['start_date' => $dtr->start_date->format('Y-m-d'), 'end_date' => $dtr->end_date->format('Y-m-d')]) }}" class="btn btn-sm btn-outline-success ms-1" title="Open related payroll period">
-                                        <i class="bi bi-cash-coin"></i> Payroll
-                                    </a>
-                                    @if($dtr->status !== 'finalized')
-                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-bs-toggle="modal" data-bs-target="#editDtrModal{{ $dtr->id }}" title="Edit Record">
-                                        <i class="bi bi-pencil-square"></i> Edit
-                                    </button>
-                                    @endif
-                                    @if($dtr->status == 'draft')
-                                    <button type="button" class="btn btn-sm btn-outline-info fw-bold border-2 ms-1" 
-                                        @if($dtr->total_regular_hours <= 0) disabled title="Empty records cannot be verified" @else data-bs-toggle="modal" data-bs-target="#verifyDtrModal{{ $dtr->id }}" @endif>
-                                        <i class="bi bi-check2-square"></i> Verify
-                                    </button>
-                                    @elseif($dtr->status == 'verified')
-                                    <button type="button" class="btn btn-sm btn-outline-success fw-bold border-2 ms-1" data-bs-toggle="modal" data-bs-target="#finalizeDtrModal{{ $dtr->id }}" title="Finalize DTR">
-                                        <i class="bi bi-lock-fill"></i> Finalize
-                                    </button>
-                                    @endif
-                                    
-                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteDtrModal{{ $dtr->id }}" title="Delete record" {{ $dtr->status === 'finalized' && !Auth::user()->isAdmin() ? 'disabled' : '' }}>
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                            <div class="d-inline-flex gap-1 align-items-center">
+                                <a href="{{ route('admin.dtrs.show', $dtr->id) }}" class="btn btn-sm btn-light icon-btn" title="Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('payroll.index', ['start_date' => $dtr->start_date->format('Y-m-d'), 'end_date' => $dtr->end_date->format('Y-m-d')]) }}" class="btn btn-sm btn-light icon-btn" title="Open related payroll period">
+                                    <i class="bi bi-cash-coin"></i>
+                                </a>
+                                @if($dtr->status !== 'finalized')
+                                <button type="button" class="btn btn-sm btn-light icon-btn" data-bs-toggle="modal" data-bs-target="#editDtrModal{{ $dtr->id }}" title="Edit Record">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                @endif
+                                @if($dtr->status == 'draft')
+                                <button type="button" class="btn btn-sm btn-primary btn-sm-pill"
+                                    @if($dtr->total_regular_hours <= 0) disabled title="Empty records cannot be verified" @else data-bs-toggle="modal" data-bs-target="#verifyDtrModal{{ $dtr->id }}" @endif>
+                                    Verify
+                                </button>
+                                @elseif($dtr->status == 'verified')
+                                <button type="button" class="btn btn-sm btn-success btn-sm-pill" data-bs-toggle="modal" data-bs-target="#finalizeDtrModal{{ $dtr->id }}" title="Finalize DTR">
+                                    Finalize
+                                </button>
+                                @endif
+
+                                <button type="button" class="btn btn-sm btn-light icon-btn icon-danger" data-bs-toggle="modal" data-bs-target="#deleteDtrModal{{ $dtr->id }}" title="Delete record" {{ $dtr->status === 'finalized' && !Auth::user()->isAdmin() ? 'disabled' : '' }}>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
 
                                 <!-- Verify Modal -->
                                 <div class="modal fade" id="verifyDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-info text-white">
+                                            <div class="modal-header">
                                                 <h5 class="modal-title">Verify DTR Record</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <form action="{{ route('admin.dtrs.verify', $dtr->id) }}" method="POST">
                                                 @csrf @method('PATCH')
@@ -219,9 +220,9 @@
                                 <div class="modal fade" id="finalizeDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-success text-white">
+                                            <div class="modal-header">
                                                 <h5 class="modal-title">Finalize & Lock DTR</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <form action="{{ route('admin.dtrs.finalize', $dtr->id) }}" method="POST">
                                                 @csrf @method('PATCH')
@@ -247,9 +248,9 @@
                                 <div class="modal fade" id="editDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-dark text-white">
+                                            <div class="modal-header">
                                                 <h5 class="modal-title">Edit DTR Metrics</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <form action="{{ route('admin.dtrs.update', $dtr->id) }}" method="POST">
                                                 @csrf @method('PUT')
@@ -284,7 +285,7 @@
                                                             <input type="number" name="incentives" class="form-control" value="{{ $dtr->incentives ?? 0 }}" step="0.01">
                                                         </div>
                                                         <div class="col-12 text-center py-2">
-                                                            <span class="badge bg-dark px-3 mt-2">PAYMENT AUTHORIZATIONS</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary px-3 mt-2">PAYMENT AUTHORIZATIONS</span>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <div class="form-check form-switch bg-light p-2 rounded border h-100">
@@ -332,9 +333,9 @@
                                 <div class="modal fade" id="deleteDtrModal{{ $dtr->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-danger text-white">
+                                            <div class="modal-header">
                                                 <h5 class="modal-title">Confirm DTR Deletion</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <form action="{{ route('admin.dtrs.destroy', $dtr->id) }}" method="POST">
                                                 @csrf @method('DELETE')
@@ -365,7 +366,13 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="text-center py-5 text-muted">No generated DTR records found.</td></tr>
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="bi bi-file-earmark-check text-muted fs-2 d-block mb-2"></i>
+                            <p class="text-muted small mb-3">No DTR records found for this period.</p>
+                            <a href="{{ route('admin.dtrs.create') }}" class="btn btn-sm btn-primary">Generate your first DTR</a>
+                        </td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -380,9 +387,9 @@
 <div class="modal fade" id="batchVerifyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-info text-white">
+            <div class="modal-header">
                 <h5 class="modal-title">Batch Verify DTRs</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.dtrs.batch-verify') }}" method="POST" id="batchVerifyForm">
                 @csrf
@@ -417,9 +424,9 @@
 <div class="modal fade" id="batchFinalizeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-success text-white">
+            <div class="modal-header">
                 <h5 class="modal-title">Batch Finalize DTRs</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.dtrs.batch-finalize') }}" method="POST" id="batchFinalizeForm">
                 @csrf
@@ -447,9 +454,9 @@
 <div class="modal fade" id="batchDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header">
                 <h5 class="modal-title">Batch Delete DTRs</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.dtrs.batch-delete') }}" method="POST" id="batchDeleteForm">
                 @csrf
@@ -584,4 +591,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
+<style>
+    .badge-orange { background: #ffefd6 !important; color: #995f00 !important; }
+    .badge-blue { background: rgba(0,113,227,0.1) !important; color: #0071e3 !important; }
+    .badge-green { background: #d9f4e3 !important; color: #157347 !important; }
+    .stage-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #0071e3; display: inline-block;
+    }
+    .icon-btn { padding: 0.3rem 0.55rem; line-height: 1.2; }
+    .icon-btn.icon-danger:hover { background: #ffe5e3; color: #d02f26; }
+    .btn-sm-pill { border-radius: 980px; padding-left: 0.9rem; padding-right: 0.9rem; font-size: 0.8rem; }
+</style>
 @endsection
